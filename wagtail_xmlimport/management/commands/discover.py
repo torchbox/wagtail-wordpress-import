@@ -22,39 +22,47 @@ class Command(BaseCommand):
             )
             exit()
         if options["tags"] == "items":
-            open(f"log/{self.xmlname}_items.txt", "w").close()  # empty the file first
             self.parse_items(options["xmlfile"], options["limit"])
         if options["tags"] == "channel":
-            open(f"log/{self.xmlname}_channel.txt", "w").close()  # empty the file first
             self.parse_channel(options["xmlfile"])
         if not options["tags"]:
             self.stdout.write(self.style.ERROR("did you forget the --tags option?"))
 
     def parse_channel(self, xmlfile):
         # don't need a counter here as there's only one channel anyway
+        self.empty_log(f"log/{self.xmlname}_channel.txt")
         doc = pulldom.parse("xml/" + xmlfile)
         for event, node in doc:
             if event == pulldom.START_ELEMENT and node.tagName == "channel":
                 doc.expandNode(node)
                 dict = node_to_dict(node)
-                with open(f"log/{self.xmlname}_channel.txt", "a") as tagsfile:
-                    tagsfile.write("----------\n")
+                self.write_divider(f"log/{self.xmlname}_channel.txt")
                 for key in dict:
-                    with open(f"log/{self.xmlname}_channel.txt", "a") as tagsfile:
-                        tagsfile.write((f"{key}\n"))
+                    self.write_tag(f"log/{self.xmlname}_channel.txt", key)
 
     def parse_items(self, xmlfile, limit):
+        self.empty_log(f"log/{self.xmlname}_items.txt")
         counter = limit  # use this to count down to get a smallish sample
         doc = pulldom.parse("xml/" + xmlfile)
         for event, node in doc:
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 doc.expandNode(node)
                 dict = node_to_dict(node)
-                with open(f"log/{self.xmlname}_items.txt", "a") as tagsfile:
-                    tagsfile.write("----------\n")
+                self.write_divider(f"log/{self.xmlname}_items.txt")
                 for key in dict:
-                    with open(f"log/{self.xmlname}_items.txt", "a") as tagsfile:
-                        tagsfile.write((f"{key}\n"))
+                    self.write_tag(f"log/{self.xmlname}_items.txt", key)
                 counter -= 1
                 if counter == 0:
                     break
+
+    def empty_log(self, file_name):
+        open(file_name, "w").close()
+
+    def write_divider(self, file_name):
+        dashes = "-" * 20 + "\n"
+        with open(file_name, "a") as tagsfile:
+            tagsfile.write(dashes)
+
+    def write_tag(self, file_name, tag):
+        with open(file_name, "a") as tagsfile:
+            tagsfile.write((f"{tag}\n"))
