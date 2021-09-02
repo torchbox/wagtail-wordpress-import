@@ -1,0 +1,14 @@
+*.pyc
+/build
+/dist
+/wagtail_xmlimport.egg-info
+/.coverage
+/htmlcov
+/.tox
+/venv
+/.vscode
+/site
+/test_wagtail_xmlimport.db
+/node_modules
+/test-static
+/test-media
