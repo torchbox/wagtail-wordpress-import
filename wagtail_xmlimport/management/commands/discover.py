@@ -3,8 +3,7 @@ from wagtail_xmlimport.functions import *
 
 
 class Command(BaseCommand):
-    help = """Utils to output xml structure to a file. 
-    Items is store in log/itemtags.txt. Channels is stored in log/channeltags.txt"""
+    help = """Utils to output xml structure to a file."""
 
     def add_arguments(self, parser):
         parser.add_argument("xmlfile", type=str)
