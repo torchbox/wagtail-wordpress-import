@@ -24,6 +24,10 @@ class Command(BaseCommand):
             self.parse_items(options["xmlfile"], options["limit"])
         if options["tags"] == "channel":
             self.parse_channel(options["xmlfile"])
+        if options["tags"] == "wp:categories":
+            self.parse_categories(options["xmlfile"], options["limit"])
+        if options["tags"] == "wp:tag":
+            self.parse_tags(options["xmlfile"], options["limit"])
         if not options["tags"]:
             self.stdout.write(self.style.ERROR("did you forget the --tags option?"))
 
@@ -50,6 +54,36 @@ class Command(BaseCommand):
                 self.write_divider(f"log/{self.xmlname}_items.txt")
                 for key in dict:
                     self.write_tag(f"log/{self.xmlname}_items.txt", key)
+                counter -= 1
+                if counter == 0:
+                    break
+
+    def parse_categories(self, xmlfile, limit):
+        self.empty_log(f"log/{self.xmlname}_categories.txt")
+        counter = limit  # use this to count down to get a smallish sample
+        doc = pulldom.parse("xml/" + xmlfile)
+        for event, node in doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "wp:category":
+                doc.expandNode(node)
+                dict = node_to_dict(node)
+                self.write_divider(f"log/{self.xmlname}_categories.txt")
+                for key in dict:
+                    self.write_tag(f"log/{self.xmlname}_categories.txt", key)
+                counter -= 1
+                if counter == 0:
+                    break
+
+    def parse_tags(self, xmlfile, limit):
+        self.empty_log(f"log/{self.xmlname}_tags.txt")
+        counter = limit  # use this to count down to get a smallish sample
+        doc = pulldom.parse("xml/" + xmlfile)
+        for event, node in doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "wp:tag":
+                doc.expandNode(node)
+                dict = node_to_dict(node)
+                self.write_divider(f"log/{self.xmlname}_tags.txt")
+                for key in dict:
+                    self.write_tag(f"log/{self.xmlname}_tags.txt", key)
                 counter -= 1
                 if counter == 0:
                     break
