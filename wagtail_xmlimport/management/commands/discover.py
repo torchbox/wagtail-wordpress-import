@@ -28,6 +28,8 @@ class Command(BaseCommand):
             self.parse_categories(options["xmlfile"], options["limit"])
         if options["tags"] == "wp:tag":
             self.parse_tags(options["xmlfile"], options["limit"])
+        if options["tags"] == "items-attachments":
+            self.parse_attachments(options["xmlfile"], options["limit"])
         if not options["tags"]:
             self.stdout.write(self.style.ERROR("did you forget the --tags option?"))
 
@@ -88,6 +90,27 @@ class Command(BaseCommand):
                 if counter == 0:
                     break
 
+    def parse_attachments(self, xmlfile, limit):  # media/assets
+        self.empty_log(f"log/{self.xmlname}_attachments.txt")
+        counter = limit  # use this to count down to get a smallish sample
+        doc = pulldom.parse("xml/" + xmlfile)
+        for event, node in doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                doc.expandNode(node)
+                dict = node_to_dict(node)
+                self.write_divider(f"log/{self.xmlname}_attachments.txt")
+                # check for wp:post_type == attachment
+                if dict["wp:post_type"] == "attachment":
+                    for key in dict:
+                        if key == "wp:post_type":
+                            self.write_tag(f"log/{self.xmlname}_attachments.txt", key, "<![CDATA[attachment]]>")
+                        if key == "guid":
+                            self.write_tag(f"log/{self.xmlname}_attachments.txt", key, dict[key])
+                        self.write_tag(f"log/{self.xmlname}_attachments.txt", key, "")
+                    counter -= 1
+                    if counter == 0:
+                        break
+
     def empty_log(self, file_name):
         open(file_name, "w").close()
 
@@ -96,6 +119,6 @@ class Command(BaseCommand):
         with open(file_name, "a") as tagsfile:
             tagsfile.write(dashes)
 
-    def write_tag(self, file_name, tag):
+    def write_tag(self, file_name, tag, extra=""):
         with open(file_name, "a") as tagsfile:
-            tagsfile.write((f"{tag}\n"))
+            tagsfile.write((f"{tag} {extra}\n"))
