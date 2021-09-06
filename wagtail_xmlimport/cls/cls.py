@@ -44,7 +44,7 @@ class PathsToDict:
     def get_path(self, tag):
         # output a string like, /catalog/book/description
         # from the tag path
-        return re.sub("\[[0-9]+\]", "", self.raw_tree.getpath(tag))
+        return re.sub(r"\[[0-9]+\]", "", self.raw_tree.getpath(tag))
 
     def set_current_depth(self, path):
         # how many parts to path used later to determine
