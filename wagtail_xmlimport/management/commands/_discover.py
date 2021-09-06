@@ -1,5 +1,8 @@
 from django.core.management.base import BaseCommand
+
 from wagtail_xmlimport.functions import *
+
+"""just kept for later examples not to be used"""
 
 
 class Command(BaseCommand):
@@ -103,9 +106,15 @@ class Command(BaseCommand):
                 if dict["wp:post_type"] == "attachment":
                     for key in dict:
                         if key == "wp:post_type":
-                            self.write_tag(f"log/{self.xmlname}_attachments.txt", key, "<![CDATA[attachment]]>")
+                            self.write_tag(
+                                f"log/{self.xmlname}_attachments.txt",
+                                key,
+                                "<![CDATA[attachment]]>",
+                            )
                         if key == "guid":
-                            self.write_tag(f"log/{self.xmlname}_attachments.txt", key, dict[key])
+                            self.write_tag(
+                                f"log/{self.xmlname}_attachments.txt", key, dict[key]
+                            )
                         self.write_tag(f"log/{self.xmlname}_attachments.txt", key, "")
                     counter -= 1
                     if counter == 0:
