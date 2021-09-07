@@ -1,16 +1,28 @@
 import json
-# from datetime import datetime
+from datetime import datetime
 
 from django.apps import apps
 from django.core.management.base import BaseCommand
-# from django.utils.timezone import make_aware
+from django.utils.timezone import make_aware
 from wagtail.core.models import Page
+
 # from wagtail_xmlimport.cls.cls import Mapping
 
 from wagtail_xmlimport.functions import *
 
-# def process_date(datestring):
-#     return make_aware(datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%S"))
+
+def process_date(datestring):
+    return make_aware(datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%S"))
+
+
+def reset_updated_dates(obj, date, revision):
+    # update the dates
+    obj.first_published_at = date
+    obj.last_published_at = date
+    obj.latest_revision_created_at = date
+    obj.save()
+    # rev = obj.save_revision()
+    revision.publish()
 
 
 class Command(BaseCommand):
@@ -44,13 +56,13 @@ class Command(BaseCommand):
         page_model = apps.get_model("pages", model)
 
         values = {}
-        # date_fields = {}
+        date = ""
         # "wp:post_date": ["latest_revision_created_at", "date"]
         for key in mapping_data.keys():
             if isinstance(mapping_data[key], list) and len(mapping_data[key]) >= 1:
-                # if len(mapping_data[key]) > 1 and mapping_data[key][-1] == "date":
-                #     v = process_date("T".join(data.get(key).split(" ")))
-                #     date_fields[mapping_data[key][0]] = v
+                if mapping_data[key][0] == "*date":
+                    date = process_date("T".join(data.get(key).split(" ")))
+                    # date = v
                 # else:
                 # TODO do we need to update the date for the past publish, in fact any date in
                 # a page model
@@ -61,13 +73,14 @@ class Command(BaseCommand):
                     and not v
                 ):
                     return
-                k = mapping_data[key][0]
-                values[k] = v
+                if len(mapping_data[key]) > 1 and not mapping_data[key][-1] == "*date":
+                    k = mapping_data[key][0]
+                    values[k] = v
                 # we have some required fields that have no value in the data
                 # TODO log these out
 
         obj = page_model(**values)
         home.add_child(instance=obj)
         rev = obj.save_revision()
-        obj.save()
         rev.publish()
+        reset_updated_dates(obj, date, rev)
