@@ -26,6 +26,10 @@ def reset_updated_dates(obj, date, revision):
 
 
 class Command(BaseCommand):
+
+    def __init__(self):
+        pass
+
     def add_arguments(self, parser):
         parser.add_argument("mapping_file", type=str)
 

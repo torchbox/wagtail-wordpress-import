@@ -1,8 +1,139 @@
 import collections
 import re
 
-from lxml import etree
+# import os
 
+from datetime import datetime
+
+from django.apps import apps
+from django.utils.timezone import make_aware
+
+from lxml import etree
+from xml.dom import pulldom
+from wagtail_xmlimport.functions import node_to_dict
+from wagtail.core.models import Page
+
+# TODO put in a better place as extending the PageBuilder may need different
+# date function
+
+
+def process_date(datestring):
+    return make_aware(datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%S"))
+
+
+# TODO: a bteer for sure
+def reset_updated_dates(obj, date, revision):
+    # update the dates
+    obj.first_published_at = date
+    obj.last_published_at = date
+    obj.latest_revision_created_at = date
+    obj.save()
+    # rev = obj.save_revision()
+    revision.publish()
+
+
+class ImportXml:
+
+    XML_DIR = "xml"
+    # we may need to modify this going forward (multisite?)
+    SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
+
+    def __init__(self, mapping):
+        self.mapping = mapping
+        self.imported_items = []
+        self.mapping_meta = self.mapping.get("root")
+        self.set_xml_file_path()
+
+    def set_xml_dir(self, folder_path="xml"):
+        self.XML_DIR = folder_path
+
+    def set_json_folder(self, folder_path="json"):
+        self.JSON_DIR = folder_path
+
+    def set_xml_file_path(self):
+        xml_folder = self.XML_DIR
+        xml_file_name = self.mapping_meta.get("file")[0]
+        self.full_xml_path = f"{xml_folder}/{xml_file_name}"
+
+    def run_import(self):
+        tag = self.mapping_meta.get("tag")[0]
+        model = self.mapping_meta.get("model")[0]
+        xml_doc = pulldom.parse(self.full_xml_path)
+        for event, node in xml_doc:
+            if event == pulldom.START_ELEMENT and node.tagName == tag:
+                xml_doc.expandNode(node)
+                dict = node_to_dict(node)
+                page = PageBuilder(dict, model, self.mapping, self.SITE_ROOT_PAGE)
+                if page:
+                    self.imported_items = page
+        return self.imported_items
+
+
+class PageBuilder:
+    def __init__(self, item, model, mapping, site_root_page):
+        self.item = item
+        self.model = model
+        self.mapping = mapping
+        self.values = {}
+        self.site_root_page = site_root_page
+        self.date_field_value = None
+        self.parse_item(self.model, self.item, self.mapping)
+
+    def parse_item(self, model, item, mapping):
+        # required_fields = []
+        self.page_model = apps.get_model("pages", model)
+        for key in mapping.keys():
+            if isinstance(mapping[key], list) and len(mapping[key]) >= 1:
+                if mapping[key][0] == "*date":
+                    self.date_field_value = process_date(
+                        "T".join(item.get(key).split(" "))
+                    )
+                page_data = item.get(key)
+                # may need to make list of required fields and save
+                # to validate before page is made + logging the issue
+                if (
+                    len(mapping[key]) > 1
+                    and mapping[key][-1] == "required"
+                    and not page_data
+                ):
+                    return  # for now just return
+                if len(mapping[key]) >= 1 and not mapping[key][-1] == "*date":
+                    k = mapping[key][0]
+                    self.values[k] = page_data
+
+        page_exists = self.page_model.objects.filter(
+            wp_post_id=self.values.get("wp_post_id")
+        ).first()
+
+        if not page_exists:
+            page_id = self.make_page(self.page_model)
+            return page_id
+
+        page_id_updated = self.update_page(page_exists.id)
+        return page_id_updated
+
+    def make_page(self, page_model):
+        obj = page_model(**self.values)
+        self.site_root_page.add_child(instance=obj)
+        rev = obj.save_revision()
+        rev.publish()
+        if self.date_field_value:
+            reset_updated_dates(obj, self.date_field_value, rev)
+
+        return obj.id
+
+    def update_page(self, page_id):
+        page = self.page_model.objects.get(pk=page_id)
+        keys = [field.name for field in page._meta.get_fields()]
+        for key in keys:
+            if key in self.values:
+                page.key = self.values[key]
+        rev = page.save_revision()
+        rev.publish()
+        if self.date_field_value:
+            reset_updated_dates(page, self.date_field_value, rev)
+
+        return page.id
 
 class MaxDepthEtree:
     """
