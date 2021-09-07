@@ -1,10 +1,11 @@
 import json
-from datetime import datetime
+# from datetime import datetime
 
 from django.apps import apps
 from django.core.management.base import BaseCommand
-from django.utils.timezone import make_aware
+# from django.utils.timezone import make_aware
 from wagtail.core.models import Page
+# from wagtail_xmlimport.cls.cls import Mapping
 
 from wagtail_xmlimport.functions import *
 
@@ -17,6 +18,7 @@ class Command(BaseCommand):
         parser.add_argument("mapping_file", type=str)
 
     def handle(self, *args, **options):
+        # self.mapping = Mapping(options["mapping_file"])
         mapping_file_name = options["mapping_file"]
         mapping_file_path = f"model_mappings/{mapping_file_name}"
         mapping_file = open(mapping_file_path, "r")

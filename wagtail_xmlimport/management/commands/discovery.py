@@ -30,12 +30,15 @@ class Command(BaseCommand):
         )
         file_name = options["xmlfile"]
         xml = open(f"{self.xml_folder_path}/{file_name}", "rb").read()
-        max_depth = MaxDepthEtree(xml).get_depth()
-        xml_root = etree.fromstring(xml)
-        paths_dict = PathsToDict(xml_root, max_depth).get_dict()
+
+        
         json_file_name = file_name.split(".")[0]
         json_file = open(f"{self.json_folder_path}/{json_file_name}.json", "w+")
+        
+        paths_dict = PathsToDict(xml).get_dict()
+        
         json_file.write(json.dumps(paths_dict, indent=2))
+        
         self.stdout.write(
             self.style.SUCCESS(f"Finished Your file is here: {json_file_name}.json")
         )

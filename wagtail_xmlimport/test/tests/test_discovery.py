@@ -1,4 +1,3 @@
-import collections
 import os
 
 from django.test import TestCase
@@ -13,7 +12,7 @@ FIXTURES_DIR = os.path.dirname(
 
 class TestDiscovery(TestCase):
     def setUp(self):
-        # this is a known file for testing
+        # a known file for testing with
         self.xml = open(os.path.join(FIXTURES_DIR, "fixtures/test.xml"), "rb").read()
         # we know the max depth is 5 from the file above
         self.known_depth = 3
@@ -22,21 +21,16 @@ class TestDiscovery(TestCase):
 
     def test_max_depth_etree_class_available(self):
         max_depth_etree = MaxDepthEtree(self.xml)
+        # is MaxDepthEtree available
         self.assertIsInstance(max_depth_etree, MaxDepthEtree)
 
         max_depth = max_depth_etree.get_depth()
+        # do we get the correct depth for the test xml file
         self.assertEqual(max_depth, self.known_depth)
 
-    def test_path_to_json_class_available(self):
-        max_depth_etree = MaxDepthEtree(self.xml)
-        max_depth = max_depth_etree.get_depth()
-        paths_to_json = PathsToDict(self.xml_root, max_depth)
-        self.assertIsInstance(paths_to_json, PathsToDict)
-        # init
-        self.assertEqual(paths_to_json.max_depth, self.known_depth)
-        self.assertIsNotNone(paths_to_json.xml_root)
-        self.assertEqual(paths_to_json.current_depth, 0)
-        self.assertTrue("lxml.etree" in str(paths_to_json.raw_tree.__class__))
-        self.assertIsInstance(paths_to_json.nice_tree, collections.OrderedDict)
-        # get_json
-        self.assertIsInstance(paths_to_json.get_dict(), dict)
+    def test_paths_to_dict_class_available(self):
+        paths_to_dict = PathsToDict(self.xml)
+        # is PathsToDict available
+        self.assertIsInstance(paths_to_dict, PathsToDict)
+        # do we get an instance of dict returned
+        self.assertIsInstance(paths_to_dict.get_dict(), dict)

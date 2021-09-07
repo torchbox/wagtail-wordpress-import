@@ -1,6 +1,5 @@
 import collections
 import re
-import sys
 
 from lxml import etree
 
@@ -42,11 +41,11 @@ class MaxDepthEtree:
         """
         Recursive method to count the current depth
         """
-        
+
         if level == self.max_depth:
             self.max_depth += 1
         for child in elem:
-            self.depth(child, level + 1)
+            self._depth(child, level + 1)
 
     def get_depth(self):
         """
@@ -54,7 +53,7 @@ class MaxDepthEtree:
         """
         self._depth(self.tree.getroot(), -1)
         max_depth = self.max_depth + 1
-        
+
         return max_depth
 
 
@@ -104,7 +103,6 @@ class PathsToDict:
         self.max_depth = MaxDepthEtree(xml_file)
         self.xml_root = etree.fromstring(xml_file)
         self.raw_tree = etree.ElementTree(self.xml_root)
-        # self.nice_tree = collections.OrderedDict()
 
     @staticmethod
     def get_path(tag, raw_tree):
@@ -140,8 +138,6 @@ class PathsToDict:
         nice_tree = collections.OrderedDict()
 
         for tag in self.xml_root.iter():
-            # if self.progress:
-            #     print(".")
             path = self.get_path(tag, self.raw_tree)
             current_depth = self.set_current_depth(path)
             max_depth_reached = current_depth == self.max_depth
