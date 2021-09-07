@@ -1,17 +1,15 @@
 import collections
 import re
-
-# import os
-
+import sys
 from datetime import datetime
+from xml.dom import pulldom
 
 from django.apps import apps
 from django.utils.timezone import make_aware
-
 from lxml import etree
-from xml.dom import pulldom
-from wagtail_xmlimport.functions import node_to_dict
 from wagtail.core.models import Page
+
+from wagtail_xmlimport.functions import node_to_dict
 
 # TODO put in a better place as extending the PageBuilder may need different
 # date function
@@ -36,9 +34,9 @@ class ImportXml:
 
     XML_DIR = "xml"
     # we may need to modify this going forward (multisite?)
-    SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
 
     def __init__(self, mapping):
+        self.SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
         self.mapping = mapping
         self.imported_items = []
         self.mapping_meta = self.mapping.get("root")
@@ -60,12 +58,16 @@ class ImportXml:
         model = self.mapping_meta.get("model")[0]
         xml_doc = pulldom.parse(self.full_xml_path)
         for event, node in xml_doc:
+
             if event == pulldom.START_ELEMENT and node.tagName == tag:
                 xml_doc.expandNode(node)
                 dict = node_to_dict(node)
                 page = PageBuilder(dict, model, self.mapping, self.SITE_ROOT_PAGE)
+
                 if page:
-                    self.imported_items = page
+                    dict["result"] = page.result
+                    self.imported_items.append(dict)
+
         return self.imported_items
 
 
@@ -77,7 +79,8 @@ class PageBuilder:
         self.values = {}
         self.site_root_page = site_root_page
         self.date_field_value = None
-        self.parse_item(self.model, self.item, self.mapping)
+        result = self.parse_item(self.model, self.item, self.mapping)
+        self.result = result
 
     def parse_item(self, model, item, mapping):
         # required_fields = []
@@ -106,11 +109,11 @@ class PageBuilder:
         ).first()
 
         if not page_exists:
-            page_id = self.make_page(self.page_model)
-            return page_id
+            page_id, result = self.make_page(self.page_model)
+            return page_id, result
 
-        page_id_updated = self.update_page(page_exists.id)
-        return page_id_updated
+        page_id_updated, result = self.update_page(page_exists.id)
+        return page_id_updated, result
 
     def make_page(self, page_model):
         obj = page_model(**self.values)
@@ -120,7 +123,7 @@ class PageBuilder:
         if self.date_field_value:
             reset_updated_dates(obj, self.date_field_value, rev)
 
-        return obj.id
+        return obj.id, "created"
 
     def update_page(self, page_id):
         page = self.page_model.objects.get(pk=page_id)
@@ -133,7 +136,8 @@ class PageBuilder:
         if self.date_field_value:
             reset_updated_dates(page, self.date_field_value, rev)
 
-        return page.id
+        return page.id, "updated"
+
 
 class MaxDepthEtree:
     """
@@ -267,8 +271,12 @@ class PathsToDict:
         """
 
         nice_tree = collections.OrderedDict()
+        counter = 0
 
         for tag in self.xml_root.iter():
+            counter += 1
+            out = f"({counter}) ... {tag}\n"
+            sys.stdout.write(out)
             path = self.get_path(tag, self.raw_tree)
             current_depth = self.set_current_depth(path)
             max_depth_reached = current_depth == self.max_depth

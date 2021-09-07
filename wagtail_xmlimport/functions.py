@@ -1,9 +1,8 @@
 from collections import defaultdict
-from xml.dom import pulldom
 
 
 def clean_node_name(node_name):
-    return node_name.replace('-', '_')
+    return node_name.replace("-", "_")
 
 
 def coerce_node_value(value):
@@ -28,7 +27,9 @@ def get_node_value(node):
         if contains_element_node:
             return node.nodeName, node_to_dict(node)
         else:
-            return node.nodeName, coerce_node_value(''.join(child_node.nodeValue for child_node in node.childNodes))
+            return node.nodeName, coerce_node_value(
+                "".join(child_node.nodeValue for child_node in node.childNodes)
+            )
 
 
 def node_to_dict(node):
@@ -43,10 +44,7 @@ def node_to_dict(node):
             raise Exception()
     # If an element appears more than once, use an array.
     # Otherwise just use the element value.
-    obj = {
-        key: value[0] if len(value) == 1 else value
-        for key, value in obj.items()
-    }
+    obj = {key: value[0] if len(value) == 1 else value for key, value in obj.items()}
     if obj == {"nil": True}:
         return None
     return obj
