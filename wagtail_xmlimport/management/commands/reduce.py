@@ -17,6 +17,11 @@ class Command(BaseCommand):
 
     help = """Utils to reduce xml file size by removing unwanted tags."""
 
+    """
+    Tags to be removed item > wp:comment 
+    TODO: this would be better made felxible
+    """
+
     def __init__(self, *args, **kwargs):
         self.xml_folder_path = "xml"
         super(Command, self).__init__(*args, **kwargs)
@@ -48,14 +53,18 @@ class Command(BaseCommand):
         tree = ET.parse(file_path)
         wp = "{http://wordpress.org/export/1.2/}"
         items = tree.getroot()[0].findall("item")
+        item_types = []
         for item in items:
             comments = item.findall(f"{wp}comment")
+            item_type = item.find(f"{wp}post_type").text
+            if item_type not in item_types:
+                item_types.append(item_type)
             for comment in comments:
                 item.remove(comment)
 
         tree.write(output_file_path)
 
-        num_lines_out = sum(1 for line in open(output_file_name))
+        num_lines_out = sum(1 for line in open(output_file_path))
         num_lines_out_formatted = "{:,}".format(num_lines_out)
 
         num_lines_diff = num_lines_original - num_lines_out
@@ -66,5 +75,12 @@ class Command(BaseCommand):
         self.stdout.write(f"Saved #{num_lines_diff_formatted} lines")
 
         self.stdout.write(
-            self.style.SUCCESS(f"Finished Your file is here: {output_file_name}")
+            self.style.WARNING(
+                f"\nItem types of interest -------------")
+        )
+        copy_list = ", ".join(item_types)
+        self.stdout.write(f"\n[{copy_list}]")
+
+        self.stdout.write(
+            self.style.SUCCESS(f"\nFinished Your file is here: {output_file_name}")
         )
