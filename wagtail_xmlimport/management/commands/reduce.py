@@ -54,11 +54,15 @@ class Command(BaseCommand):
         wp = "{http://wordpress.org/export/1.2/}"
         items = tree.getroot()[0].findall("item")
         item_types = []
+        item_statuses = []
         for item in items:
             comments = item.findall(f"{wp}comment")
             item_type = item.find(f"{wp}post_type").text
+            item_status = item.find(f"{wp}status").text
             if item_type not in item_types:
                 item_types.append(item_type)
+            if item_status not in item_statuses:
+                item_statuses.append(item_status)
             for comment in comments:
                 item.remove(comment)
 
@@ -78,8 +82,15 @@ class Command(BaseCommand):
             self.style.WARNING(
                 f"\nItem types of interest -------------")
         )
-        copy_list = ", ".join(item_types)
-        self.stdout.write(f"\n[{copy_list}]")
+        type_list = ", ".join(item_types)
+        self.stdout.write(f"\n[{type_list}]")
+
+        self.stdout.write(
+            self.style.WARNING(
+                f"\nItem statuses -------------")
+        )
+        status_list = ", ".join(item_statuses)
+        self.stdout.write(f"\n[{status_list}]")
 
         self.stdout.write(
             self.style.SUCCESS(f"\nFinished Your file is here: {output_file_name}")

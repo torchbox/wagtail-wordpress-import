@@ -16,6 +16,17 @@ from wagtail_xmlimport.functions import node_to_dict, linebreaks_wp
 # TODO put in a better place as extending the PageBuilder may need different
 # date function
 
+"""
+A report from ./manage.py reduce
+Original #lines 2,695,253
+Output #lines 799,542
+Saved #1,895,711 lines
+Item types of interest -------------
+[attachment, nav_menu_item, custom_css, page, post, tve_lead_group, tve_form_type, tve_lead_shortcode, tve_lead_1c_signup, tve_lead_2s_lightbox]
+Item statuses -------------
+[inherit, publish, draft, trash, private]
+"""
+
 
 def process_date(datestring):
     return make_aware(datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%S"))
@@ -38,6 +49,7 @@ class ImportXml:
     # we may need to modify this going forward (multisite?)
 
     def __init__(self, *args, **kwargs):
+        # TODO: this is only the default home page just now
         self.SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
         self.mapping = kwargs["map_file"]
         self.imported_items = []
@@ -177,7 +189,7 @@ class PageBuilder:
 
     def update_page(self, page):
         obj = self.page_model.objects.get(pk=page)
-        
+
         for key in self.values.keys():
             setattr(obj, key, self.values[key])
 
