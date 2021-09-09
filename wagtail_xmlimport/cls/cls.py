@@ -179,7 +179,7 @@ class PageBuilder:
         obj = self.page_model.objects.get(pk=page)
         
         for key in self.values.keys():
-            obj.key = self.values[key]
+            setattr(obj, key, self.values[key])
 
         obj.save()
         rev = obj.save_revision()
