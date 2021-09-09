@@ -5,11 +5,13 @@ from datetime import datetime
 from xml.dom import pulldom
 
 from django.apps import apps
+from django.core.validators import validate_slug
+from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from lxml import etree
 from wagtail.core.models import Page
 
-from wagtail_xmlimport.functions import node_to_dict
+from wagtail_xmlimport.functions import node_to_dict, linebreaks_wp
 
 # TODO put in a better place as extending the PageBuilder may need different
 # date function
@@ -35,12 +37,14 @@ class ImportXml:
     XML_DIR = "xml"
     # we may need to modify this going forward (multisite?)
 
-    def __init__(self, mapping):
+    def __init__(self, *args, **kwargs):
         self.SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
-        self.mapping = mapping
+        self.mapping = kwargs["map_file"]
         self.imported_items = []
         self.mapping_meta = self.mapping.get("root")
         self.set_xml_file_path()
+        self.tag = kwargs["tag"]
+        self.type = kwargs["type"]
 
     def set_xml_dir(self, folder_path="xml"):
         self.XML_DIR = folder_path
@@ -54,19 +58,37 @@ class ImportXml:
         self.full_xml_path = f"{xml_folder}/{xml_file_name}"
 
     def run_import(self):
-        tag = self.mapping_meta.get("tag")[0]
+        # we want to parse all item tags and types in one go in the end?
+        if self.tag:
+            tag = self.tag
+        else:
+            tag = self.mapping_meta.get("tag")[0]
+        if self.type:
+            type = self.type
+        else:
+            type = self.mapping_meta.get("type")[0]
+
         model = self.mapping_meta.get("model")[0]
         xml_doc = pulldom.parse(self.full_xml_path)
+
         for event, node in xml_doc:
 
             if event == pulldom.START_ELEMENT and node.tagName == tag:
                 xml_doc.expandNode(node)
                 dict = node_to_dict(node)
-                page = PageBuilder(dict, model, self.mapping, self.SITE_ROOT_PAGE)
+                if dict.get("wp:post_type") == type:
 
-                if page:
-                    dict["result"] = page.result
+                    builder = PageBuilder(
+                        dict, model, self.mapping, self.SITE_ROOT_PAGE
+                    )
+                    result = builder.run()
+                    # see some feedback
+                    print(result)
+
+                    # if result and result[0]:
+                    #     dict["result"] = result
                     self.imported_items.append(dict)
+                    # after this we can run the html parsing
 
         return self.imported_items
 
@@ -79,14 +101,20 @@ class PageBuilder:
         self.values = {}
         self.site_root_page = site_root_page
         self.date_field_value = None
+        # result = self.parse_item(self.model, self.item, self.mapping)
+        # self.result = result
+
+    def run(self):
+        # self.result = result
         result = self.parse_item(self.model, self.item, self.mapping)
-        self.result = result
+        return result
 
     def parse_item(self, model, item, mapping):
         # required_fields = []
         self.page_model = apps.get_model("pages", model)
         for key in mapping.keys():
             if isinstance(mapping[key], list) and len(mapping[key]) >= 1:
+
                 if mapping[key][0] == "*date":
                     self.date_field_value = process_date(
                         "T".join(item.get(key).split(" "))
@@ -99,44 +127,67 @@ class PageBuilder:
                     and mapping[key][-1] == "required"
                     and not page_data
                 ):
-                    return  # for now just return
+                    return  # TODO: for now just return reporting!
+
                 if len(mapping[key]) >= 1 and not mapping[key][-1] == "*date":
                     k = mapping[key][0]
                     self.values[k] = page_data
+
+                if (
+                    len(mapping[key]) > 1
+                    and mapping[key][1] == "*slugify"
+                    and mapping[key][0] == "slug"
+                ):
+                    self.values[k] = slugify(page_data)
+                    # wonder if this is safe to do
+                    # seems valid slug are left alone...
+
+                if (
+                    len(mapping[key]) > 1
+                    and mapping[key][1] == "*autop"
+                    and mapping[key][0] == "html"
+                ):
+                    self.values[k] = linebreaks_wp(page_data)
+                    # print(self.values[k])
 
         page_exists = self.page_model.objects.filter(
             wp_post_id=self.values.get("wp_post_id")
         ).first()
 
         if not page_exists:
-            page_id, result = self.make_page(self.page_model)
-            return page_id, result
+            page, result = self.make_page()
+            return page, result
 
-        page_id_updated, result = self.update_page(page_exists.id)
-        return page_id_updated, result
+        page, result = self.update_page(page_exists)
+        return page, result
 
-    def make_page(self, page_model):
-        obj = page_model(**self.values)
+    def make_page(self):
+        obj = self.page_model(**self.values)
+
         self.site_root_page.add_child(instance=obj)
+
+        obj.save()
         rev = obj.save_revision()
         rev.publish()
+
         if self.date_field_value:
             reset_updated_dates(obj, self.date_field_value, rev)
 
-        return obj.id, "created"
+        return obj, "created"
 
-    def update_page(self, page_id):
-        page = self.page_model.objects.get(pk=page_id)
-        keys = [field.name for field in page._meta.get_fields()]
-        for key in keys:
-            if key in self.values:
-                page.key = self.values[key]
-        rev = page.save_revision()
+    def update_page(self, page):
+        obj = self.page_model.objects.get(pk=page)
+        
+        for key in self.values.keys():
+            obj.key = self.values[key]
+
+        obj.save()
+        rev = obj.save_revision()
         rev.publish()
-        if self.date_field_value:
-            reset_updated_dates(page, self.date_field_value, rev)
 
-        return page.id, "updated"
+        if self.date_field_value:
+            reset_updated_dates(obj, self.date_field_value, rev)
+        return obj, "updated"
 
 
 class MaxDepthEtree:
