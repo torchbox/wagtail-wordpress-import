@@ -5,7 +5,7 @@ from wagtail_xmlimport.cls.page_builder import PageBuilder
 from wagtail_xmlimport.functions import node_to_dict
 
 
-class ImportXml:
+class XmlImporter:
     # we may need to modify this going forward (multisite?)
 
     XML_DIR = "xml"
@@ -14,8 +14,6 @@ class ImportXml:
         # TODO: this is only the default home page just now
         self.SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
         self.mapping = map_file
-        self.imported_items = []
-        self.failed_items = []
         self.mapping_meta = self.mapping.get("root")
         self.set_xml_file_path()
         self.tag = tag
@@ -33,9 +31,10 @@ class ImportXml:
         xml_file_name = self.mapping_meta.get("file")[0]
         self.full_xml_path = f"{xml_folder}/{xml_file_name}"
 
-    def run_import(self):
+    def run_import(self, progress_manager):
         # parse all item tags and types in one go in the end
         # pass the post status so we can set the wagtail page status
+        self.progress_manager = progress_manager
         if self.tag:
             tag = self.tag
         else:
@@ -55,15 +54,22 @@ class ImportXml:
                 print("⏳ working ...", end="\r")
                 xml_doc.expandNode(node)
                 dict = node_to_dict(node)
+                self.progress_manager.processed.append(dict)
+
                 if dict.get("wp:post_type") == type:
                     
                     builder = PageBuilder(
-                        dict, model, self.mapping, self.SITE_ROOT_PAGE
+                        dict, model, self.mapping, self.SITE_ROOT_PAGE, self.progress_manager
                     )
                     result = builder.run()
+                    # self.imported_items.append(builder.imported)
+                    # self.failed_items.append(builder.skipped)
+                    # self.processed_items.append(builder.processed)
+                    
                     # see some feedback
                     # print(result)
                     if result:
+                        # self.imported.append(result)
                         print(result)
 
                     # if result:
@@ -74,4 +80,4 @@ class ImportXml:
                     # else:
                     #     self.failed_items.append([dict])
 
-        return self.imported_items, self.failed_items
+        return True

@@ -9,91 +9,27 @@ from wagtail_xmlimport.functions import linebreaks_wp
 
 # TODO: doesn't seem right that this needs to happen
 # how can save on firt save?
-def reset_dates(obj, values, published):
-    # update the dates
-    obj.first_published_at = values.get("first_published_at")
-    obj.last_published_at = values.get("last_published_at")
-    obj.latest_revision_created_at = values.get("latest_revision_created_at")
-    if published:
-        obj.save()
-    else:
-        obj.unpublish()
-    # revision.publish()
-    
-class PageFieldValueParser:
-    def parse_field_value(self, field_name, value, other=None, extra_fields=None):
-        if field_name == "title":
-            return self.parse_title(value, other)
-
-        if field_name == "body":
-            return self.parse_body(value, other)
-
-        if field_name == "wp_post_id":
-            return self.parse_wp_post_id(value, other)
-
-        if field_name == "wp_post_type":
-            return self.parse_wp_post_type(value, other)
-
-        if field_name == "slug":
-            return self.parse_body(value, other)
-
-        if field_name == "date":
-            return self.parse_date(value, other, extra_fields)
-
-        if field_name == "status":
-            print(value)
-            # return self.parse_date(value, other, extra_fields)
-
-    def parse_title(self, value, other):
-        if other == "required" and not value:
-            return None
-        return value
-
-    def parse_body(self, value, other):
-        if "body" in other:
-            return self.make_stream_blocks(value, other)
-
-    def parse_wp_post_id(self, value, other):
-        return value
-
-    def parse_wp_post_type(self, value, other):
-        return value
-
-    def parse_slug(self, value, other):
-        if "slug" in other:
-            return slugify(value)
-
-    def parse_date(self, value, other, extra_fields):
-        if other == "required" and not value:
-            return None
-        extra_fields = extra_fields.split(":")
-        date = "T".join(value.split(" "))
-        date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
-        ret = {}
-        for field in extra_fields:
-            ret[field] = date_formatted
-
-        return ret
-
-    def make_stream_blocks(self, value, other):
-        pipes = []
-        if len(other) > 1 and "stream" in other[1]:
-            pipes = other[1].split(":")
-
-        if "*auto_p" in pipes:
-            value = linebreaks_wp(value)
-
-        blocks = [{"type": "raw_html", "value": value}]
-        return json.dumps(blocks)
+# def reset_dates(obj, values, published):
+#     # update the dates
+#     obj.first_published_at = values.get("first_published_at")
+#     obj.last_published_at = values.get("last_published_at")
+#     obj.latest_revision_created_at = values.get("latest_revision_created_at")
+#     if published:
+#         obj.save()
+#     else:
+#         obj.unpublish()
+#     # revision.publish()
 
 
 class PageBuilder:
-    def __init__(self, item, model, mapping, site_root_page):
+    def __init__(self, item, model, mapping, site_root_page, progress_manager):
         self.item = item
         self.model = model
         self.mapping = mapping
         self.values = {}
         self.site_root_page = site_root_page
+        # self.skipped = []
+        self.progress_manager = progress_manager
 
     def run(self):
         # self.result = result
@@ -116,6 +52,7 @@ class PageBuilder:
                 # are there any required fields without a value?
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
+                    self.progress_manager.skipped.append(item)
                     continue
 
                 # handle meta like status
@@ -151,6 +88,8 @@ class PageBuilder:
                         self.values[k] = v
 
         if self.status in self.mapping["root"]["status"]:
+
+            self.progress_manager.imported.append(item)
 
             page_exists = self.page_model.objects.filter(
                 wp_post_id=self.values.get("wp_post_id")
@@ -213,3 +152,70 @@ class PageBuilder:
             obj.unpublish()
 
         return obj, "updated"
+
+
+class PageFieldValueParser:
+    def parse_field_value(self, field_name, value, other=None, extra_fields=None):
+        if field_name == "title":
+            return self.parse_title(value, other)
+
+        if field_name == "body":
+            return self.parse_body(value, other)
+
+        if field_name == "wp_post_id":
+            return self.parse_wp_post_id(value, other)
+
+        if field_name == "wp_post_type":
+            return self.parse_wp_post_type(value, other)
+
+        if field_name == "slug":
+            return self.parse_body(value, other)
+
+        if field_name == "date":
+            return self.parse_date(value, other, extra_fields)
+
+        # if field_name == "status":
+        #     print(value)
+            # return self.parse_date(value, other, extra_fields)
+
+    def parse_title(self, value, other):
+        if other == "required" and not value:
+            return None
+        return value
+
+    def parse_body(self, value, other):
+        if "body" in other:
+            return self.make_stream_blocks(value, other)
+
+    def parse_wp_post_id(self, value, other):
+        return value
+
+    def parse_wp_post_type(self, value, other):
+        return value
+
+    def parse_slug(self, value, other):
+        if "slug" in other:
+            return slugify(value)
+
+    def parse_date(self, value, other, extra_fields):
+        if other == "required" and not value:
+            return None
+        extra_fields = extra_fields.split(":")
+        date = "T".join(value.split(" "))
+        date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
+        ret = {}
+        for field in extra_fields:
+            ret[field] = date_formatted
+
+        return ret
+
+    def make_stream_blocks(self, value, other):
+        pipes = []
+        if len(other) > 1 and "stream" in other[1]:
+            pipes = other[1].split(":")
+
+        if "*auto_p" in pipes:
+            value = linebreaks_wp(value)
+
+        blocks = [{"type": "raw_html", "value": value}]
+        return json.dumps(blocks)
