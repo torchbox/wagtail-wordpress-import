@@ -58,6 +58,7 @@ class ImportXml:
         self.set_xml_file_path()
         self.tag = kwargs["tag"]
         self.type = kwargs["type"]
+        self.status = kwargs["status"]
 
     def set_xml_dir(self, folder_path="xml"):
         self.XML_DIR = folder_path
@@ -71,15 +72,22 @@ class ImportXml:
         self.full_xml_path = f"{xml_folder}/{xml_file_name}"
 
     def run_import(self):
-        # we want to parse all item tags and types in one go in the end?
+        # parse all item tags and types in one go in the end
+        # pass the post status so we can set the wagtail page status
         if self.tag:
             tag = self.tag
         else:
             tag = self.mapping_meta.get("tag")[0]
+
         if self.type:
             type = self.type
         else:
             type = self.mapping_meta.get("type")[0]
+
+        # if self.status:
+        #     status = self.status
+        # else:
+        #     status = self.mapping_meta.get("status")[0]
 
         model = self.mapping_meta.get("model")[0]
         xml_doc = pulldom.parse(self.full_xml_path)
@@ -90,7 +98,7 @@ class ImportXml:
                 xml_doc.expandNode(node)
                 dict = node_to_dict(node)
                 if dict.get("wp:post_type") == type:
-
+                    # print(dict.get("wp:status"))
                     builder = PageBuilder(
                         dict, model, self.mapping, self.SITE_ROOT_PAGE
                     )
@@ -125,6 +133,10 @@ class PageFieldValueParser:
 
         if field_name == "date":
             return self.parse_date(value, other, extra_fields)
+
+        if field_name == "status":
+            print(value)
+            # return self.parse_date(value, other, extra_fields)
 
     def parse_title(self, value, other):
         if other == "required" and not value:
@@ -179,6 +191,8 @@ class PageBuilder:
 
     def run(self):
         # self.result = result
+        # statuses = self.mapping.get("root")["status"]
+        # if self.item.get("status") not in statuses:
         result = self.parse_item(self.model, self.item, self.mapping)
         return result
 
@@ -188,6 +202,7 @@ class PageBuilder:
         # mapping keys are json file keys
         # not interested in the root key
         # values of interest are keys of length > 0
+        # we only need to parse items that have one of the statuses
 
         for key in mapping.keys():
 
@@ -195,9 +210,15 @@ class PageBuilder:
                 # are there any required fields without a value?
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
-                    return
+                    continue
 
-                if not "%" in mapping[key][0]:
+                # handle meta like status
+                if "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
+                    if mapping[key][0] == "__status":
+                        self.status = item.get(key)
+
+                # handle everything expect dates and page meta like status
+                if not "%%" in mapping[key][0] and not "__" in mapping[key][0]:
                     field_value_parser = PageFieldValueParser()
                     item_value = field_value_parser.parse_field_value(
                         field_name=mapping[key][0],
@@ -206,14 +227,15 @@ class PageBuilder:
                     )
                     self.values[mapping[key][0]] = item_value
 
-                if "%" in mapping[key][0] and mapping[key][0].index("%") == 0:
+                # handle dates
+                if "%%" in mapping[key][0] and mapping[key][0].index("%%") == 0:
                     # deal with dates
                     field_value_parser = PageFieldValueParser()
                     extra_fields = None
                     if len(mapping[key]) == 2:
                         extra_fields = mapping[key][1]
                     item_value = field_value_parser.parse_field_value(
-                        field_name=mapping[key][0].replace("%", ""),
+                        field_name=mapping[key][0].replace("%%", ""),
                         value=item.get(key),
                         other=False,
                         extra_fields=extra_fields,
@@ -221,6 +243,8 @@ class PageBuilder:
 
                     for k, v in item_value.items():
                         self.values[k] = v
+
+                
 
         page_exists = self.page_model.objects.filter(
             wp_post_id=self.values.get("wp_post_id")
@@ -242,8 +266,10 @@ class PageBuilder:
         rev = obj.save_revision()
         rev.publish()
 
-        # if self.date_field_value:
         reset_dates(obj, self.values, rev)
+
+        if self.status == "draft":
+            obj.unpublish()
 
         return obj, "created"
 
@@ -257,8 +283,11 @@ class PageBuilder:
         rev = obj.save_revision()
         rev.publish()
 
-        # if self.date_field_value:
         reset_dates(obj, self.values, rev)
+
+        if self.status == "draft":
+            obj.unpublish()
+
         return obj, "updated"
 
 
