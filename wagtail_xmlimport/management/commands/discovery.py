@@ -2,8 +2,7 @@ import json
 import os
 
 from django.core.management.base import BaseCommand
-
-from wagtail_xmlimport.cls.cls import PathsToDict
+from wagtail_xmlimport.cls.util import PathsToDict
 
 
 class Command(BaseCommand):

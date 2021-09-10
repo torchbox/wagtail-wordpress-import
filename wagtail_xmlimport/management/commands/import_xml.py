@@ -2,7 +2,7 @@ import json
 
 from django.core.management.base import BaseCommand
 
-from wagtail_xmlimport.cls.cls import ImportXml
+from wagtail_xmlimport.cls.xml_importer import ImportXml
 
 
 class Command(BaseCommand):
@@ -16,8 +16,9 @@ class Command(BaseCommand):
         mapping_file_name = options["xml_mapping_file"]
         mapping_file_path = f"model_mappings/{mapping_file_name}"
         mapping = json.load(open(mapping_file_path, "r"))
+
         importer = ImportXml(
-            map_file=mapping, tag=options["tag"], type=options["type"], status=options["status"]
+            mapping, options["tag"], options["type"], options["status"]
         )
         success, failed = importer.run_import()
         # print(failed)

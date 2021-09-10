@@ -1,5 +1,6 @@
 import collections
 import sys
+import re
 
 from lxml import etree
 
@@ -86,8 +87,8 @@ class PathsToDict:
 
         for tag in self.xml_root.iter():
             counter += 1
-            out = f"({counter}) ... {tag}\n"
-            sys.stdout.write(out)
+            # out = f"({counter}) ... {tag}\n"
+            # sys.stdout.write(out)
             path = self.get_path(tag, self.raw_tree)
             current_depth = self.set_current_depth(path)
             max_depth_reached = current_depth == self.max_depth

@@ -3,7 +3,7 @@ import os
 from django.test import TestCase
 from lxml import etree
 
-from wagtail_xmlimport.cls.cls import MaxDepthEtree, PathsToDict
+from wagtail_xmlimport.cls.util import MaxDepthEtree, PathsToDict
 
 FIXTURES_DIR = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

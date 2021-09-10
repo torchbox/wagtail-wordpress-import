@@ -1,11 +1,8 @@
 import json
-
-# import os
 import xml.etree.ElementTree as ET
 
 from django.core.management.base import BaseCommand
 
-from wagtail_xmlimport.cls.cls import PathsToDict
 
 # register all namespaces to keep them when the modified xml is saved
 def register_all_namespaces(filename):
@@ -75,13 +72,11 @@ class Command(BaseCommand):
                     tree.getroot()[0].findall(f".//item/[{wp}post_type='{type}']")
                 ),
                 "status_counts": {
-                    
-                        status: len(
-                            tree.getroot()[0].findall(
-                                f".//item/[{wp}post_type='{type}'][{wp}status='{status}']"
-                            )
+                    status: len(
+                        tree.getroot()[0].findall(
+                            f".//item/[{wp}post_type='{type}'][{wp}status='{status}']"
                         )
-                    
+                    )
                     for status in item_statuses
                 },
             }
