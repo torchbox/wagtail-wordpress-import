@@ -19,19 +19,20 @@ class Command(BaseCommand):
         importer = ImportXml(
             map_file=mapping, tag=options["tag"], type=options["type"], status=options["status"]
         )
-        result = importer.run_import()
-
+        success, failed = importer.run_import()
+        # print(failed)
+        # print(success)
         # TODO: we should do some logging here
-        out = ""
-        for item in result:
+        # out = ""
+        # for item in result:
 
-            if item.get("result"):
-                out += (
-                    str(item.get("result")[0])
-                    + " "
-                    + str(item.get("result")[1])
-                    + " | "
-                )
-            else:
-                out += " EMPTY | "
-        self.stdout.write(self.style.WARNING(out))
+        #     if item.get("result"):
+        #         out += (
+        #             str(item.get("result")[0])
+        #             + " "
+        #             + str(item.get("result")[1])
+        #             + " | "
+        #         )
+        #     else:
+        #         out += " EMPTY | "
+        # self.stdout.write(self.style.WARNING(out))

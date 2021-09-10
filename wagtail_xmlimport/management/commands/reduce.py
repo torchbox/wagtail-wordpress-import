@@ -1,4 +1,5 @@
 import json
+
 # import os
 import xml.etree.ElementTree as ET
 
@@ -68,6 +69,25 @@ class Command(BaseCommand):
 
         tree.write(output_file_path)
 
+        type_stats = [
+            {
+                type: len(
+                    tree.getroot()[0].findall(f".//item/[{wp}post_type='{type}']")
+                ),
+                "status_counts": {
+                    
+                        status: len(
+                            tree.getroot()[0].findall(
+                                f".//item/[{wp}post_type='{type}'][{wp}status='{status}']"
+                            )
+                        )
+                    
+                    for status in item_statuses
+                },
+            }
+            for type in item_types
+        ]
+
         num_lines_out = sum(1 for line in open(output_file_path))
         num_lines_out_formatted = "{:,}".format(num_lines_out)
 
@@ -75,21 +95,19 @@ class Command(BaseCommand):
         num_lines_diff_formatted = "{:,}".format(num_lines_diff)
 
         self.stdout.write(f"Output #lines {num_lines_out_formatted}")
-        
+
         self.stdout.write(f"Saved #{num_lines_diff_formatted} lines")
 
-        self.stdout.write(
-            self.style.WARNING(
-                f"\nItem types of interest -------------")
-        )
+        self.stdout.write(self.style.WARNING(f"\nItem types of interest -------------"))
         type_list = ", ".join(item_types)
         self.stdout.write(f"\n[{type_list}]")
 
-        self.stdout.write(
-            self.style.WARNING(
-                f"\nItem statuses -------------")
-        )
+        self.stdout.write(self.style.WARNING(f"\nItem statuses -------------"))
         status_list = ", ".join(item_statuses)
+        self.stdout.write(f"\n[{status_list}]")
+
+        self.stdout.write(self.style.WARNING(f"\nItem stats -------------"))
+        status_list = json.dumps(type_stats, indent=1)
         self.stdout.write(f"\n[{status_list}]")
 
         self.stdout.write(

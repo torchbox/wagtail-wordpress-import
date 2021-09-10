@@ -54,6 +54,7 @@ class ImportXml:
         self.SITE_ROOT_PAGE = Page.get_first_root_node().get_children().first()
         self.mapping = kwargs["map_file"]
         self.imported_items = []
+        self.failed_items = []
         self.mapping_meta = self.mapping.get("root")
         self.set_xml_file_path()
         self.tag = kwargs["tag"]
@@ -84,34 +85,35 @@ class ImportXml:
         else:
             type = self.mapping_meta.get("type")[0]
 
-        # if self.status:
-        #     status = self.status
-        # else:
-        #     status = self.mapping_meta.get("status")[0]
-
         model = self.mapping_meta.get("model")[0]
         xml_doc = pulldom.parse(self.full_xml_path)
 
         for event, node in xml_doc:
 
             if event == pulldom.START_ELEMENT and node.tagName == tag:
+                print("⏳ working ...", end="\r")
                 xml_doc.expandNode(node)
                 dict = node_to_dict(node)
                 if dict.get("wp:post_type") == type:
-                    # print(dict.get("wp:status"))
+                    
                     builder = PageBuilder(
                         dict, model, self.mapping, self.SITE_ROOT_PAGE
                     )
                     result = builder.run()
                     # see some feedback
-                    print(result)
+                    # print(result)
+                    if result:
+                        print(result)
 
-                    # if result and result[0]:
-                    #     dict["result"] = result
-                    self.imported_items.append(dict)
-                    # after this we can run the html parsing
+                    # if result:
+                    #     self.imported_items.append(result[0])
 
-        return self.imported_items
+                    # if isinstance(result[0], PagePage):
+                    #     self.imported_items.append(result[0])
+                    # else:
+                    #     self.failed_items.append([dict])
+
+        return self.imported_items, self.failed_items
 
 
 class PageFieldValueParser:
@@ -193,8 +195,8 @@ class PageBuilder:
         # self.result = result
         # statuses = self.mapping.get("root")["status"]
         # if self.item.get("status") not in statuses:
-        result = self.parse_item(self.model, self.item, self.mapping)
-        return result
+        # page, result = self.parse_item(self.model, self.item, self.mapping)
+        return self.parse_item(self.model, self.item, self.mapping)
 
     def parse_item(self, model, item, mapping):
         self.page_model = apps.get_model("pages", model)
@@ -244,18 +246,18 @@ class PageBuilder:
                     for k, v in item_value.items():
                         self.values[k] = v
 
-                
+        if self.status in self.mapping["root"]["status"]:
 
-        page_exists = self.page_model.objects.filter(
-            wp_post_id=self.values.get("wp_post_id")
-        ).first()
+            page_exists = self.page_model.objects.filter(
+                wp_post_id=self.values.get("wp_post_id")
+            ).first()
 
-        if not page_exists:
-            page, result = self.make_page()
+            if not page_exists:
+                page, result = self.make_page()
+                return page, result
+
+            page, result = self.update_page(page_exists)
             return page, result
-
-        page, result = self.update_page(page_exists)
-        return page, result
 
     def make_page(self):
         obj = self.page_model(**self.values)
@@ -281,12 +283,13 @@ class PageBuilder:
 
         obj.save()
         rev = obj.save_revision()
-        rev.publish()
 
         reset_dates(obj, self.values, rev)
 
         if self.status == "draft":
             obj.unpublish()
+        else:
+            rev.publish()
 
         return obj, "updated"
 
