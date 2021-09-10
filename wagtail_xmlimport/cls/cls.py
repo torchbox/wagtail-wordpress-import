@@ -1,7 +1,8 @@
 import collections
+import json
 import re
 import sys
-from datetime import datetime
+from datetime import date, datetime
 from xml.dom import pulldom
 
 from django.apps import apps
@@ -32,14 +33,14 @@ def process_date(datestring):
     return make_aware(datetime.strptime(datestring, "%Y-%m-%dT%H:%M:%S"))
 
 
-# TODO: a bteer for sure
-def reset_updated_dates(obj, date, revision):
+# TODO: doesn't seem right that this needs to happen
+# how can save on firt save?
+def reset_dates(obj, values, revision):
     # update the dates
-    obj.first_published_at = date
-    obj.last_published_at = date
-    obj.latest_revision_created_at = date
+    obj.first_published_at = values.get("first_published_at")
+    obj.last_published_at = values.get("last_published_at")
+    obj.latest_revision_created_at = values.get("latest_revision_created_at")
     obj.save()
-    # rev = obj.save_revision()
     revision.publish()
 
 
@@ -105,6 +106,69 @@ class ImportXml:
         return self.imported_items
 
 
+class PageFieldValueParser:
+    def parse_field_value(self, field_name, value, other=None, extra_fields=None):
+        if field_name == "title":
+            return self.parse_title(value, other)
+
+        if field_name == "body":
+            return self.parse_body(value, other)
+
+        if field_name == "wp_post_id":
+            return self.parse_wp_post_id(value, other)
+
+        if field_name == "wp_post_type":
+            return self.parse_wp_post_type(value, other)
+
+        if field_name == "slug":
+            return self.parse_body(value, other)
+
+        if field_name == "date":
+            return self.parse_date(value, other, extra_fields)
+
+    def parse_title(self, value, other):
+        if other == "required" and not value:
+            return None
+        return value
+
+    def parse_body(self, value, other):
+        if "body" in other:
+            return self.make_stream_blocks(value, other)
+
+    def parse_wp_post_id(self, value, other):
+        return value
+
+    def parse_wp_post_type(self, value, other):
+        return value
+
+    def parse_slug(self, value, other):
+        if "slug" in other:
+            return slugify(value)
+
+    def parse_date(self, value, other, extra_fields):
+        if other == "required" and not value:
+            return None
+        extra_fields = extra_fields.split(":")
+        date = "T".join(value.split(" "))
+        date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
+        ret = {}
+        for field in extra_fields:
+            ret[field] = date_formatted
+
+        return ret
+
+    def make_stream_blocks(self, value, other):
+        pipes = []
+        if len(other) > 1 and "stream" in other[1]:
+            pipes = other[1].split(":")
+
+        if "*auto_p" in pipes:
+            value = linebreaks_wp(value)
+
+        blocks = [{"type": "raw_html", "value": value}]
+        return json.dumps(blocks)
+
+
 class PageBuilder:
     def __init__(self, item, model, mapping, site_root_page):
         self.item = item
@@ -112,9 +176,6 @@ class PageBuilder:
         self.mapping = mapping
         self.values = {}
         self.site_root_page = site_root_page
-        self.date_field_value = None
-        # result = self.parse_item(self.model, self.item, self.mapping)
-        # self.result = result
 
     def run(self):
         # self.result = result
@@ -122,45 +183,44 @@ class PageBuilder:
         return result
 
     def parse_item(self, model, item, mapping):
-        # required_fields = []
         self.page_model = apps.get_model("pages", model)
+
+        # mapping keys are json file keys
+        # not interested in the root key
+        # values of interest are keys of length > 0
+
         for key in mapping.keys():
-            if isinstance(mapping[key], list) and len(mapping[key]) >= 1:
 
-                if mapping[key][0] == "*date":
-                    self.date_field_value = process_date(
-                        "T".join(item.get(key).split(" "))
+            if isinstance(mapping[key], list) and len(mapping[key]):
+                # are there any required fields without a value?
+                # don't continue
+                if "required" in mapping[key] and not item[key]:
+                    return
+
+                if not "%" in mapping[key][0]:
+                    field_value_parser = PageFieldValueParser()
+                    item_value = field_value_parser.parse_field_value(
+                        field_name=mapping[key][0],
+                        value=item.get(key),
+                        other=mapping[key],
                     )
-                page_data = item.get(key)
-                # may need to make list of required fields and save
-                # to validate before page is made + logging the issue
-                if (
-                    len(mapping[key]) > 1
-                    and mapping[key][-1] == "required"
-                    and not page_data
-                ):
-                    return  # TODO: for now just return reporting!
+                    self.values[mapping[key][0]] = item_value
 
-                if len(mapping[key]) >= 1 and not mapping[key][-1] == "*date":
-                    k = mapping[key][0]
-                    self.values[k] = page_data
+                if "%" in mapping[key][0] and mapping[key][0].index("%") == 0:
+                    # deal with dates
+                    field_value_parser = PageFieldValueParser()
+                    extra_fields = None
+                    if len(mapping[key]) == 2:
+                        extra_fields = mapping[key][1]
+                    item_value = field_value_parser.parse_field_value(
+                        field_name=mapping[key][0].replace("%", ""),
+                        value=item.get(key),
+                        other=False,
+                        extra_fields=extra_fields,
+                    )
 
-                if (
-                    len(mapping[key]) > 1
-                    and mapping[key][1] == "*slugify"
-                    and mapping[key][0] == "slug"
-                ):
-                    self.values[k] = slugify(page_data)
-                    # wonder if this is safe to do
-                    # seems valid slug are left alone...
-
-                if (
-                    len(mapping[key]) > 1
-                    and mapping[key][1] == "*autop"
-                    and mapping[key][0] == "html"
-                ):
-                    self.values[k] = linebreaks_wp(page_data)
-                    # print(self.values[k])
+                    for k, v in item_value.items():
+                        self.values[k] = v
 
         page_exists = self.page_model.objects.filter(
             wp_post_id=self.values.get("wp_post_id")
@@ -182,8 +242,8 @@ class PageBuilder:
         rev = obj.save_revision()
         rev.publish()
 
-        if self.date_field_value:
-            reset_updated_dates(obj, self.date_field_value, rev)
+        # if self.date_field_value:
+        reset_dates(obj, self.values, rev)
 
         return obj, "created"
 
@@ -197,8 +257,8 @@ class PageBuilder:
         rev = obj.save_revision()
         rev.publish()
 
-        if self.date_field_value:
-            reset_updated_dates(obj, self.date_field_value, rev)
+        # if self.date_field_value:
+        reset_dates(obj, self.values, rev)
         return obj, "updated"
 
 
