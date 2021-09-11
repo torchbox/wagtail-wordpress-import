@@ -1,5 +1,7 @@
 import json
 
+from bs4 import BeautifulSoup as bs
+
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
@@ -202,7 +204,10 @@ class PageFieldValueParser:
 
         if "*auto_p" in other[1].split(":"):
             pf.auto_p()
-
+        
+        # just testing bs4
+        # pf.beautiful_soup()
+        # print(f"#p tags: \n{len(pf.soup.findAll('p'))}\n")
         return pf.get_blocks("raw_html", False)
 
 
@@ -234,6 +239,10 @@ class PreFilterHtml:
             self.auto_generate()
 
         return json.dumps(self.blocks)
+
+    def beautiful_soup(self):
+        self.soup = bs(self.value)
+        # print(len(self.soup))
 
     def auto_generate(self):
         pass
