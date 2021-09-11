@@ -7,19 +7,6 @@ from datetime import datetime
 
 from wagtail_xmlimport.functions import linebreaks_wp
 
-# TODO: doesn't seem right that this needs to happen
-# how can save on firt save?
-# def reset_dates(obj, values, published):
-#     # update the dates
-#     obj.first_published_at = values.get("first_published_at")
-#     obj.last_published_at = values.get("last_published_at")
-#     obj.latest_revision_created_at = values.get("latest_revision_created_at")
-#     if published:
-#         obj.save()
-#     else:
-#         obj.unpublish()
-#     # revision.publish()
-
 
 class PageBuilder:
     def __init__(self, item, model, mapping, site_root_page, progress_manager):
@@ -32,10 +19,6 @@ class PageBuilder:
         self.progress_manager = progress_manager
 
     def run(self):
-        # self.result = result
-        # statuses = self.mapping.get("root")["status"]
-        # if self.item.get("status") not in statuses:
-        # page, result = self.parse_item(self.model, self.item, self.mapping)
         return self.parse_item(self.model, self.item, self.mapping)
 
     def parse_item(self, model, item, mapping):
@@ -56,22 +39,12 @@ class PageBuilder:
                     continue
 
                 # handle meta like status
-                if "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
+                elif "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
                     if mapping[key][0] == "__status":
                         self.status = item.get(key)
 
-                # handle everything expect dates and page meta like status
-                if not "%%" in mapping[key][0] and not "__" in mapping[key][0]:
-                    field_value_parser = PageFieldValueParser()
-                    item_value = field_value_parser.parse_field_value(
-                        field_name=mapping[key][0],
-                        value=item.get(key),
-                        other=mapping[key],
-                    )
-                    self.values[mapping[key][0]] = item_value
-
                 # handle dates
-                if "%%" in mapping[key][0] and mapping[key][0].index("%%") == 0:
+                elif "%%" in mapping[key][0] and mapping[key][0].index("%%") == 0:
                     # deal with dates
                     field_value_parser = PageFieldValueParser()
                     extra_fields = None
@@ -86,6 +59,23 @@ class PageBuilder:
 
                     for k, v in item_value.items():
                         self.values[k] = v
+
+                # handle everything else. just for now need to catch stuff
+                elif not "%%" in mapping[key][0] and not "__" in mapping[key][0]:
+                    field_value_parser = PageFieldValueParser()
+                    item_value = field_value_parser.parse_field_value(
+                        field_name=mapping[key][0],
+                        value=item.get(key),
+                        other=mapping[key],
+                    )
+                    # getting back various field types here
+                    # counld be a stream field too whcih would be a json.dumps
+                    # of stream blocks
+                    self.values[mapping[key][0]] = item_value
+
+                # some other value
+                else:
+                    print(f"dont know how to handle this item: {item.get('title')}")
 
         if self.status in self.mapping["root"]["status"]:
 
@@ -111,7 +101,11 @@ class PageBuilder:
 
         setattr(obj, "first_published_at", self.values.get("first_published_at"))
         setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(obj, "latest_revision_created_at", self.values.get("latest_revision_created_at"))
+        setattr(
+            obj,
+            "latest_revision_created_at",
+            self.values.get("latest_revision_created_at"),
+        )
         setattr(obj, "has_unpublished_changes", False)
 
         obj.save()
@@ -136,14 +130,22 @@ class PageBuilder:
 
         setattr(obj, "first_published_at", self.values.get("first_published_at"))
         setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(obj, "latest_revision_created_at", self.values.get("latest_revision_created_at"))
+        setattr(
+            obj,
+            "latest_revision_created_at",
+            self.values.get("latest_revision_created_at"),
+        )
         setattr(obj, "has_unpublished_changes", True)
 
         obj.save_revision().publish()
 
         setattr(obj, "first_published_at", self.values.get("first_published_at"))
         setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(obj, "latest_revision_created_at", self.values.get("latest_revision_created_at"))
+        setattr(
+            obj,
+            "latest_revision_created_at",
+            self.values.get("latest_revision_created_at"),
+        )
         setattr(obj, "has_unpublished_changes", False)
 
         obj.save()
@@ -156,42 +158,20 @@ class PageBuilder:
 
 class PageFieldValueParser:
     def parse_field_value(self, field_name, value, other=None, extra_fields=None):
-        if field_name == "title":
-            return self.parse_title(value, other)
 
-        if field_name == "body":
-            return self.parse_body(value, other)
+        just_return = ["title", "wp_post_id", "wp_post_type"]
 
-        if field_name == "wp_post_id":
-            return self.parse_wp_post_id(value, other)
+        if field_name in just_return:
+            return value
 
-        if field_name == "wp_post_type":
-            return self.parse_wp_post_type(value, other)
+        elif field_name == "slug":
+            return self.parse_slug(value, other)
 
-        if field_name == "slug":
-            return self.parse_body(value, other)
-
-        if field_name == "date":
+        elif field_name == "date":
             return self.parse_date(value, other, extra_fields)
 
-        # if field_name == "status":
-        #     print(value)
-            # return self.parse_date(value, other, extra_fields)
-
-    def parse_title(self, value, other):
-        if other == "required" and not value:
-            return None
-        return value
-
-    def parse_body(self, value, other):
-        if "body" in other:
-            return self.make_stream_blocks(value, other)
-
-    def parse_wp_post_id(self, value, other):
-        return value
-
-    def parse_wp_post_type(self, value, other):
-        return value
+        elif field_name == "body":
+            return self.parse_body(value, other)
 
     def parse_slug(self, value, other):
         if "slug" in other:
@@ -209,13 +189,51 @@ class PageFieldValueParser:
 
         return ret
 
+    def parse_body(self, value, other):
+        if "stream" in other[1]:
+            return self.make_stream_blocks(value, other)
+        else:
+            return value
+
     def make_stream_blocks(self, value, other):
-        pipes = []
-        if len(other) > 1 and "stream" in other[1]:
-            pipes = other[1].split(":")
 
-        if "*auto_p" in pipes:
-            value = linebreaks_wp(value)
+        pf = PreFilterHtml()
+        pf.set_value(value)
 
-        blocks = [{"type": "raw_html", "value": value}]
-        return json.dumps(blocks)
+        if "*auto_p" in other[1].split(":"):
+            pf.auto_p()
+
+        return pf.get_blocks("raw_html", False)
+
+
+class PreFilterHtml:
+    def __init__(self, blocks=None):
+        self.blocks = []
+        if blocks:
+            self.blocks = blocks
+
+    def set_value(self, value):
+        self.value = value
+
+    def set_initial_blocks(self, blocks):
+        self.blocks = blocks
+
+    def auto_p(self):
+        self.value = linebreaks_wp(self.value)
+
+    def raw_html_block(self):
+        self.blocks.append({"type": "raw_html", "value": self.value})
+
+    def rich_text_block(self):
+        self.blocks.append({"type": "rich_text", "value": self.value})
+
+    def get_blocks(self, single, generate):
+        if single:
+            getattr(self, f"{single}_block")()
+        elif generate:
+            self.auto_generate()
+
+        return json.dumps(self.blocks)
+
+    def auto_generate(self):
+        pass

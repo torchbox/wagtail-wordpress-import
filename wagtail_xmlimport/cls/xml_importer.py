@@ -62,22 +62,8 @@ class XmlImporter:
                         dict, model, self.mapping, self.SITE_ROOT_PAGE, self.progress_manager
                     )
                     result = builder.run()
-                    # self.imported_items.append(builder.imported)
-                    # self.failed_items.append(builder.skipped)
-                    # self.processed_items.append(builder.processed)
                     
-                    # see some feedback
-                    # print(result)
                     if result:
-                        # self.imported.append(result)
                         print(result)
-
-                    # if result:
-                    #     self.imported_items.append(result[0])
-
-                    # if isinstance(result[0], PagePage):
-                    #     self.imported_items.append(result[0])
-                    # else:
-                    #     self.failed_items.append([dict])
 
         return True
