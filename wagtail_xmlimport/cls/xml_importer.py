@@ -82,6 +82,7 @@ class XmlImporter:
 
                     self.progress_manager.processed.append(dict)
 
+                    # TODO: could do with making these params clearer
                     builder = PageBuilder(
                         dict,
                         tag_model,

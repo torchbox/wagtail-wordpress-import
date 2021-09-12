@@ -25,6 +25,7 @@ class PageBuilder:
     def run(self):
         return self.parse_item(self.model, self.item, self.mapping, self.type, self.app)
 
+    # TODO: type is unsed need to investigate
     def parse_item(self, model, item, mapping, type, app):
         self.page_model = apps.get_model(app, model)
 
