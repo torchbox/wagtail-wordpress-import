@@ -17,17 +17,18 @@ class Command(BaseCommand):
         # tree
         if options["pagetype"] == "postpage" or options["pagetype"] == "all":
             post_page = apps.get_model("pages", "PostPage")
-            pages = post_page.objects.all()
+            post_page.objects.all().delete()
+            self.stdout.write("delete posts ...")
+            self.stdout.write("⏳ working ...")
 
         if options["pagetype"] == "newspage" or options["pagetype"] == "all":
             news_page = apps.get_model("pages", "NewsPage")
-            pages = news_page.objects.all()
+            news_page.objects.all().delete()
+            self.stdout.write("delete news ...")
+            self.stdout.write("⏳ working ...")
 
         if options["pagetype"] == "pagepage" or options["pagetype"] == "all":
             page_page = apps.get_model("pages", "PagePage")
-            pages = page_page.objects.all()
-        
-        self.stdout.write("⏳ working ...")
-
-        for page in pages:
-            page.delete()
+            page_page.objects.all().delete()
+            self.stdout.write("delete pages ...")
+            self.stdout.write("⏳ working ...")
