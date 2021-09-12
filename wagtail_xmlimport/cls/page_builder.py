@@ -126,6 +126,8 @@ class PageBuilder:
 
         self.site_root_page.add_child(instance=obj)
 
+        self.progress_manager.log_page_action(obj, "created")
+
         return obj, "created"
 
     def update_page(self, page):
@@ -138,6 +140,8 @@ class PageBuilder:
 
         if self.status == "draft":
             obj.unpublish()
+
+        self.progress_manager.log_page_action(obj, "updated")
 
         return obj, "updated"
 

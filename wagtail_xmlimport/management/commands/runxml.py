@@ -23,6 +23,7 @@ class Command(BaseCommand):
         )
         importer.run_import(progress)
         progress.out()
+        progress.save_log()
 
         # TODO: we should do some logging here
         # out = ""
