@@ -94,26 +94,37 @@ class PageBuilder:
             page, result = self.update_page(page_exists)
             return page, result
 
+    """
+    TODO: I think we may need more discussion around page updating after an initial import
+    Thinking this. The import is really only a snapshot in time at the last import.
+
+    First import 
+        OK and the published/updated dates are all set OK. The page is live without any history other
+        than this create action.
+
+    Subsequent Imports
+        Not checking to see which data has changed (could be complicated)
+        Currently restetting all data from the previous import to the current data whcih could have changes.
+        If the data has changed the only peice we know about is updated dates, publish staus whcih gets updated.
+        If a pages is saved here bexuse it may have chenages then the page needs to be published again to reflect
+        that in wagtail. The updated data is now not the imported date but the moment we update it on this import
+
+    To Keep Page History Intact
+        If we are updating previous imported pages with potential new data we need to maintain the history.
+    Dump The History
+        This is how it is currently working.
+
+    """
+
     def make_page(self):
         obj = self.page_model(**self.values)
 
-        self.site_root_page.add_child(instance=obj)
-
-        obj.save_revision().publish()
-
-        setattr(obj, "first_published_at", self.values.get("first_published_at"))
-        setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(
-            obj,
-            "latest_revision_created_at",
-            self.values.get("latest_revision_created_at"),
-        )
-        setattr(obj, "has_unpublished_changes", False)
-
-        obj.save()
-
         if self.status == "draft":
-            obj.unpublish()
+            setattr(obj, "live", False)
+        else:
+            setattr(obj, "live", True)
+
+        self.site_root_page.add_child(instance=obj)
 
         return obj, "created"
 
@@ -122,33 +133,6 @@ class PageBuilder:
 
         for key in self.values.keys():
             setattr(obj, key, self.values[key])
-
-        if self.status == "draft":
-            setattr(obj, "live", False)
-        else:
-            setattr(obj, "live", True)
-
-        # obj.save_revision().publish()
-
-        setattr(obj, "first_published_at", self.values.get("first_published_at"))
-        setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(
-            obj,
-            "latest_revision_created_at",
-            self.values.get("latest_revision_created_at"),
-        )
-        setattr(obj, "has_unpublished_changes", True)
-
-        obj.save_revision().publish()
-
-        setattr(obj, "first_published_at", self.values.get("first_published_at"))
-        setattr(obj, "last_published_at", self.values.get("last_published_at"))
-        setattr(
-            obj,
-            "latest_revision_created_at",
-            self.values.get("latest_revision_created_at"),
-        )
-        setattr(obj, "has_unpublished_changes", False)
 
         obj.save()
 
