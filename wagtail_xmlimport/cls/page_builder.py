@@ -11,29 +11,36 @@ from wagtail_xmlimport.functions import linebreaks_wp
 
 
 class PageBuilder:
-    def __init__(self, item, model, mapping, site_root_page, progress_manager):
+    def __init__(self, item, model, mapping, site_root_page, progress_manager, type, app):
         self.item = item
         self.model = model
         self.mapping = mapping
         self.values = {}
         self.site_root_page = site_root_page
-        # self.skipped = []
+        self.type = type
+        self.app = app
         self.progress_manager = progress_manager
+        print("builder")
 
     def run(self):
-        return self.parse_item(self.model, self.item, self.mapping)
+        return self.parse_item(self.model, self.item, self.mapping, self.type, self.app)
 
-    def parse_item(self, model, item, mapping):
-        self.page_model = apps.get_model("pages", model)
+    def parse_item(self, model, item, mapping, type, app):
+        # print(model, item, mapping, type, app)
+        # exit()
+        self.page_model = apps.get_model(app, model)
+        # print(self.page_model)
 
-        # mapping keys are json file keys
-        # not interested in the root key
+        # 'mapping' keys are json file keys
         # values of interest are keys of length > 0
         # we only need to parse items that have one of the statuses
+        # print(item)
+        # exit()
 
         for key in mapping.keys():
 
             if isinstance(mapping[key], list) and len(mapping[key]):
+                
                 # are there any required fields without a value?
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
