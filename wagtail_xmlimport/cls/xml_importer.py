@@ -16,9 +16,6 @@ class XmlImporter:
         self.mapping = map_file
         self.mapping_meta = self.mapping.get("root")
         self.set_xml_file_path()
-        # self.tag = 'item' # the tag name parent of all items to parse
-        # self.type = type
-        # self.status = status
 
     def set_xml_dir(self, folder_path="xml"):
         self.XML_DIR = folder_path
@@ -58,68 +55,46 @@ class XmlImporter:
         # the xml tag that defines all items
         tag = self.mapping_meta.get("tag")[0]
 
-        to_parse = [
-            {
-                "type": types[x],
-                "model": models[x],
-                "app": apps[x],
-            }
+        to_parse = {
+            types[x]: [
+                models[x],
+                apps[x],
+            ]
             for x in range(len(types))
-        ] # e.g post, PostPage, pages
+        }  # e.g post(PostPage, pages)
 
-        # for x in range(len(types)):
-        #     to_parse.append(
-        #         {
-        #             "type": types[x],
-        #             "model": models[x],
-        #             "app": apps[x],
-        #         }
-        #     )
+        xml_doc = pulldom.parse(self.full_xml_path)
 
+        for event, node in xml_doc:
+            # each node represents a tag in the xml
+            # event is true for the start element
+            if event == pulldom.START_ELEMENT and node.tagName == tag:
 
-        for do in to_parse:
-            # pull dom needs to be loaded for each type
-            xml_doc = pulldom.parse(self.full_xml_path)
+                print("⏳ working ...", end="\r")
+                xml_doc.expandNode(node)
+                dict = node_to_dict(node)
 
-            for event, node in xml_doc:
-                # each node represents a tag in the xml
-                # event is true for the start element
-                if event == pulldom.START_ELEMENT and node.tagName == tag:
+                if dict.get(type_key) in to_parse:
+                    # to each item pass the type, model & app
+                    tag_type = dict.get(type_key)
+                    tag_model = to_parse[tag_type][0]
+                    tag_app = to_parse[tag_type][1]
 
-                    print("⏳ working ...", end="\r")
-                    xml_doc.expandNode(node)
-                    dict = node_to_dict(node)
+                    self.progress_manager.processed.append(dict)
 
-                    if dict.get(type_key) == do["type"]:
+                    builder = PageBuilder(
+                        dict,
+                        tag_model,
+                        self.mapping,
+                        self.SITE_ROOT_PAGE,
+                        self.progress_manager,
+                        tag_type,
+                        tag_app,
+                    )
 
-                        self.progress_manager.processed.append(dict)
+                    result = builder.run()
 
-                        builder = PageBuilder(
-                            dict,
-                            do.get("model"),
-                            self.mapping,
-                            self.SITE_ROOT_PAGE,
-                            self.progress_manager,
-                            do.get("type"),
-                            do.get("app"),
-                        )
-
-                        result = builder.run()
-
-                        if result:
-                            print(result)
-                    # if dict.get("wp:post_type") == type:
-
-                    #     builder = PageBuilder(
-                    #         dict,
-                    #         model,
-                    #         self.mapping,
-                    #         self.SITE_ROOT_PAGE,
-                    #         self.progress_manager,
-                    #     )
-                    #     result = builder.run()
-
-                    #     if result:
-                    #         print(result)
+                    if result:
+                        print(result)
 
         return True
