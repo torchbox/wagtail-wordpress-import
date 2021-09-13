@@ -16,4 +16,6 @@ class Command(BaseCommand):
         importer = XmlImporter(mapping_json)
         importer.run_import(progress)
         progress.out()
-        progress.save_log()
+        progress.save_action_log()
+        progress.save_skipped_log()
+        progress.save_summary_report()

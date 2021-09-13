@@ -20,7 +20,6 @@ class PageBuilder:
         self.type = type
         self.app = app
         self.progress_manager = progress_manager
-        # print("builder")
 
     def run(self):
         return self.parse_item(self.model, self.item, self.mapping, self.type, self.app)
@@ -42,8 +41,7 @@ class PageBuilder:
                 # are there any required fields without a value?
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
-                    self.progress_manager.skipped.append(item)
-                    continue
+                    self.progress_manager.log_page_skipped(item, "required", key)
 
                 # handle meta like status
                 elif "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
@@ -98,6 +96,8 @@ class PageBuilder:
 
             page, result = self.update_page(page_exists)
             return page, result
+        else: # log statuses ignored
+            self.progress_manager.log_page_skipped(item, "status", key)
 
     """
     TODO: I think we may need more discussion around page updating after an initial import
@@ -163,7 +163,7 @@ class PageFieldValueParser:
             return self.parse_slug(value, other)
 
         elif field_name == "date":
-            return self.parse_date(value, other, extra_fields)
+            return self.parse_date(field_name, value, other, extra_fields)
 
         elif field_name == "body":
             return self.parse_body(value, other)
@@ -172,9 +172,7 @@ class PageFieldValueParser:
         if "slug" in other:
             return slugify(value)
 
-    def parse_date(self, value, other, extra_fields):
-        if other == "required" and not value:
-            return None
+    def parse_date(self, field_name, value, other, extra_fields):
         extra_fields = extra_fields.split(":")
         date = "T".join(value.split(" "))
         date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
