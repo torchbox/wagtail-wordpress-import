@@ -42,6 +42,7 @@ class PageBuilder:
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
                     self.progress_manager.log_page_skipped(item, "required", key)
+                    continue
 
                 # handle meta like status
                 elif "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
@@ -51,19 +52,23 @@ class PageBuilder:
                 # handle dates
                 elif "%%" in mapping[key][0] and mapping[key][0].index("%%") == 0:
                     # deal with dates
-                    field_value_parser = PageFieldValueParser()
-                    extra_fields = None
-                    if len(mapping[key]) == 2:
-                        extra_fields = mapping[key][1]
-                    item_value = field_value_parser.parse_field_value(
-                        field_name=mapping[key][0].replace("%%", ""),
-                        value=item.get(key),
-                        other=False,
-                        extra_fields=extra_fields,
-                    )
+                    if item.get(key) != "0000-00-00 00:00:00":
+                        field_value_parser = PageFieldValueParser()
+                        extra_fields = None
+                        if len(mapping[key]) == 2:
+                            extra_fields = mapping[key][1]
+                        item_value = field_value_parser.parse_field_value(
+                            field_name=mapping[key][0].replace("%%", ""),
+                            value=item.get(key),
+                            other=False,
+                            extra_fields=extra_fields,
+                        )
 
-                    for k, v in item_value.items():
-                        self.values[k] = v
+                        for k, v in item_value.items():
+                            self.values[k] = v
+                    else:
+                        self.progress_manager.log_page_skipped(item, "date error", key)
+                        continue
 
                 # handle everything else. just for now need to catch stuff
                 elif not "%%" in mapping[key][0] and not "__" in mapping[key][0]:

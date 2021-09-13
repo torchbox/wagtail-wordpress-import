@@ -16,19 +16,19 @@ class Command(BaseCommand):
         # deepest in the tree first, if of course we end up with a page
         # tree
         if options["pagetype"] == "postpage" or options["pagetype"] == "all":
-            post_page = apps.get_model("pages", "PostPage")
-            post_page.objects.all().delete()
             self.stdout.write("delete posts ...")
             self.stdout.write("⏳ working ...")
+            post_page = apps.get_model("pages", "PostPage")
+            post_page.objects.all().delete()
 
         if options["pagetype"] == "newspage" or options["pagetype"] == "all":
-            news_page = apps.get_model("pages", "NewsPage")
-            news_page.objects.all().delete()
             self.stdout.write("delete news ...")
             self.stdout.write("⏳ working ...")
+            news_page = apps.get_model("pages", "NewsPage")
+            news_page.objects.all().delete()
 
         if options["pagetype"] == "pagepage" or options["pagetype"] == "all":
-            page_page = apps.get_model("pages", "PagePage")
-            page_page.objects.all().delete()
             self.stdout.write("delete pages ...")
             self.stdout.write("⏳ working ...")
+            page_page = apps.get_model("pages", "PagePage")
+            page_page.objects.all().delete()
