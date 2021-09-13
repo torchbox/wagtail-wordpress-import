@@ -36,7 +36,6 @@ class Command(BaseCommand):
         )
         file_name = options["xmlfile"]
         file_path = f"{self.xml_folder_path}/{file_name}"
-        # xml = open(f"{self.xml_folder_path}/{file_name}", "rb").read()
         register_all_namespaces(file_path)
 
         num_lines_original = sum(1 for line in open(file_path))
@@ -91,7 +90,7 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Output #lines {num_lines_out_formatted}")
 
-        self.stdout.write(f"Saved #{num_lines_diff_formatted} lines")
+        self.stdout.write(f"Saved  #lines {num_lines_diff_formatted}")
 
         self.stdout.write(self.style.WARNING(f"\nItem types of interest -------------"))
         type_list = ", ".join(item_types)
@@ -104,6 +103,14 @@ class Command(BaseCommand):
         self.stdout.write(self.style.WARNING(f"\nItem stats -------------"))
         status_list = json.dumps(type_stats, indent=1)
         self.stdout.write(f"\n[{status_list}]")
+
+        # status to file
+        f = open(f"log/stats-{file_name}.json", "w")
+        f.write(json.dumps(type_stats, indent=2))
+
+        self.stdout.write(
+            self.style.SUCCESS(f"\nStats file is here: log/stats-{file_name}.json")
+        )
 
         self.stdout.write(
             self.style.SUCCESS(f"\nFinished Your file is here: {output_file_name}")

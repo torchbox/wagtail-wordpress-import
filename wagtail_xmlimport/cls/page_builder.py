@@ -24,7 +24,7 @@ class PageBuilder:
     def run(self):
         return self.parse_item(self.model, self.item, self.mapping, self.type, self.app)
 
-    # TODO: type is unsed need to investigate
+    # TODO: type is not used need to investigate
     def parse_item(self, model, item, mapping, type, app):
         self.page_model = apps.get_model(app, model)
 
@@ -34,15 +34,21 @@ class PageBuilder:
         # print(item)
         # exit()
 
+        skip = False # later check this before attempting to create a page
+
         for key in mapping.keys():
 
             if isinstance(mapping[key], list) and len(mapping[key]):
+                """ TODO: the conditionals here are getting complicated
+                and there should really be a class for this that knows how to handle the item
+                like ItemProcessor() which can be extend in the app. Just nowo the numbers
+                reported as imported and skipped don't tally. tests can then be written for it"""
 
                 # are there any required fields without a value?
                 # don't continue
                 if "required" in mapping[key] and not item[key]:
                     self.progress_manager.log_page_skipped(item, "required", key)
-                    continue
+                    skip = True
 
                 # handle meta like status
                 elif "__" in mapping[key][0] and mapping[key][0].index("__") == 0:
@@ -68,9 +74,9 @@ class PageBuilder:
                             self.values[k] = v
                     else:
                         self.progress_manager.log_page_skipped(item, "date error", key)
-                        continue
+                        skip = True
 
-                # handle everything else. just for now need to catch stuff
+                # handle everything else.
                 elif not "%%" in mapping[key][0] and not "__" in mapping[key][0]:
                     field_value_parser = PageFieldValueParser()
                     item_value = field_value_parser.parse_field_value(
@@ -78,16 +84,11 @@ class PageBuilder:
                         value=item.get(key),
                         other=mapping[key],
                     )
-                    # getting back various field types here
-                    # counld be a stream field too whcih would be a json.dumps
-                    # of stream blocks
+                    # various field types here based on the second [1] item value
+                    # counld be a stream field too 
                     self.values[mapping[key][0]] = item_value
 
-                # some other value
-                else:
-                    print(f"dont know how to handle this item: {item.get('title')}")
-
-        if self.status in self.mapping["root"]["status"]:
+        if self.status in self.mapping["root"]["status"] and skip == False:
 
             self.progress_manager.imported.append(item)
 
@@ -101,7 +102,7 @@ class PageBuilder:
 
             page, result = self.update_page(page_exists)
             return page, result
-        else: # log statuses ignored
+        else: # log statuses that are ignored
             self.progress_manager.log_page_skipped(item, "status", key)
 
     """
@@ -115,9 +116,10 @@ class PageBuilder:
     Subsequent Imports
         Not checking to see which data has changed (could be complicated)
         Currently restetting all data from the previous import to the current data whcih could have changes.
-        If the data has changed the only peice we know about is updated dates, publish staus whcih gets updated.
-        If a pages is saved here bexuse it may have chenages then the page needs to be published again to reflect
+        If the data has changed the only peice we know about is updated dates, publish staus which gets updated.
+        If a pages is saved here because it may have chenages then the page needs to be published again to reflect
         that in wagtail. The updated data is now not the imported date but the moment we update it on this import
+        Also if a page is deleted in wordpress we won't know that.
 
     To Keep Page History Intact
         If we are updating previous imported pages with potential new data we need to maintain the history.
