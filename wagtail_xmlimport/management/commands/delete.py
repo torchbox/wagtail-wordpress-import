@@ -21,10 +21,10 @@ class Command(BaseCommand):
             post_page = apps.get_model("pages", "PostPage")
             post_page.objects.all().delete()
 
-        if options["pagetype"] == "newspage" or options["pagetype"] == "all":
-            self.stdout.write("delete news ...")
+        if options["pagetype"] == "testpage" or options["pagetype"] == "all":
+            self.stdout.write("delete test pages ...")
             self.stdout.write("⏳ working ...")
-            news_page = apps.get_model("pages", "NewsPage")
+            news_page = apps.get_model("pages", "TestPage")
             news_page.objects.all().delete()
 
         if options["pagetype"] == "pagepage" or options["pagetype"] == "all":
