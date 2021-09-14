@@ -6,10 +6,9 @@ from wagtail_xmlimport.functions import node_to_dict
 from wagtail_xmlimport.cls.page_maker import PageMaker
 from wagtail_xmlimport.cls.progress import ProgressManager
 from django.apps import apps
+from datetime import datetime
+from django.utils.timezone import make_aware
 
-'''
-
-        '''
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
@@ -44,15 +43,15 @@ class WordpressImporter:
             if event == pulldom.START_ELEMENT and node.tagName == tag:
                 xml_doc.expandNode(node)
                 complete_dict = node_to_dict(node)
-                
+
                 if complete_dict.get("wp:post_type") and complete_dict.get(
                     "wp:post_type"
                 ) == self.mapping_root.get("type"):
                     item_dict = self.get_values(complete_dict)
 
                     # print(item_dict)
-                # exit()
-                # exit()
+                    # exit()
+                    # exit()
                     self.make_page(item_dict, complete_dict.get("wp:status"))
 
                 # builder = PageMaker(
@@ -69,9 +68,9 @@ class WordpressImporter:
 
     def make_page(self, values, status):
 
-        print(values)
-        exit()
-        
+        # print(values)
+        # exit()
+
         obj = self.page_model_instance(**values)
 
         if status == "draft":
@@ -89,26 +88,34 @@ class WordpressImporter:
 
         field_values = {}
 
+        date_item_fields = [
+            "first_published_at",
+            "last_published_at",
+            "latest_revision_created_at",
+        ]
+
         for key in self.mapping_item.keys():
             item_value = item_dict.get(key)
             if isinstance(self.mapping_item.get(key), list):
                 for f in range(len(self.mapping_item.get(key))):
-                    field_values[self.mapping_item.get(key)] = item_value
+                    if f in date_item_fields:
+                        field_values[self.mapping_item.get(key)[f]] = self.parse_date(item_value)
+                    else:
+                        field_values[self.mapping_item.get(key)[f]] = item_value
             else:
                 field_values[self.mapping_item.get(key)] = item_value
 
-            # print(is_list)
-            # if type(self.mapping_item[key]) == 'list':
-                # TODO: a list of fields to receive the same value
-                # for f in self.mapping_item.get(key):
-                #     field_values[self.mapping_item.get(key)] = item_value
-                # print('list')
-                # pass
-            # else:
-            # item_value = item_dict.get(key)
-            #     field_values[self.mapping_item.get(key)] = item_value
-        
         return field_values
+
+    def parse_date(self, value):
+        exit(0)
+        date = "T".join(value.split(" "))
+        if not date == "0000-00-00 00:00:00":
+            date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
+        else:
+            date_formatted = make_aware(datetime.strptime("2010-10-13 10:15:34", "%Y-%m-%dT%H:%M:%S"))
+
+        return date_formatted
 
 
 wordpress_importer_class = WordpressImporter
