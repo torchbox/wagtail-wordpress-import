@@ -8,6 +8,8 @@ from datetime import datetime
 from django.utils.timezone import make_aware
 from django.utils.text import slugify
 
+from wagtail.core.models import Page
+
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
@@ -28,12 +30,12 @@ class WordpressImporter:
         self.page_model_instance = apps.get_model(
             kwargs["app_for_pages"], kwargs["model_for_pages"]
         )
-        self.parent_page_obj = (
-            apps.get_model(kwargs["app_for_parent"], kwargs["model_for_parent"])
-            .get_first_root_node()
-            .get_children()
-            .first()
-        )
+
+        try:
+            self.parent_page_obj = Page.objects.get(pk=kwargs["parent_id"])
+        except Page.DoesNotExist:
+            print(f"A page with id {kwargs['parent_id']} does not exist")
+            exit()
 
         for event, node in xml_doc:
             # each node represents a tag in the xml

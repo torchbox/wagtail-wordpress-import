@@ -9,8 +9,16 @@ LOG_DIR = "log"
 
 
 class Command(BaseCommand):
+    help = """Run the import process on all items in the XML file and make 
+    them child pages of a specific page"""
+
     def add_arguments(self, parser):
-        parser.add_argument("xml_file", type=str)
+        parser.add_argument("xml_file", type=str, help="The full path to your xml file")
+        parser.add_argument(
+            "parent_id",
+            type=int,
+            help="The page ID of the parent page to use when creating imported pages",
+        )
 
     def handle(self, **options):
         xml_file_path = f"{options['xml_file']}"
@@ -20,8 +28,7 @@ class Command(BaseCommand):
             page_statuses=["draft", "publish"],
             app_for_pages="pages",
             model_for_pages="PostPage",
-            app_for_parent="home",
-            model_for_parent="HomePage",
+            parent_id=options["parent_id"],
         )
         self.summary(imported, skipped, processed)
         self.save_csv_files(logged)
