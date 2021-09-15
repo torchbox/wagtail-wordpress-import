@@ -12,3 +12,4 @@
 /node_modules
 /test-static
 /test-media
+.DS_Store
