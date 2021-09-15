@@ -47,7 +47,7 @@ class Command(BaseCommand):
         if calc:
             self.stdout.write(self.style.SUCCESS(f"Check: {calc}"))
         else:
-            self.stdout.write(self.style.ERROR()(f"Check: {calc}"))
+            self.stdout.write(self.style.ERROR(f"Check: {calc}"))
 
     def save_csv_files(self, logged):
         file_name = (
