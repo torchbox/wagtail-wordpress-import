@@ -17,7 +17,7 @@ class Command(BaseCommand):
         super(Command, self).__init__(*args, **kwargs)
 
     def add_arguments(self, parser):
-        parser.add_argument("xmlfile", type=str)
+        parser.add_argument("xmlfile", type=str, help="The full path to your xml file")
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.WARNING("Parsing ..."))
