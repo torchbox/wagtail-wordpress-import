@@ -1,14 +1,13 @@
 import json
+from datetime import datetime
 from xml.dom import pulldom
-from wagtail_xmlimport.importers import wordpress_mapping
-from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
 
 from django.apps import apps
-from datetime import datetime
-from django.utils.timezone import make_aware
 from django.utils.text import slugify
-
+from django.utils.timezone import make_aware
 from wagtail.core.models import Page
+from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
+from wagtail_xmlimport.importers import wordpress_mapping
 
 
 class WordpressImporter:
@@ -27,9 +26,17 @@ class WordpressImporter:
 
     def run(self, *args, **kwargs):
         xml_doc = pulldom.parse(self.xml_file)
-        self.page_model_instance = apps.get_model(
-            kwargs["app_for_pages"], kwargs["model_for_pages"]
-        )
+
+        try:
+            self.page_model_instance = apps.get_model(
+                kwargs["app_for_pages"], kwargs["model_for_pages"]
+            )
+        except LookupError:
+            print(f"The app `{kwargs['app_for_pages']}` and/or page model `{kwargs['model_for_pages']}` cannot be found!")
+            print(
+                "Check the command line options -a and -m match an existing Wagtail app and Wagtail page model"
+            )
+            exit()
 
         try:
             self.parent_page_obj = Page.objects.get(pk=kwargs["parent_id"])
@@ -49,7 +56,7 @@ class WordpressImporter:
                     and item.get("wp:status") in kwargs["page_statuses"]
                 ):
 
-                    # dates_valid and slugs_valid might be useful for 
+                    # dates_valid and slugs_valid might be useful for
                     # loging detail
                     item_dict, dates_valid, slugs_valid = self.get_values(item)
 
@@ -59,28 +66,27 @@ class WordpressImporter:
 
                     if page_exists:
                         self.update_page(page_exists, item_dict, item.get("wp:status"))
-                        item["log"] = {
-                            "result": "updated",
-                            "reason": "existed"
-                        }
+                        item["log"] = {"result": "updated", "reason": "existed"}
                     else:
                         self.create_page(item_dict, item.get("wp:status"))
-                        item["log"] = {
-                            "result":"created",
-                            "reason": "new"
-                        }
+                        item["log"] = {"result": "created", "reason": "new"}
                     self.log_imported += 1
                 else:
                     item["log"] = {
                         "result": "skipped",
-                        "reason": "no title or status match"
+                        "reason": "no title or status match",
                     }
                     self.log_skipped += 1
 
                 print(item.get("title"), item.get("log")["result"])
                 self.logged_items.append(item)
 
-        return self.log_imported, self.log_skipped, self.log_processed, self.logged_items
+        return (
+            self.log_imported,
+            self.log_skipped,
+            self.log_processed,
+            self.logged_items,
+        )
 
     def create_page(self, values, status):
         obj = self.page_model_instance(**values)
