@@ -1,3 +1,5 @@
+""" here only as reminder for earlier code will be removed"""
+
 from xml.dom import pulldom
 
 from wagtail.core.models import Page
