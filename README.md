@@ -4,11 +4,11 @@ An extension for importing model data from a xml file into a Wagail project.
 
 It's intended that the data can be used to create page models, image models, document models and more.
 
-Currently available models:
-
-    Page
-
 `Inital work is to import from a Wordpress xml export but it should be possible to use it for other xml data sources.`
+
+
+
+
 
 ## Installation
 
@@ -16,136 +16,83 @@ Currently available models:
 
 * Add `wagtail_xmlimport` to INSTALLED_APPS in your project
 
+
+
+
+
 # Inital setup
 
-## It's a good idead to include this and other folders listed below in your .gitignore to avoid exposing potentially private data to the world.
+Place your xml files inside a folder called `xml` at the root of your project. The file can have any name you choose.
 
-Place your xml files inside a folder `xml` at the root of your project. You can name them whatever you want.
+### It's a good idead to include these folders to your .gitignore to avoid exposing potentially private data to the world.
 
-Add a `json` folder to the root of your project. There's a optional `discovery` command that will need to write to that folder. Again add the folder to your `.gitignore` file
 
-## XML -> Wagtail model mapping
 
-* The general process to import the xml file is
-    
-    1. Create a mapping file using the `discovery` command with the xml file to use.
-    2. Adjust the resulting json file to your needs (see blow)
-    3. Run the import command on the created json file
 
-`The import command needs the json mapping file to exist to know which fields to include in the import as well as the source xml file` Those fields will be part of your Wagtail model.
 
-# Mapping
+# Import XML
 
-A simple mapping file could be: (It always needs the root item.) See below how to get there using the discovery command but you could write the file from scratch.
+## To start an import: 
+        
+`python manage.py import_xml [parent_page_id]` 
 
-`Sample is for wordpress`
+- [parent_page_id] is the id of the page in your wagtail site where pages will be created as child pages. If you don't know what that is then choose to edit the page in wagtail admin and look at the url in your browser e.g. `http://www.domain.com/admin/pages/3/edit/` the number after /admin/pages/`3` is the id to use.
 
-```
-{
-  "root": {
-    "//[ The xml file to use ]//": "",
-    "file": ["myxmlfile.xml"],
-    "//[ Default Value. The tag for each page in the xml file tree ]//": "",
-    "tag": ["item"],
-    "//[ The page type in xml tag ]//": "",
-    "type": ["page"],
-    "//[ Default Value. The model to import to ]//": "",
-    "model": ["PostPage"],
-    "//[ The statuses to import ]//": "",
-    "status": ["publish", "draft"]
-  },
-  "title": ["title", "required"],
-  "link": [],
-  "pubDate": [],
-  "dc:creator": [],
-  "guid": [],
-  "description": [],
-  "content:encoded": ["body", "stream:raw_html:*auto_p", "required"],
-  "excerpt:encoded": [],
-  "wp:post_id": ["wp_post_id"],
-  "wp:post_date": ["%%date", "first_published_at:last_published_at:latest_revision_created_at"],
-  "wp:post_date_gmt": [],
-  "wp:post_modified": [],
-  "wp:post_modified_gmt": [],
-  "wp:comment_status": [],
-  "wp:ping_status": [],
-  "wp:post_name": ["slug", "*slugify", "required"],
-  "wp:status": ["__status"],
-  "wp:post_parent": [],
-  "wp:menu_order": [],
-  "wp:post_type": ["wp_post_type"],
-  "wp:post_password": [],
-  "wp:is_sticky": [],
-  "wp:postmeta": [],
-  "wp:postmeta/wp:meta_key": [],
-  "wp:postmeta/wp:meta_value": [],
-  "category": []
-}
-```
+### Default command arguments:
 
-NOTES: 
+- `--model or -m` can be used to specify the Wagtail Page model to use for all imported pages. The default is `PostPage` when it's not specified.
 
-The special markers `__` and `%%` indicate fields that don't directly relate to a wagtail model field and have extra processing. They may end up in a wagtail model field after processing. Field without markers are directly imprted.
+- `--app or -a` can be used to specify the Wagtail App where you have created your Wagtail Page model. The default is `pages` when it's not specified.
 
-To process marked fields you will need to write a processor. (Docs to come)
+### Default import command
 
-Each xml tag can have 1, 2 or 3 parameters in a list.
+The package comes with a default command: 
 
-  1. Wagtail field name (as in your page model)
-  2. Field processing (for fields like stream field and slugs)
-  3. Field attrubites (if a field is required)
+- [wagtail-xmlimport/wagtail_xmlimport/management/commands/import_xml.py](./wagtail-xmlimport/wagtail_xmlimport/management/commands/import_xml.py)
 
-Tags with an empty parameters list are ignored. They can be removed to simpify it.
+The configuration is set to import all items in the xml file that have a `<wp:post_type>` = `post` or `page`. Also the command only imports an item that has `<wp:status>` = `draft` or `publish`
 
-In the root item:
+### You can create you own command to import the xml file.
+[View Documentation](./wagtail-xmlimport/docs/commands.md)
 
-* `"file"` is the name of the xml file to load.
-* `"tag"` is the tag name that is the parent tag of all the data tags you want to include in the import.
-* `"type"` is the item type to be imported.
-* `"model"` is the model the data will be imported to (Wagtail model name)
-* `"status"` is the status to pass through to the imported page
 
-### Using the discover command
 
-You can import a file as below... A shorter example
 
-```
-<?xml version="1.0"?>
-<catalog>
-   <book id="bk101">
-      <author>Gambardella, Matthew</author>
-      <title>XML Developer's Guide</title>
-      <genre>Computer</genre>
-      <price>44.95</price>
-      <publish_date>2000-10-01</publish_date>
-      <description>An in-depth look at creating applications 
-      with XML.</description>
-   </book>
-```
 
-and the output of discover for this xml would be.
+# XML item fields -> Wagtail model field mapping
 
-```
-{
-  "root": [],
-  "book_id": "id",
-  "author": [],
-  "title": [],
-  "genre": [],
-  "price": [],
-  "publish_date": [],
-  "description": []
-}
-```
+There is a built in wordpress -> wagtail mapping file in the package. You can choose to extend the mapping and add your own methods to process each item.
 
-and you would alter the file to something like the one at the begining of the Mapping section. 
+[View Documentation](./wagtail-xmlimport/docs/mapping.md)
 
-# Importing
 
-To start an import, in your project run `python manage.py runxml` with a parameter of the json file name saved earlier.
 
-# Large XML files
 
-To help with speeding up the import process there is a management command.
+# Creating page models
 
-`python manage.py reduce` with a parameter of the xml file name you want to work with. It will produce a new file with the same name and `-reduced` appended. This is the xml file name to add to your mapping.json file
+There is a model mixin in the package which you should use in you own model, at least while running any imports.
+
+[View Documentation](wagtail-xmlimport/docs/models.md)
+
+
+
+# Utility commands
+
+## XML Tag Discovery
+
+`python manage.py extract_xml_mapping` [and add the path to your xml file]
+
+[wagtail-xmlimport/wagtail_xmlimport/management/commands/extract_xml_mapping.py](wagtail-xmlimport/wagtail_xmlimport/management/commands/extract_xml_mapping.py)
+
+This command will output a json file inside the json folder at the root of your project. The output can help you decide whcih fields should be included in your import as well as providing a nice short listing of all tags in the xml for reference.
+
+## XML File Size Reduction
+
+`python manage.py reduce_xml` [and add the path to your xml file]
+
+[wagtail-xmlimport/wagtail_xmlimport/management/commands/reduce_xml.py](wagtail-xmlimport/wagtail_xmlimport/management/commands/reduce_xml.py)
+
+This command will output a new xml file with `-reduced` appended to the xml file name and save it in the root `xml` folder.
+
+- It's default behaviour is to remove all comments and comment data.
+- It will also output some stats to explain the difference in lines in the xml file.
