@@ -1,5 +1,4 @@
 import csv
-
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
@@ -9,8 +8,30 @@ LOG_DIR = "log"
 
 
 class Command(BaseCommand):
+    help = """Run the import process on all items in the XML file and make 
+    them child pages of a specific page. The default app is `pages` and the default model is `PostPage`."""
+
     def add_arguments(self, parser):
-        parser.add_argument("xml_file", type=str)
+        parser.add_argument("xml_file", type=str, help="The full path to your xml file")
+        parser.add_argument(
+            "parent_id",
+            type=int,
+            help="The page ID of the parent page to use when creating imported pages",
+        )
+        parser.add_argument(
+            "-a",
+            "--app",
+            type=str,
+            help="The app which contains your page models for the import",
+            default="pages",
+        )
+        parser.add_argument(
+            "-m",
+            "--model",
+            type=str,
+            help="The page model to use for the imported pages",
+            default="PostPage",
+        )
 
     def handle(self, **options):
         xml_file_path = f"{options['xml_file']}"
@@ -18,10 +39,9 @@ class Command(BaseCommand):
         imported, skipped, processed, logged = importer.run(
             page_types=["page", "post"],  # the word press page type
             page_statuses=["draft", "publish"],
-            app_for_pages="pages",
-            model_for_pages="PostPage",
-            app_for_parent="home",
-            model_for_parent="HomePage",
+            app_for_pages=options["app"],
+            model_for_pages=options["model"],
+            parent_id=options["parent_id"],
         )
         self.summary(imported, skipped, processed)
         self.save_csv_files(logged)
@@ -40,7 +60,7 @@ class Command(BaseCommand):
         if calc:
             self.stdout.write(self.style.SUCCESS(f"Check: {calc}"))
         else:
-            self.stdout.write(self.style.ERROR()(f"Check: {calc}"))
+            self.stdout.write(self.style.ERROR(f"Check: {calc}"))
 
     def save_csv_files(self, logged):
         file_name = (
