@@ -68,15 +68,27 @@ class WordpressImporter:
 
                     if page_exists:
                         self.update_page(page_exists, item_dict, item.get("wp:status"))
-                        item["log"] = {"result": "updated", "reason": "existed"}
+                        item["log"] = {
+                            "result": "updated",
+                            "reason": "existed",
+                            "datecheck": dates_valid,
+                            "slugcheck": slugs_valid,
+                        }
                     else:
                         self.create_page(item_dict, item.get("wp:status"))
-                        item["log"] = {"result": "created", "reason": "new"}
+                        item["log"] = {
+                            "result": "created",
+                            "reason": "new",
+                            "datecheck": dates_valid,
+                            "slugcheck": slugs_valid,
+                        }
                     self.log_imported += 1
                 else:
                     item["log"] = {
                         "result": "skipped",
                         "reason": "no title or status match",
+                        "datecheck": "",
+                        "slugcheck": "",
                     }
                     self.log_skipped += 1
 
@@ -167,9 +179,12 @@ class WordpressImporter:
             page_values[sf] = slug[0]
             slug_changed = slug[1]
 
-        # if any of the date are not valid then thats important
-        if False in date_valid:
-            date_valid = False
+        # if any of the date are not valid then that's important
+        date_valid = all(date_valid)
+        # if False in date_valid:
+        #     date_valid = False
+        # else:
+        #     date_valid = True
 
         return page_values, date_valid, slug_changed
 
