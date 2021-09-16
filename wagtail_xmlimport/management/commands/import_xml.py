@@ -69,7 +69,7 @@ class Command(BaseCommand):
 
         with open(file_name, "w", newline="") as csvfile:
             writer = csv.DictWriter(
-                csvfile, fieldnames=["id", "title", "url", "reason", "result"]
+                csvfile, fieldnames=["id", "title", "url", "reason", "result", "dates", "slug"]
             )
             writer.writeheader()
             for row in logged:
@@ -80,5 +80,7 @@ class Command(BaseCommand):
                         "url": row["link"],
                         "reason": row["log"]["reason"],
                         "result": row["log"]["result"],
+                        "dates": row["log"]["datecheck"],
+                        "slug": row["log"]["slugcheck"]
                     }
                 )
