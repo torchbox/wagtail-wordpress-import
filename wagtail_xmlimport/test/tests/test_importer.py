@@ -37,15 +37,20 @@ class ImpoterTests(TestCase):
         
     def test_parse_date(self):
         bad_date = self.imp.parse_date("0000-00-00 00:00:00")
-        self.assertIsNone(bad_date)
+        self.assertIsInstance(bad_date[0], datetime)
         good_date = self.imp.parse_date("2010-07-13 12:16:46")
-        self.assertIsInstance(good_date, datetime)
+        self.assertIsInstance(good_date[0], datetime)
 
     def test_parse_slug(self):
         good_slug = self.imp.parse_slug("good-slug", "Good Slug Passed Here")
-        self.assertEqual(good_slug, "good-slug")
+        self.assertEqual(good_slug[0], "good-slug")
+        self.assertEqual(good_slug[1], "OK")
         bad_slug = self.imp.parse_slug("page%2&e-#ti#tle", "Bad Slug Passed Here")
-        self.assertEqual(bad_slug, "page2e-title")
+        self.assertEqual(bad_slug[0], "page2e-title")
+        self.assertEqual(bad_slug[1], "illegal chars found")
+        blank_slug = self.imp.parse_slug("", "Page Without Slug")
+        self.assertEqual(blank_slug[0], "page-without-slug")
+        self.assertEqual(blank_slug[1], "blank slug")
 
     def test_parse_stream_fields(self):
         blocks = self.imp.parse_stream_fields("A line without a tag")
@@ -116,5 +121,4 @@ class ImpoterTests(TestCase):
         })
 
         self.assertIsInstance(missing_slug_values, tuple)
-        self.assertTrue(missing_slug_values[1])
-        self.assertFalse(missing_slug_values[2])
+        self.assertEqual(missing_slug_values[2], "blank slug")

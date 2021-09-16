@@ -32,7 +32,9 @@ class WordpressImporter:
                 kwargs["app_for_pages"], kwargs["model_for_pages"]
             )
         except LookupError:
-            print(f"The app `{kwargs['app_for_pages']}` and/or page model `{kwargs['model_for_pages']}` cannot be found!")
+            print(
+                f"The app `{kwargs['app_for_pages']}` and/or page model `{kwargs['model_for_pages']}` cannot be found!"
+            )
             print(
                 "Check the command line options -a and -m match an existing Wagtail app and Wagtail page model"
             )
@@ -133,10 +135,10 @@ class WordpressImporter:
         page_values = {}
 
         # fields on a page model in wagtail that require a specific input format
-        dates_valid = True
+        date_valid = []
         date_fields = self.mapping_valid_date.split(",")
 
-        slugs_valid = True
+        slug_changed = False
         slug_fields = self.mapping_valid_slug.split(",")
 
         stream_fields = self.mapping_stream_fields.split(",")
@@ -153,30 +155,55 @@ class WordpressImporter:
 
         # dates
         for df in date_fields:
-            dt = self.parse_date(item.get(self.mapping_item_inverse.get(df)))
-            page_values[df] = dt
+            date = self.parse_date(item.get(self.mapping_item_inverse.get(df)))
+            page_values[df] = date[0]
+            date_valid.append(date[1])
 
         # slugs
         for sf in slug_fields:
-            sl = self.parse_slug(
+            slug = self.parse_slug(
                 item.get(self.mapping_item_inverse.get(sf)), item.get("title")
             )
-            page_values[sf] = sl
+            page_values[sf] = slug[0]
+            slug_changed = slug[1]
 
-        return page_values, dates_valid, slugs_valid
+        # if any of the date are not valid then thats important
+        if False in date_valid:
+            date_valid = False
+
+        return page_values, date_valid, slug_changed
 
     def parse_date(self, value):
-        if value != "0000-00-00 00:00:00":
-            date = "T".join(value.split(" "))
-            date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
-            return date_formatted
-        return None
+        # We need a good date to be able to save the page later and
+        # some dates are not valid date strings in the xml.
+        # If thats the case return a specific date so it can be saved
+        # and return the failure for logging
+        valid = True
+        if value == "0000-00-00 00:00:00":
+            value = "1900-01-01 00:00:00"  # set this date so it can be found in wagtail admin
+            valid = False
+        date = "T".join(value.split(" "))
+        date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
+
+        return date_formatted, valid
 
     def parse_slug(self, value, title):
+        # log the outcome of slugify
         if not value:
-            value = title
-            print("slug set", title)
-        return slugify(value)
+            # make slug from title
+            slug = slugify(title)
+            changed = "blank slug"
+
+        else:
+            # use exiting slug
+            slug = slugify(value)
+            changed = "OK"
+
+        # some slugs have illegal characters so will be changed
+        if value and slug != value:
+            changed = "illegal chars found"
+
+        return slug, changed
 
     def parse_stream_fields(self, value):
         blocks = []
