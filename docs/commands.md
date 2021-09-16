@@ -1,18 +1,4 @@
-# Create a command you will run for the import
+# WIP Command to run the import
 
-```
-from django.core.management.base import BaseCommand
-from wagtail_xmlimport.importers.wordpress import WordpressImporter
-from example.home.models import HomePage
+- A regular django command is run to start the import process. There's one included in the package but you can inherit from it and adjust to you needs.
 
-
-class Command(BaseCommand):
-    def add_arguments(self, parser):
-        parser.add_argument("xml_file", type=str)
-
-    def handle(self, **options):
-        xml_file_path = f"{options['xml_file']}"
-        importer = WordpressImporter(xml_file_path)
-        importer.run("page", "TestPage", HomePage)
-        # importer.run("page", "TestPage", HomePage) and one for each page type
-```
