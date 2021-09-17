@@ -10,7 +10,7 @@ class Command(BaseCommand):
     When using sqlite3 the command line bulk delete won't work:
         on a site with a lot of pages so we'll fall back to looping
 
-    ./manage.py delete_imported_xml [app] [model] [--parent_id]
+    ./manage.py delete_imported_xml app model [--parent_id]
     """
 
     def add_arguments(self, parser):
