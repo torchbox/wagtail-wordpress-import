@@ -64,7 +64,7 @@ class Command(BaseCommand):
 
     def save_csv_files(self, logged):
         file_name = (
-            f"{LOG_DIR}/import-history-{datetime.now().strftime('%m%d%Y%H%M%S')}.csv"
+            f"{LOG_DIR}/import-results-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
         )
 
         with open(file_name, "w", newline="") as csvfile:
