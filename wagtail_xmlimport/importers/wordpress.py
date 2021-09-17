@@ -102,6 +102,25 @@ class WordpressImporter:
             self.logged_items,
         )
 
+    def analyze_html(self, html_analyzer, *, page_types, page_statuses):
+        xml_doc = pulldom.parse(self.xml_file)
+
+        for event, node in xml_doc:
+            # each node represents a tag in the xml
+            # event is true for the start element
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                xml_doc.expandNode(node)
+                item = node_to_dict(node)
+                if (
+                    item.get("wp:post_type") in page_types
+                    and item.get("wp:status") in page_statuses
+                ):
+                    stream_fields = self.mapping_stream_fields.split(",")
+
+                    for html in stream_fields:
+                        value = linebreaks_wp(item.get(self.mapping_item_inverse.get(html)))
+                        html_analyzer.analyze(value)
+
     def create_page(self, values, status):
         obj = self.page_model_instance(**values)
 
