@@ -1,4 +1,5 @@
 import json
+import os
 import xml.etree.ElementTree as ET
 
 from django.core.management.base import BaseCommand
@@ -20,22 +21,34 @@ class Command(BaseCommand):
     TODO: this would be better made felxible
     """
 
-    def __init__(self, *args, **kwargs):
-        self.xml_folder_path = "xml"
-        super(Command, self).__init__(*args, **kwargs)
-
     def add_arguments(self, parser):
         parser.add_argument("xmlfile", type=str, help="The name of your xml file")
 
+    def get_xml_file(self, xml_file):
+        if "/" in xml_file:
+            self.stdout.write(
+                self.style.ERROR(
+                    f"Your xml file should be place in the root of your app: {xml_file}"
+                )
+            )
+            exit()
+
+        if os.path.exists(xml_file):
+            return xml_file
+
+        self.stdout.write(
+            self.style.ERROR(f"The xml file `{xml_file}` cannot be found")
+        )
+        exit()
+
     def handle(self, *args, **options):
+        file_path = self.get_xml_file(options["xmlfile"])
         self.stdout.write(self.style.WARNING("Reducing ..."))
         self.stdout.write(
             self.style.NOTICE(
                 "If this is a large file and has many depths it will take some time to complete"
             )
         )
-        file_name = options["xmlfile"]
-        file_path = f"{self.xml_folder_path}/{file_name}"
         register_all_namespaces(file_path)
 
         num_lines_original = sum(1 for line in open(file_path))
@@ -43,9 +56,9 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Original #lines {num_lines_original_formatted}")
 
-        ofile = file_name.split(".")[0]
+        ofile = file_path.split(".")[0]
         output_file_name = f"{ofile}-reduced.xml"
-        output_file_path = f"{self.xml_folder_path}/{output_file_name}"
+        output_file_path = f"{output_file_name}"
 
         tree = ET.parse(file_path)
         wp = "{http://wordpress.org/export/1.2/}"
@@ -100,16 +113,12 @@ class Command(BaseCommand):
         status_list = ", ".join(item_statuses)
         self.stdout.write(f"\n[{status_list}]")
 
-        self.stdout.write(self.style.WARNING(f"\nItem stats -------------"))
-        status_list = json.dumps(type_stats, indent=1)
-        self.stdout.write(f"\n[{status_list}]")
-
-        # status to file
-        f = open(f"log/stats-{file_name}.json", "w")
+        # stats to file
+        f = open(f"stats-{file_path}.json", "w")
         f.write(json.dumps(type_stats, indent=2))
 
         self.stdout.write(
-            self.style.SUCCESS(f"\nStats file is here: log/stats-{file_name}.json")
+            self.style.SUCCESS(f"\nStats file is here: stats-{file_path}.json")
         )
 
         self.stdout.write(
