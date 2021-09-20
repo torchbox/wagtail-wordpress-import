@@ -1,5 +1,4 @@
-import csv
-from datetime import datetime
+import os
 
 from django.core.management.base import BaseCommand
 from prettytable import PrettyTable
@@ -10,16 +9,31 @@ from wagtail_xmlimport.analysis import HTMLAnalyzer
 
 class Command(BaseCommand):
     def add_arguments(self, parser):
-        parser.add_argument("xml_file", type=str)
+        parser.add_argument("xml_file", type=str, help="The full path to your xml file")
+        parser.add_argument(
+            "-t",
+            "--type",
+            type=str,
+            help="The wordpress post type/s to import. Use a comma to separate multiple types",
+            default="page,post",
+        )
+        parser.add_argument(
+            "-s",
+            "--status",
+            type=str,
+            help="The wordpress post statuse/s to import. Use a comma to separate multiple types",
+            default="publish,draft",
+        )
 
     def handle(self, **options):
-        importer = WordpressImporter(options['xml_file'])
+        xml_file_path = self.get_xml_file(f"{options['xml_file']}")
+        importer = WordpressImporter(xml_file_path)
         analyzer = HTMLAnalyzer()
 
         importer.analyze_html(
             analyzer,
-            page_types=["page", "post"],
-            page_statuses=["draft", "publish"],
+            page_types=options["type"].split(","),
+            page_statuses=options["status"].split(","),
         )
 
         # Tags
@@ -51,3 +65,12 @@ class Command(BaseCommand):
         self.stdout.write("Most commonly used inline CSS styles")
         self.stdout.write(str(styles_table))
 
+
+    def get_xml_file(self, xml_file):
+        if os.path.exists(xml_file):
+            return xml_file
+
+        self.stdout.write(
+            self.style.ERROR(f"The xml file cannot be found at: {xml_file}")
+        )
+        exit()
