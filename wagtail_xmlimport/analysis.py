@@ -1,4 +1,5 @@
 from collections import Counter
+from os import path
 
 from django.test.html import HTMLParseError, parse_html
 
