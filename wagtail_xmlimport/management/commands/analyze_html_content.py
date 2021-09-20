@@ -69,6 +69,15 @@ class Command(BaseCommand):
         self.stdout.write("Most commonly used inline CSS styles")
         self.stdout.write(str(styles_table))
 
+        styles_values_table = PrettyTable()
+        styles_values_table.field_names = ["Style Value"]
+        for value in analyzer.styles_unique_values:
+            styles_values_table.add_row([value])
+
+        self.stdout.write("")
+        self.stdout.write("Unique inline CSS style values")
+        self.stdout.write(str(styles_values_table))
+
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
