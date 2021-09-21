@@ -36,10 +36,13 @@ class Command(BaseCommand):
             page_statuses=options["status"].split(","),
         )
 
+        diff_tags = {}
+
         # Tags
         tags_table = PrettyTable()
         tags_table.field_names = ["Tag", "Pages used on", "Total occurrences"]
         for tag, total_pages in analyzer.tags_unique_pages.most_common():
+            diff_tags[tag] = analyzer.tags_total[tag]
             tags_table.add_row([tag, total_pages, analyzer.tags_total[tag]])
 
         self.stdout.write("Most commonly used HTML tags")
@@ -47,12 +50,13 @@ class Command(BaseCommand):
 
         # Attributes
         attributes_table = PrettyTable()
-        attributes_table.field_names = ["Tag", "Attribute", "Pages used on", "Total occurrences"]
+        attributes_table.field_names = ["Tag", "Attribute", "Pages used on", "Total occurrences", "Diff"]
         for (tag, attribute), total_pages in analyzer.attributes_unique_pages.most_common():
-            attributes_table.add_row([tag, attribute, total_pages, analyzer.attributes_total[(tag, attribute)]])
+            diff = diff_tags[tag] - analyzer.attributes_total[(tag, attribute)]
+            attributes_table.add_row([tag, attribute, total_pages, analyzer.attributes_total[(tag, attribute)], diff])
 
         self.stdout.write("")
-        self.stdout.write("Most commonly used HTML attributes")
+        self.stdout.write("Most commonly used HTML attributes. Diff > 0 indicates is missing the attr vs usage")
         self.stdout.write(str(attributes_table))
 
         # Styles
@@ -64,6 +68,15 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write("Most commonly used inline CSS styles")
         self.stdout.write(str(styles_table))
+
+        styles_values_table = PrettyTable()
+        styles_values_table.field_names = ["Style Value"]
+        for value in analyzer.styles_unique_values:
+            styles_values_table.add_row([value])
+
+        self.stdout.write("")
+        self.stdout.write("Unique inline CSS style values")
+        self.stdout.write(str(styles_values_table))
 
 
     def get_xml_file(self, xml_file):
