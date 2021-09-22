@@ -16,7 +16,7 @@ setup(
     version=__version__,
     description="Import XML data into wagtail to create pages and content",
     long_description=long_description,
-    long_description_content_type='text/markdown',
+    long_description_content_type="text/markdown",
     author="Nick Moreton",
     author_email="nickmoreton@me.com",
     url="",
@@ -40,7 +40,13 @@ setup(
         "Framework :: Wagtail",
         "Framework :: Wagtail :: 2",
     ],
-    install_requires=["Django>=2.2,<3.3", "Wagtail>=2.11,<2.15", "lxml==4.6.3"],
+    install_requires=[
+        "Django>=2.2,<3.3",
+        "Wagtail>=2.11,<2.15",
+        "lxml==4.6.3",
+        "bleach>=4.1,<4.2",
+        "prettytable>=2.2,<2.3",
+    ],
     extras_require={
         "testing": ["dj-database-url==0.5.0", "freezegun==0.3.15"],
     },
