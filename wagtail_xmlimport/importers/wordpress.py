@@ -6,6 +6,10 @@ from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
+from wagtail_xmlimport.bleach import (
+    bleach_clean,
+    fix_styles,
+)
 from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
 from wagtail_xmlimport.importers import wordpress_mapping
 
@@ -18,6 +22,7 @@ class WordpressImporter:
         self.mapping_valid_date = self.mapping.get("validate_date")
         self.mapping_valid_slug = self.mapping.get("validate_slug")
         self.mapping_stream_fields = self.mapping.get("stream_fields")
+        # self.mapping_valid_html = self.mapping.get("validate_html")
         self.mapping_item_inverse = self.map_item_inverse()
         self.log_processed = 0
         self.log_imported = 0
@@ -118,7 +123,9 @@ class WordpressImporter:
                     stream_fields = self.mapping_stream_fields.split(",")
 
                     for html in stream_fields:
-                        value = linebreaks_wp(item.get(self.mapping_item_inverse.get(html)))
+                        value = linebreaks_wp(
+                            item.get(self.mapping_item_inverse.get(html))
+                        )
                         html_analyzer.analyze(value)
 
     def create_page(self, values, status):
@@ -173,6 +180,7 @@ class WordpressImporter:
         slug_fields = self.mapping_valid_slug.split(",")
 
         stream_fields = self.mapping_stream_fields.split(",")
+        # clean_field = self.mapping_valid_html.split(",")
 
         for field, mapped in self.mapping_item_inverse.items():
             page_values[field] = item[mapped]
@@ -240,9 +248,10 @@ class WordpressImporter:
         return slug, changed
 
     def parse_stream_fields(self, value):
+        value = linebreaks_wp(str(value))
+        value = fix_styles(str(value))
+        value = bleach_clean(str(value))
         blocks = []
-        blocks.append({"type": "raw_html", "value": linebreaks_wp(value)})
+        # we'll need to create other blocks around here
+        blocks.append({"type": "raw_html", "value": value})
         return json.dumps(blocks)
-
-
-wordpress_importer_class = WordpressImporter
