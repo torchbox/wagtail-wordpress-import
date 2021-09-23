@@ -8,10 +8,7 @@ from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_xmlimport.bleach import (
     bleach_clean,
-    boldify,
-    prettify,
-    removeify,
-    unwrapify,
+    fix_styles,
 )
 from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
 from wagtail_xmlimport.importers import wordpress_mapping
@@ -252,11 +249,8 @@ class WordpressImporter:
 
     def parse_stream_fields(self, value):
         value = linebreaks_wp(str(value))
+        value = fix_styles(str(value))
         value = bleach_clean(str(value))
-        value = removeify(str(value))
-        value = unwrapify(str(value))
-        value = boldify(str(value))
-        value = prettify(value)
         blocks = []
         # we'll need to create other blocks around here
         blocks.append({"type": "raw_html", "value": value})
