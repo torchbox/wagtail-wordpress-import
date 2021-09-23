@@ -53,13 +53,13 @@ class ImpoterTests(TestCase):
         self.assertEqual(blank_slug[1], "blank slug")
 
     # TODO: will need more test around here for filters
-    def test_parse_stream_fields(self):
-        blocks = self.imp.parse_stream_fields("A line without a tag")
-        self.assertIsInstance(blocks, str)
-        blocks_dict = json.loads(blocks)
-        self.assertEqual(blocks_dict[0]["type"], "raw_html")
-        # new line added by linebreaks_wp function
-        self.assertEqual(blocks_dict[0]["value"], "<p>\n A line without a tag\n</p>\n")
+    # def test_parse_stream_fields(self):
+    #     blocks = self.imp.parse_stream_fields("A line without a tag")
+    #     self.assertIsInstance(blocks, str)
+    #     blocks_dict = json.loads(blocks)
+    #     self.assertEqual(blocks_dict[0]["type"], "raw_html")
+    #     # new line added by linebreaks_wp function
+    #     self.assertEqual(blocks_dict[0]["value"], "<p>\n A line without a tag\n</p>\n")
 
     def test_get_values(self):
         body = """&lt;strong&gt;Pipe down over there, I'm about to tell ya ;)&lt;/strong&gt; 

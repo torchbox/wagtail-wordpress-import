@@ -1,0 +1,31 @@
+<span style="font-weight: 400;">Lorem ipsum (xcounterx) dolor sit amet</span>
+
+<a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
+
+<h2><strong>Lorem ipsum dolor sit amet?</strong></h2>
+
+<ul>
+    <li style="font-weight: 400;"><span style="text-align: center;">Lorem ipsum (xcounterx) dolor sit amet</span></li>
+    <li style="font-weight: bold; font-style: italic;"><span style="font-weight: 400;">Lorem (xcounterx) ipsum dolor sit amet</span></li>
+    <li style="float: left; margin: 0em 1em 1em 0em;"><span style="font-style: italic;">Lorem (xcounterx) ipsum dolor sit amet</span></li>
+</ul>
+
+<strong>Title #83: <a href="https://www.domain.com/">Lorem (xcounterx) ipsum dolor sit amet</a> <span style="color: #008000;">(Lorem ipsum dolor sit amet)</span></strong>
+
+Lorem ipsum dolor (xcounterx) sit amet
+
+Lorem ipsum dolor sit (xcounterx) amet <a href="https://www.domain.com/folder/">Lorem ipsum dolor sit (xcounterx) amet</a> Lorem ipsum dolor sit amet
+
+<h2>Lorem ipsum dolor sit (xcounterx) amet <b onmouseover=alert("Boo!")>click me!</b></h2>
+
+<ul>
+    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum (xcounterx) dolor sit amet</a> <span style="color: #ff0000;">(-$127.00)</span></li>
+    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum dolor (xcounterx) sit amet</a> <span style="color: #ff0000;">($0.00)</span></li>
+    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum (xcounterx) dolor sit amet</a> <span style="color: #ff0000;">(minimum wage)</span></li>
+</ul>
+
+<center><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer"><img class="alignnone" style="margin: 0pt 10px 10px 0pt; float: none;" src="https://https://www.domain.com/folder/image.jpg" alt="alt title" width="500" height="382" border="0" /></a>Lorem (xcounterx) ipsum dolor sit amet :)</center>
+
+<em><strong>Lorem ipsum dolor (xcounterx) sit amet!</strong></em>
+
+<p style="text-align: center;">An already in place paragraph (xcounterx) tag</p>
