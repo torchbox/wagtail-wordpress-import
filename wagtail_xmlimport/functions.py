@@ -115,11 +115,15 @@ def linebreaks_wp(pee, autoescape=False):
     )  # problem with nested lists
     pee = re.sub(
         r"<p><blockquote([^>]*)>",
-        lambda m: "<blockquote%s><p>" % (m.group(1) if m.group(1) else "",),
+        # lambda m: "<blockquote%s><p>" % (m.group(1) if m.group(1) else "",),
+        # found this not to our liking as it puts a p tag around the blockquote content
+        lambda m: "<blockquote%s>" % (m.group(1) if m.group(1) else "",),
         pee,
         flags=re.IGNORECASE,
     )
-    pee = pee.replace("</blockquote></p>", "</p></blockquote>")
+    # pee = pee.replace("</blockquote></p>", "</p></blockquote>")
+    # found this not to our liking as it puts a p tag around the blockquote content
+    pee = pee.replace("</blockquote></p>", "</blockquote>")
     pee = re.sub(
         r"<p>\s*(</?" + allblocks + r"[^>]*>)",
         lambda m: m.group(1) if m.group(1) else "",
