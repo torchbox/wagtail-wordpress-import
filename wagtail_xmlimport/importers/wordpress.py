@@ -5,6 +5,7 @@ from xml.dom import pulldom
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
+from wagtail.core import blocks
 from wagtail.core.models import Page
 from wagtail_xmlimport.bleach import bleach_clean, fix_styles
 from wagtail_xmlimport.block_builder import BlockBuilder
@@ -257,5 +258,6 @@ class WordpressImporter:
         value = fix_styles(str(value))
         value = bleach_clean(str(value))
         blocks = BlockBuilder(value).build()
+        # blocks = []
         # blocks.append({"type": "raw_html", "value": value}) # handy for viewing the raw html
         return json.dumps(blocks)
