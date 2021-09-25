@@ -17,7 +17,8 @@ TAGS_TO_BLOCKS = [
     "img",
     "blockquote",
 ]
-IFRAME_POSSIBLE_PARENTS = ["p", "div", "span"]
+
+IRELLEVANT_PARENTS = ["p", "div", "span"]
 
 
 class BlockBuilder:
@@ -33,18 +34,18 @@ class BlockBuilder:
         """
         for iframe in self.soup.find_all("iframe"):
             parent = iframe.previous_element
-            if parent.name in IFRAME_POSSIBLE_PARENTS:
+            if parent.name in IRELLEVANT_PARENTS:
                 parent.replaceWith(iframe)
 
         for form in self.soup.find_all("form"):
             parent = form.previous_element
-            if parent.name in IFRAME_POSSIBLE_PARENTS:
-                parent.replaceWith(iframe)
+            if parent.name in IRELLEVANT_PARENTS:
+                parent.replaceWith(form)
 
-        for blockquote in self.soup.find_all("form"):
+        for blockquote in self.soup.find_all("blockquote"):
             parent = blockquote.previous_element
-            if parent.name in IFRAME_POSSIBLE_PARENTS:
-                parent.replaceWith(iframe)
+            if parent.name in IRELLEVANT_PARENTS:
+                parent.replaceWith(blockquote)
 
     def build(self):
         soup = self.soup.find("body").findChildren(recursive=False)
@@ -63,9 +64,10 @@ class BlockBuilder:
                 block_value += str(self.image_linker(str(tag)))
 
             # TABLE
-            if tag.name == "table" and len(block_value) > 0:
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
+            if tag.name == "table":
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
                 self.blocks.append({"type": "raw_html", "value": str(tag)})
 
             # IFRAME/EMBED
@@ -73,9 +75,10 @@ class BlockBuilder:
             test escaped code to add to xml for parsing
             &lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/CQ7Gx8b7ac4&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen&gt;&lt;/iframe&gt;
             """
-            if tag.name == "iframe" and len(block_value) > 0:
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
+            if tag.name == "iframe":
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
                 self.blocks.append(
                     {
                         "type": "raw_html",
@@ -96,9 +99,10 @@ class BlockBuilder:
             &lt;input type=&quot;text&quot; id=&quot;lname&quot; name=&quot;lname&quot;&gt;
             &lt;/form&gt;
             """
-            if tag.name == "form" and len(block_value) > 0:
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
+            if tag.name == "form":
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
                 self.blocks.append({"type": "raw_html", "value": str(tag)})
 
             # HEADING
@@ -109,23 +113,38 @@ class BlockBuilder:
                 or tag.name == "h4"
                 or tag.name == "h5"
                 or tag.name == "h6"
-                and len(block_value) > 0
             ):
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
-                self.blocks.append({"type": "raw_html", "value": str(tag)})
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
+                self.blocks.append(
+                    {
+                        "type": "heading",
+                        "value": {"importance": tag.name, "text": str(tag.text)},
+                    }
+                )
 
             # IMAGE
-            if tag.name == "img" and len(block_value) > 0:
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
+            if tag.name == "img":
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
                 self.blocks.append({"type": "raw_html", "value": str(tag)})
 
             # BLOCKQUOTE
-            if tag.name == "blockquote" and len(block_value) > 0:
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
-                self.blocks.append({"type": "raw_html", "value": str(tag)})
+            if tag.name == "blockquote":
+                if len(block_value) > 0:
+                    self.blocks.append({"type": "rich_text", "value": block_value})
+                    block_value = str("")
+                cite = ""
+                if tag.attrs and tag.attrs["cite"]:
+                    cite = str(tag.attrs["cite"])
+                self.blocks.append(
+                    {
+                        "type": "block_quote",
+                        "value": {"quote": str(tag.text), "attribution": cite},
+                    }
+                )
 
             if counter == len(soup) and len(block_value) > 0:
                 # when we reach the end and something is in the
