@@ -137,7 +137,7 @@ class BlockBuilder:
                     self.blocks.append({"type": "rich_text", "value": block_value})
                     block_value = str("")
                 cite = ""
-                if tag.attrs and tag.attrs["cite"]:
+                if tag.attrs and tag.attrs.get("cite"):
                     cite = str(tag.attrs["cite"])
                 self.blocks.append(
                     {
