@@ -182,10 +182,12 @@ class WordpressImporter:
 
         # stream fields
         for html in stream_fields:
-            sfv = self.parse_stream_fields(
+            sfv, value, blocks = self.parse_stream_fields(
                 item.get(self.mapping_item_inverse.get(html))
             )
             page_values[html] = sfv
+            page_values["wp_processed_content"] = value
+            page_values["wp_block_json"] = json.dumps(blocks, indent=4)
 
         # dates
         for df in date_fields:
@@ -258,6 +260,4 @@ class WordpressImporter:
         value = fix_styles(str(value))
         value = bleach_clean(str(value))
         blocks = BlockBuilder(value).build()
-        # blocks = []
-        # blocks.append({"type": "raw_html", "value": value}) # handy for viewing the raw html
-        return json.dumps(blocks)
+        return json.dumps(blocks), value, blocks
