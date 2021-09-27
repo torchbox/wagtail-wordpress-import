@@ -8,6 +8,26 @@ from wagtail_xmlimport.analysis import HTMLAnalyzer
 
 
 class Command(BaseCommand):
+    help = """This command is not used directly in an import.
+
+    It's a tool to help you see and understand the html tags in the content as well as the inline styles found.
+
+    It ouputs a series of tables to the command line.
+    The ouput is ideally used inside a spreadsheet by piping it out to a file and importing it.
+    Hint: Use the | as a column separator when importing
+
+    Use a command like: ./manage.py analyze_html_content [your_source_xml_file] > analysis.txt
+    Then remove the titles and horizontal table lines so it looks like:
+
+    |    Tag     | Pages used on | Total occurrences |
+    |     p      |      2504     |       41696       |
+    |     a      |      2433     |       19646       |
+    |   strong   |      2147     |       21020       |
+    ...
+
+    and save each table to a separate file for later import.
+    """
+
     def add_arguments(self, parser):
         parser.add_argument("xml_file", type=str, help="The full path to your xml file")
         parser.add_argument(
@@ -50,20 +70,41 @@ class Command(BaseCommand):
 
         # Attributes
         attributes_table = PrettyTable()
-        attributes_table.field_names = ["Tag", "Attribute", "Pages used on", "Total occurrences", "Diff"]
-        for (tag, attribute), total_pages in analyzer.attributes_unique_pages.most_common():
-            diff = diff_tags[tag] - analyzer.attributes_total[(tag, attribute)]
-            attributes_table.add_row([tag, attribute, total_pages, analyzer.attributes_total[(tag, attribute)], diff])
+        attributes_table.field_names = [
+            "Tag",
+            "Attribute",
+            "Pages used on",
+            "Total occurrences",
+        ]
+        for (
+            tag,
+            attribute,
+        ), total_pages in analyzer.attributes_unique_pages.most_common():
+            attributes_table.add_row(
+                [
+                    tag,
+                    attribute,
+                    total_pages,
+                    analyzer.attributes_total[(tag, attribute)],
+                ]
+            )
 
         self.stdout.write("")
-        self.stdout.write("Most commonly used HTML attributes. Diff > 0 indicates is missing the attr vs usage")
+        self.stdout.write("Most commonly used HTML attributes.")
         self.stdout.write(str(attributes_table))
 
         # Styles
         styles_table = PrettyTable()
-        styles_table.field_names = ["Tag", "Style", "Pages used on", "Total occurrences"]
+        styles_table.field_names = [
+            "Tag",
+            "Style",
+            "Pages used on",
+            "Total occurrences",
+        ]
         for (tag, style), total_pages in analyzer.styles_unique_pages.most_common():
-            styles_table.add_row([tag, style, total_pages, analyzer.styles_total[(tag, style)]])
+            styles_table.add_row(
+                [tag, style, total_pages, analyzer.styles_total[(tag, style)]]
+            )
 
         self.stdout.write("")
         self.stdout.write("Most commonly used inline CSS styles")
@@ -77,7 +118,6 @@ class Command(BaseCommand):
         self.stdout.write("")
         self.stdout.write("Unique inline CSS style values")
         self.stdout.write(str(styles_values_table))
-
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
