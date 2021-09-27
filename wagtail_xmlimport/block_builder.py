@@ -20,6 +20,16 @@ TAGS_TO_BLOCKS = [
 
 IRELLEVANT_PARENTS = ["p", "div", "span"]
 
+VALID_IMAGE_CONTENT_TYPES = [
+    "image/gif",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "text/html",  # this is not what i'd expect to see but some images retun this CDN maybe?
+]
+
+IMAGE_SRC_DOMAIN = "https://www.budgetsaresexy.com"  # note no trailing /
+
 
 class BlockBuilder:
     def __init__(self, value):
@@ -181,10 +191,14 @@ class BlockBuilder:
         return alignment
 
     def get_image(self, image):
-        name = image.get("src").split("/")[-1]  # need the last part
-        # possible way to check for existing images I used before???
-        # src = "original_images/" + image.get("src").split("/")[-1]  # need the last part
-        temp = NamedTemporaryFile(delete=True)
+
+        if image.get("src"):
+            name = image.get("src").split("/")[-1]  # need the last part
+            temp = NamedTemporaryFile(delete=True)
+            image_src = check_image_src(image.get("src")).strip("/")
+        else:
+            print("WARNING: found an src with no value")
+            return
 
         try:
             image_exists = ImportedImage.objects.get(title=name)
@@ -193,8 +207,19 @@ class BlockBuilder:
         except ImportedImage.DoesNotExist:
 
             try:
-                response = requests.get(image.get("src"), timeout=10, stream=True)
-                if response.status_code == 200:
+                response = requests.get(image_src, timeout=10)
+                status = response.status_code
+                content_type = response.headers.get("Content-Type")
+
+                if not content_type in VALID_IMAGE_CONTENT_TYPES:
+                    print(
+                        "WARNING: No content type returned or invalid content type for image {}. This is what we know {}".format(
+                            image_src, content_type
+                        )
+                    )
+                    return
+
+                if status == 200 and content_type.lower() in VALID_IMAGE_CONTENT_TYPES:
                     temp.name = name
                     temp.write(response.content)
                     temp.flush()
@@ -204,7 +229,19 @@ class BlockBuilder:
 
             except requests.exceptions.ConnectionError:
                 print(
-                    'WARNING: Unable to connect to URL "{}". Image will be broken.'.format(
+                    "WARNING: Unable to connect to URL {}. Image will be broken.".format(
                         image.get("src")
                     )
                 )
+
+
+def check_image_src(src):
+    # some images have relative src values
+    if not src.startswith("http"):
+        print(
+            "WARNING: relative file {}. Image may be broken, trying with {} prepended. ".format(
+                src, IMAGE_SRC_DOMAIN
+            )
+        )
+        return IMAGE_SRC_DOMAIN + "/" + src
+    return src

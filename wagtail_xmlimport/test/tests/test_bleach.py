@@ -49,9 +49,8 @@ class TestBleach(TestCase):
         self.assertEqual(lb_wp.count("\n"), OUTPUT_SINGLE_LINES_OCCURANCE_TOTAL)
         self.assertEqual(lb_wp.count("<p"), OUTPUT_P_OCCURANCE_TOTAL)
 
-    def test_fix_styles(self):
-        value = self.stream
-        value = linebreaks_wp(value)
-        value = fix_styles(value)
-        value = bleach_clean(value)
-        print(value)
+    # def test_fix_styles(self):
+    #     value = self.stream
+    #     value = linebreaks_wp(value)
+    #     value = fix_styles(value)
+    #     value = bleach_clean(value)
