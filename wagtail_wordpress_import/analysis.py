@@ -2,6 +2,8 @@ from collections import Counter
 
 from django.test.html import HTMLParseError, parse_html
 
+from .shortcodes import find_all_shortcodes
+
 
 class HTMLAnalyzer:
     def __init__(self):
@@ -11,11 +13,13 @@ class HTMLAnalyzer:
         self.attributes_total = Counter()
         self.styles_total = Counter()
         self.classes_total = Counter()
+        self.shortcodes_total = Counter()
 
         self.tags_unique_pages = Counter()
         self.attributes_unique_pages = Counter()
         self.styles_unique_pages = Counter()
         self.classes_unique_pages = Counter()
+        self.shortcodes_unique_pages = Counter()
 
         self.unique_style_strings = []
 
@@ -95,6 +99,17 @@ class HTMLAnalyzer:
 
         return classes
 
+    @classmethod
+    def find_all_shortcodes(cls, dom):
+        shortcodes = Counter()
+        for child in dom.children:
+            if isinstance(child, str):
+                shortcodes.update(find_all_shortcodes(child))
+            else:
+                shortcodes.update(cls.find_all_shortcodes(child))
+
+        return shortcodes
+
     def analyze(self, html):
         self.total += 1
 
@@ -109,11 +124,13 @@ class HTMLAnalyzer:
         styles = self.find_all_styles(dom)
         classes = self.find_all_classes(dom)
         unique_style_strings = self.find_all_unique_style_strings(dom)
+        shortcodes = self.find_all_shortcodes(dom)
 
         self.tags_total.update(tags)
         self.attributes_total.update(attributes)
         self.styles_total.update(styles)
         self.classes_total.update(classes)
+        self.shortcodes_total.update(shortcodes)
 
         self.tags_unique_pages.update(tags.keys())
         self.attributes_unique_pages.update(attributes.keys())
@@ -123,3 +140,5 @@ class HTMLAnalyzer:
         for style_string in unique_style_strings:
             if style_string not in self.unique_style_strings:
                 self.unique_style_strings.append(style_string)
+
+        self.shortcodes_unique_pages.update(shortcodes.keys())
