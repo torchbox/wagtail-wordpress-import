@@ -56,13 +56,10 @@ class Command(BaseCommand):
             page_statuses=options["status"].split(","),
         )
 
-        diff_tags = {}
-
         # Tags
         tags_table = PrettyTable()
         tags_table.field_names = ["Tag", "Pages used on", "Total occurrences"]
         for tag, total_pages in analyzer.tags_unique_pages.most_common():
-            diff_tags[tag] = analyzer.tags_total[tag]
             tags_table.add_row([tag, total_pages, analyzer.tags_total[tag]])
 
         self.stdout.write("Most commonly used HTML tags")
@@ -112,11 +109,11 @@ class Command(BaseCommand):
 
         styles_values_table = PrettyTable()
         styles_values_table.field_names = ["Style Value"]
-        for value in analyzer.styles_unique_values:
+        for value in analyzer.unique_style_strings:
             styles_values_table.add_row([value])
 
         self.stdout.write("")
-        self.stdout.write("Unique inline CSS style values")
+        self.stdout.write("Unique inline CSS style values as strings")
         self.stdout.write(str(styles_values_table))
 
     def get_xml_file(self, xml_file):
