@@ -12,7 +12,7 @@ It's intended that the data can be used to create page models, image models, doc
 
 ## Installation
 
-* Install the package with `pip install wagtail-xmlimport` (not yet available) but can be installed with pip install -e wagtail-xmlimport for development.
+* Install the package with `pip install wagtail-wordpress-import` (not yet available) but can be installed with pip install -e wagtail-wordpress-import for development.
 
 * Add `wagtail_wordpress_import` to INSTALLED_APPS in your project
 

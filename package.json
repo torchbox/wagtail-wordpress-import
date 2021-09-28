@@ -1,5 +1,5 @@
 {
-  "name": "wagtail-xmlimport",
+  "name": "wagtail-wordpress-import",
   "version": "1.0.0",
   "description": "",
   "main": "wagtail_wordpress_import/static_src/main.tsx",

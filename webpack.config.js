@@ -47,6 +47,6 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, 'wagtail_wordpress_import/static/wagtail_wordpress_import/js'),
-    filename: 'wagtail-xmlimport.js'
+    filename: 'wagtail-wordpress-import.js'
   }
 };

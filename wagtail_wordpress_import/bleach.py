@@ -15,7 +15,7 @@ def bleach_clean(value):
     """
     Clean up the raw html to be on the safe side.
     Keeping all styles in place that we know of and care about.
-    See ALLOWED lists in wagtail-xmlimport/wagtail_wordpress_import/constants.py
+    See ALLOWED lists in wagtail-wordpress-import/wagtail_wordpress_import/constants.py
     """
 
     cleaned = Cleaner(

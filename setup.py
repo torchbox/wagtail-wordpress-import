@@ -12,7 +12,7 @@ with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
-    name="wagtail-xmlimport",
+    name="wagtail-wordpress-import",
     version=__version__,
     description="Import XML data into wagtail to create pages and content",
     long_description=long_description,
