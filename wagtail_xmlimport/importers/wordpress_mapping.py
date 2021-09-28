@@ -5,7 +5,7 @@ mapping = {
         "wp:post_name": "slug",
         "wp:post_date_gmt": "first_published_at",
         "wp:post_modified_gmt": "last_published_at,latest_revision_created_at",
-        "content:encoded": "body",
+        "content:encoded": "body,wp_raw_content",
         "wp:post_id": "wp_post_id",
         "wp:post_type": "wp_post_type",
         "link": "wp_link",

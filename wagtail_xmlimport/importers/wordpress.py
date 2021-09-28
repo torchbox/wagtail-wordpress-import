@@ -5,11 +5,10 @@ from xml.dom import pulldom
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
+from wagtail.core import blocks
 from wagtail.core.models import Page
-from wagtail_xmlimport.bleach import (
-    bleach_clean,
-    fix_styles,
-)
+from wagtail_xmlimport.bleach import bleach_clean, fix_styles
+from wagtail_xmlimport.block_builder import BlockBuilder
 from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
 from wagtail_xmlimport.importers import wordpress_mapping
 
@@ -22,7 +21,6 @@ class WordpressImporter:
         self.mapping_valid_date = self.mapping.get("validate_date")
         self.mapping_valid_slug = self.mapping.get("validate_slug")
         self.mapping_stream_fields = self.mapping.get("stream_fields")
-        # self.mapping_valid_html = self.mapping.get("validate_html")
         self.mapping_item_inverse = self.map_item_inverse()
         self.log_processed = 0
         self.log_imported = 0
@@ -151,8 +149,6 @@ class WordpressImporter:
         if status == "draft":
             obj.unpublish()
 
-        # self.progress_manager.log_page_action(obj, "updated")
-
         return obj, "updated"
 
     def map_item_inverse(self):
@@ -180,17 +176,18 @@ class WordpressImporter:
         slug_fields = self.mapping_valid_slug.split(",")
 
         stream_fields = self.mapping_stream_fields.split(",")
-        # clean_field = self.mapping_valid_html.split(",")
 
         for field, mapped in self.mapping_item_inverse.items():
             page_values[field] = item[mapped]
 
         # stream fields
         for html in stream_fields:
-            sfv = self.parse_stream_fields(
+            sfv, value, blocks = self.parse_stream_fields(
                 item.get(self.mapping_item_inverse.get(html))
             )
             page_values[html] = sfv
+            page_values["wp_processed_content"] = value
+            page_values["wp_block_json"] = json.dumps(blocks, indent=4)
 
         # dates
         for df in date_fields:
@@ -208,36 +205,37 @@ class WordpressImporter:
 
         # if any of the date are not valid then that's important
         date_valid = all(date_valid)
-        # if False in date_valid:
-        #     date_valid = False
-        # else:
-        #     date_valid = True
 
         return page_values, date_valid, slug_changed
 
     def parse_date(self, value):
-        # We need a good date to be able to save the page later and
-        # some dates are not valid date strings in the xml.
-        # If thats the case return a specific date so it can be saved
-        # and return the failure for logging
+        """
+        We need a nice date to be able to save the page later. Some dates are not suitable
+        date strings in the xml. If thats the case return a specific date so it can be saved
+        and return the failure for logging
+        """
         valid = True
         if value == "0000-00-00 00:00:00":
             value = "1900-01-01 00:00:00"  # set this date so it can be found in wagtail admin
             valid = False
-        date = "T".join(value.split(" "))
-        date_formatted = make_aware(datetime.strptime(date, "%Y-%m-%dT%H:%M:%S"))
 
-        return date_formatted, valid
+        date_utc = "T".join(value.split(" "))
+        formatted = make_aware(datetime.strptime(date_utc, "%Y-%m-%dT%H:%M:%S"))
+
+        return formatted, valid
 
     def parse_slug(self, value, title):
-        # log the outcome of slugify
+        """
+        Oddly some page have no slug and some have illegal characters!
+        If None make one from title.
+        Also pass any slug through slugify to be sure and if it's chnaged make a note
+        """
+        changed = None
+
         if not value:
-            # make slug from title
             slug = slugify(title)
             changed = "blank slug"
-
         else:
-            # use exiting slug
             slug = slugify(value)
             changed = "OK"
 
@@ -248,10 +246,18 @@ class WordpressImporter:
         return slug, changed
 
     def parse_stream_fields(self, value):
+        """
+        Here the value is passed through a number of `filters`.
+        They will normalize the html and alter inline styles to suit our needs
+        Finally the normalized content is passed to the BlockBuilder to create
+        the stream fields we need
+
+        Bleach: I'm thinking that bleach clean is removing code that we might want to
+        keep or at least take some action on when fixing the styles so running it before
+        BlockBuilder
+        """
         value = linebreaks_wp(str(value))
         value = fix_styles(str(value))
         value = bleach_clean(str(value))
-        blocks = []
-        # we'll need to create other blocks around here
-        blocks.append({"type": "raw_html", "value": value})
-        return json.dumps(blocks)
+        blocks = BlockBuilder(value).build()
+        return json.dumps(blocks), value, blocks

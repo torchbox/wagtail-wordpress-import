@@ -1,5 +1,11 @@
 from bs4 import BeautifulSoup as bs4
-from wagtail_xmlimport.constants import *
+from wagtail_xmlimport.constants import (
+    ALLOWED_TAGS,
+    ALLOWED_STYLES,
+    ALLOWED_ATTRIBUTES,
+    FILTER_MAPPING,
+    HTML_TAGS,
+)
 
 
 from bleach.sanitizer import Cleaner
@@ -9,7 +15,7 @@ def bleach_clean(value):
     """
     Clean up the raw html to be on the safe side.
     Keeping all styles in place that we know of and care about.
-    See ALLOWED list above
+    See ALLOWED lists in wagtail-xmlimport/wagtail_xmlimport/constants.py
     """
 
     cleaned = Cleaner(
@@ -37,8 +43,15 @@ def reverse_styles_dict(mapping):
 
 def fix_styles(value):
     """
-    When encounting an inline style that is essitially to make the text
-    bold, remove the style and tag and replace with a b tag
+    This function uses the mapping of the style attribute for an element to break
+    matching elements into one or more html tags.
+    e.g. "font-weight: bold;" maps to "bold" - <b>text</b>
+    e.g. "font-style: italic; font-weight: bold;" maps to "bold-italic" - <b><i>text</i></b>
+
+    It also adds classes which are not directly used in the final content but interpreted
+    later to decide if an element can have alignment in the richtext block
+    e.g. "margin: 0pt 10px 0px 0pt; float: left;" maps to "leftfloat"
+    e.g. "float: left; margin: 0em 1em 1em 0em;" maps to "leftfloat"
     """
     soup = bs4(value, "html.parser")
     search_styles = reverse_styles_dict(FILTER_MAPPING)
