@@ -33,8 +33,8 @@ ALLOWED_HOSTS = ["localhost", "testserver"]
 # Application definition
 
 INSTALLED_APPS = [
-    "wagtail_xmlimport",
-    "wagtail_xmlimport.test",
+    "wagtail_wordpress_import",
+    "wagtail_wordpress_import.test",
     "wagtail.contrib.search_promotions",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
@@ -73,7 +73,7 @@ MIDDLEWARE = [
     "wagtail.contrib.redirects.middleware.RedirectMiddleware",
 ]
 
-ROOT_URLCONF = "wagtail_xmlimport.test.urls"
+ROOT_URLCONF = "wagtail_wordpress_import.test.urls"
 
 TEMPLATES = [
     {
@@ -111,7 +111,7 @@ PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(default="sqlite:///test_wagtail_xmlimport.db"),
+    "default": dj_database_url.config(default="sqlite:///test_wagtail_wordpress_import.db"),
 }
 
 

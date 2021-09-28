@@ -1,14 +1,14 @@
 *.pyc
 /build
 /dist
-/wagtail_xmlimport.egg-info
+/wagtail_wordpress_import.egg-info
 /.coverage
 /htmlcov
 /.tox
 /venv
 /.vscode
 /site
-/test_wagtail_xmlimport.db
+/test_wagtail_wordpress_import.db
 /node_modules
 /test-static
 /test-media

@@ -3,7 +3,7 @@ import os
 from datetime import datetime
 
 from django.core.management.base import BaseCommand
-from wagtail_xmlimport.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 
 LOG_DIR = "log"
 

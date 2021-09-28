@@ -1,8 +1,8 @@
 import json
 from datetime import datetime
 from django.test import TestCase
-from wagtail_xmlimport.importers import wordpress_mapping
-from wagtail_xmlimport.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.importers import wordpress_mapping
+from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 
 
 class ImpoterTests(TestCase):

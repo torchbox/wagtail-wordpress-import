@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup as bs
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
-from wagtail_xmlimport.functions import linebreaks_wp
+from wagtail_wordpress_import.functions import linebreaks_wp
 
 
 class PageMaker:

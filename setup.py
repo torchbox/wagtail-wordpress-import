@@ -4,7 +4,7 @@ from os import path
 
 from setuptools import find_packages, setup
 
-from wagtail_xmlimport import __version__
+from wagtail_wordpress_import import __version__
 
 
 this_directory = path.abspath(path.dirname(__file__))

@@ -7,10 +7,10 @@ from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core import blocks
 from wagtail.core.models import Page
-from wagtail_xmlimport.bleach import bleach_clean, fix_styles
-from wagtail_xmlimport.block_builder import BlockBuilder
-from wagtail_xmlimport.functions import linebreaks_wp, node_to_dict
-from wagtail_xmlimport.importers import wordpress_mapping
+from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
+from wagtail_wordpress_import.block_builder import BlockBuilder
+from wagtail_wordpress_import.functions import linebreaks_wp, node_to_dict
+from wagtail_wordpress_import.importers import wordpress_mapping
 
 
 class WordpressImporter:

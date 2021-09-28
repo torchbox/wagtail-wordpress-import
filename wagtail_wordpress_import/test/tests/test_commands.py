@@ -1,8 +1,8 @@
 from django.test import TestCase
-from wagtail_xmlimport.management.commands import import_xml
-from wagtail_xmlimport.management.commands.import_xml import Command as RunCmd
-from wagtail_xmlimport.management.commands.reduce_xml import Command as ReduceCmd
-from wagtail_xmlimport.management.commands.extract_xml_mapping import Command as DiscoveryCmd
+from wagtail_wordpress_import.management.commands import import_xml
+from wagtail_wordpress_import.management.commands.import_xml import Command as RunCmd
+from wagtail_wordpress_import.management.commands.reduce_xml import Command as ReduceCmd
+from wagtail_wordpress_import.management.commands.extract_xml_mapping import Command as DiscoveryCmd
 
 
 class TestRunXmlCommand(TestCase):

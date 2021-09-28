@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup as bs4
-from wagtail_xmlimport.constants import (
+from wagtail_wordpress_import.constants import (
     ALLOWED_TAGS,
     ALLOWED_STYLES,
     ALLOWED_ATTRIBUTES,
@@ -15,7 +15,7 @@ def bleach_clean(value):
     """
     Clean up the raw html to be on the safe side.
     Keeping all styles in place that we know of and care about.
-    See ALLOWED lists in wagtail-xmlimport/wagtail_xmlimport/constants.py
+    See ALLOWED lists in wagtail-xmlimport/wagtail_wordpress_import/constants.py
     """
 
     cleaned = Cleaner(

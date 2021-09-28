@@ -63,5 +63,5 @@ jobs:
         run: |
           tox
         env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wagtail_xmlimport
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wagtail_wordpress_import
           TOXENV: python${{ matrix.python }}-django${{ matrix.django }}-wagtail${{ matrix.wagtail }}-postgres

@@ -3,8 +3,8 @@
 from xml.dom import pulldom
 
 from wagtail.core.models import Page
-from wagtail_xmlimport.cls.page_builder import PageBuilder
-from wagtail_xmlimport.functions import node_to_dict
+from wagtail_wordpress_import.cls.page_builder import PageBuilder
+from wagtail_wordpress_import.functions import node_to_dict
 
 
 class XmlImporter:

@@ -2,7 +2,7 @@ import json
 import os
 
 from django.core.management.base import BaseCommand
-from wagtail_xmlimport.cls.util import PathsToDict
+from wagtail_wordpress_import.cls.util import PathsToDict
 
 
 class Command(BaseCommand):

@@ -1,5 +1,5 @@
 from django.test import TestCase
-from wagtail_xmlimport.block_builder import check_image_src
+from wagtail_wordpress_import.block_builder import check_image_src
 
 class TestBlockBuilder(TestCase):
 

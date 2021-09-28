@@ -18,7 +18,7 @@ class HeadingBlock(blocks.StructBlock):
 
     class Meta:
         icon = "title"
-        template = "wagtail_xmlimport/heading_block.html"
+        template = "wagtail_wordpress_import/heading_block.html"
 
 
 class ImageBlock(blocks.StructBlock):
@@ -27,7 +27,7 @@ class ImageBlock(blocks.StructBlock):
 
     class Meta:
         icon = "image"
-        template = "wagtail_xmlimport/image_block.html"
+        template = "wagtail_wordpress_import/image_block.html"
 
 
 class QuoteBlock(blocks.StructBlock):
@@ -36,7 +36,7 @@ class QuoteBlock(blocks.StructBlock):
 
     class Meta:
         icon = "openquote"
-        template = "wagtail_xmlimport/quote_block.html"
+        template = "wagtail_wordpress_import/quote_block.html"
 
 
 class WPImportStreamBlocks(blocks.StreamBlock):

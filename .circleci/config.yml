@@ -7,7 +7,7 @@ jobs:
     steps:
       - checkout
       - run: pip install flake8
-      - run: flake8 wagtail_xmlimport
+      - run: flake8 wagtail_wordpress_import
 
   prettier:
     docker:
