@@ -1,27 +1,20 @@
 import json
 from datetime import datetime
+from functools import cached_property
 from xml.dom import pulldom
 
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
-from wagtail.core import blocks
 from wagtail.core.models import Page
 from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import linebreaks_wp, node_to_dict
-from wagtail_wordpress_import.importers import wordpress_mapping
 
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
-        self.mapping = wordpress_mapping.mapping
-        self.mapping_item = self.mapping.get("item")
-        self.mapping_valid_date = self.mapping.get("validate_date")
-        self.mapping_valid_slug = self.mapping.get("validate_slug")
-        self.mapping_stream_fields = self.mapping.get("stream_fields")
-        self.mapping_item_inverse = self.map_item_inverse()
         self.log_processed = 0
         self.log_imported = 0
         self.log_skipped = 0
@@ -60,43 +53,30 @@ class WordpressImporter:
                     item.get("wp:post_type") in kwargs["page_types"]
                     and item.get("wp:status") in kwargs["page_statuses"]
                 ):
-
                     # dates_valid and slugs_valid might be useful for
                     # loging detail
-                    item_dict, dates_valid, slugs_valid = self.get_values(item)
+                    wordpress_item = WordpressItem(item)
 
-                    page_exists = self.page_model_instance.objects.filter(
-                        wp_post_id=item.get("wp:post_id")
-                    ).first()
+                    try:
+                        page = self.page_model_instance.objects.get(
+                            wp_post_id=wordpress_item.cleaned_data.get("wp_post_id")
+                        )
+                    except self.page_model_instance.DoesNotExist:
+                        page = self.page_model_instance()
 
-                    if page_exists:
-                        self.update_page(page_exists, item_dict, item.get("wp:status"))
-                        item["log"] = {
-                            "result": "updated",
-                            "reason": "existed",
-                            "datecheck": dates_valid,
-                            "slugcheck": slugs_valid,
-                        }
+                    page.import_wordpress_data(wordpress_item.cleaned_data)
+
+                    if item.get("wp:status") == "draft":
+                        setattr(page, "live", False)
                     else:
-                        self.create_page(item_dict, item.get("wp:status"))
-                        item["log"] = {
-                            "result": "created",
-                            "reason": "new",
-                            "datecheck": dates_valid,
-                            "slugcheck": slugs_valid,
-                        }
-                    self.log_imported += 1
-                else:
-                    item["log"] = {
-                        "result": "skipped",
-                        "reason": "no title or status match",
-                        "datecheck": "",
-                        "slugcheck": "",
-                    }
-                    self.log_skipped += 1
+                        setattr(page, "live", True)
 
-                print(item.get("title"), item.get("log")["result"])
-                self.logged_items.append(item)
+                    if page.id:
+                        page.save()
+
+                    else:
+                        self.parent_page_obj.add_child(instance=page)
+                        page.save()
 
         return (
             self.log_imported,
@@ -126,138 +106,94 @@ class WordpressImporter:
                         )
                         html_analyzer.analyze(value)
 
-    def create_page(self, values, status):
-        obj = self.page_model_instance(**values)
 
-        if status == "draft":
-            setattr(obj, "live", False)
-        else:
-            setattr(obj, "live", True)
+class WordpressItem:
+    def __init__(self, node):
+        self.node = node
+        self.raw_body = self.node["content:encoded"]
+        self.linebreaks_wp = linebreaks_wp(self.raw_body)
+        self.fix_styles = fix_styles(self.linebreaks_wp)
+        self.bleach_clean = bleach_clean(self.fix_styles)
 
-        self.parent_page_obj.add_child(instance=obj)
+    def cleaned_title(self):
+        return self.node["title"].strip()
 
-        return obj, "created"
-
-    def update_page(self, page_exists, values, status):
-        obj = page_exists
-
-        for key in values.keys():
-            setattr(obj, key, values[key])
-
-        obj.save()
-
-        if status == "draft":
-            obj.unpublish()
-
-        return obj, "updated"
-
-    def map_item_inverse(self):
-        inverse = {}
-
-        for key, value in self.mapping_item.items():
-            value = value.split(",")
-
-            if len(value) == 1:
-                inverse[value[0]] = key
-            else:
-                for i in range(len(value)):
-                    inverse[value[i]] = key
-
-        return inverse
-
-    def get_values(self, item):
-        page_values = {}
-
-        # fields on a page model in wagtail that require a specific input format
-        date_valid = []
-        date_fields = self.mapping_valid_date.split(",")
-
-        slug_changed = False
-        slug_fields = self.mapping_valid_slug.split(",")
-
-        stream_fields = self.mapping_stream_fields.split(",")
-
-        for field, mapped in self.mapping_item_inverse.items():
-            page_values[field] = item[mapped]
-
-        # stream fields
-        for html in stream_fields:
-            sfv, value, blocks = self.parse_stream_fields(
-                item.get(self.mapping_item_inverse.get(html))
-            )
-            page_values[html] = sfv
-            page_values["wp_processed_content"] = value
-            page_values["wp_block_json"] = json.dumps(blocks, indent=4)
-
-        # dates
-        for df in date_fields:
-            date = self.parse_date(item.get(self.mapping_item_inverse.get(df)))
-            page_values[df] = date[0]
-            date_valid.append(date[1])
-
-        # slugs
-        for sf in slug_fields:
-            slug = self.parse_slug(
-                item.get(self.mapping_item_inverse.get(sf)), item.get("title")
-            )
-            page_values[sf] = slug[0]
-            slug_changed = slug[1]
-
-        # if any of the date are not valid then that's important
-        date_valid = all(date_valid)
-
-        return page_values, date_valid, slug_changed
-
-    def parse_date(self, value):
-        """
-        We need a nice date to be able to save the page later. Some dates are not suitable
-        date strings in the xml. If thats the case return a specific date so it can be saved
-        and return the failure for logging
-        """
-        valid = True
-        if value == "0000-00-00 00:00:00":
-            value = "1900-01-01 00:00:00"  # set this date so it can be found in wagtail admin
-            valid = False
-
-        date_utc = "T".join(value.split(" "))
-        formatted = make_aware(datetime.strptime(date_utc, "%Y-%m-%dT%H:%M:%S"))
-
-        return formatted, valid
-
-    def parse_slug(self, value, title):
+    def cleaned_slug(self):
         """
         Oddly some page have no slug and some have illegal characters!
         If None make one from title.
         Also pass any slug through slugify to be sure and if it's chnaged make a note
         """
-        changed = None
+        # changed = None
 
-        if not value:
-            slug = slugify(title)
-            changed = "blank slug"
+        if not self.node["wp:post_name"]:
+            slug = slugify(self.cleaned_title())
+            # changed = "blank slug"
         else:
-            slug = slugify(value)
-            changed = "OK"
+            slug = slugify(self.node["wp:post_name"])
+            # changed = "OK"
 
         # some slugs have illegal characters so will be changed
-        if value and slug != value:
-            changed = "illegal chars found"
+        # if self.node["wp:post_name"] and slug != self.node["wp:post_name"]:
+        #     changed = "illegal chars found"
 
-        return slug, changed
+        return slug
 
-    def parse_stream_fields(self, value):
+    def cleaned_first_published_at(self):
+        return self.clean_date(self.node["wp:post_date_gmt"].strip())
+
+    def cleaned_last_published_at(self):
+        return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+
+    def cleaned_latest_revision_created_at(self):
+        return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+
+    @staticmethod
+    def clean_date(value):
         """
-        Here the value is passed through a number of `filters`.
-        They will normalize the html and alter inline styles to suit our needs
-        Finally the normalized content is passed to the BlockBuilder to create
-        the stream fields we need
-
-        Bleach: I'm thinking that bleach clean is removing code that we might want to
-        keep or at least take some action on when fixing the styles so running it before
-        BlockBuilder
+        We need a nice date to be able to save the page later. Some dates are not suitable
+        date strings in the xml. If thats the case return a specific date so it can be saved
+        and return the failure for logging
         """
-        value = linebreaks_wp(str(value))
-        value = fix_styles(str(value))
-        value = bleach_clean(str(value))
-        blocks = BlockBuilder(value).build()
-        return json.dumps(blocks), value, blocks
+
+        if value == "0000-00-00 00:00:00":
+            # setting this date so it can be found in wagtail admin
+            value = "1900-01-01 00:00:00"
+
+        date_utc = "T".join(value.split(" "))
+        date_formatted = make_aware(datetime.strptime(date_utc, "%Y-%m-%dT%H:%M:%S"))
+
+        return date_formatted
+
+    def cleaned_raw_content(self):
+        # no cleaning here
+        return self.node["content:encoded"]
+
+    def cleaned_post_id(self):
+        return int(self.node["wp:post_id"])
+
+    def cleaned_post_type(self):
+        return str(self.node["wp:post_type"].strip())
+
+    def cleaned_link(self):
+        return str(self.node["link"].strip())
+
+    def cleaned_body(self):
+        return json.dumps(BlockBuilder(self.bleach_clean).build())
+
+    @cached_property
+    def cleaned_data(self):
+        return {
+            "title": self.cleaned_title(),
+            "slug": self.cleaned_slug(),
+            "first_published_at": self.cleaned_first_published_at(),
+            "last_published_at": self.cleaned_last_published_at(),
+            "latest_revision_created_at": self.cleaned_latest_revision_created_at(),
+            "body": self.cleaned_body(),
+            "wp_post_id": self.cleaned_post_id(),
+            "wp_post_type": self.cleaned_post_type(),
+            "wp_link": self.cleaned_link(),
+            "wp_raw_content": self.raw_body,
+            "wp_processed_content": self.fix_styles,
+            "wp_block_json": self.cleaned_body(),
+        }
