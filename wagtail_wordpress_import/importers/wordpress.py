@@ -49,12 +49,12 @@ class WordpressImporter:
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.log_processed += 1
+
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
                     and item.get("wp:status") in kwargs["page_statuses"]
                 ):
-                    # dates_valid and slugs_valid might be useful for
-                    # loging detail
+
                     wordpress_item = WordpressItem(item)
 
                     try:
@@ -73,10 +73,26 @@ class WordpressImporter:
 
                     if page.id:
                         page.save()
+                        self.logged_items.append(
+                            {
+                                "result": "updated",
+                                "reason": "existed",
+                                "datecheck": wordpress_item.date_changed,
+                                "slugcheck": wordpress_item.slug_changed,
+                            }
+                        )
 
                     else:
                         self.parent_page_obj.add_child(instance=page)
                         page.save()
+                        self.logged_items.append(
+                            {
+                                "result": "updated",
+                                "reason": "existed",
+                                "datecheck": wordpress_item.date_changed,
+                                "slugcheck": wordpress_item.slug_changed,
+                            }
+                        )
 
         return (
             self.log_imported,
@@ -114,6 +130,8 @@ class WordpressItem:
         self.linebreaks_wp = linebreaks_wp(self.raw_body)
         self.fix_styles = fix_styles(self.linebreaks_wp)
         self.bleach_clean = bleach_clean(self.fix_styles)
+        self.slug_changed = None
+        self.date_changed = False
 
     def cleaned_title(self):
         return self.node["title"].strip()
@@ -124,18 +142,16 @@ class WordpressItem:
         If None make one from title.
         Also pass any slug through slugify to be sure and if it's chnaged make a note
         """
-        # changed = None
 
         if not self.node["wp:post_name"]:
             slug = slugify(self.cleaned_title())
-            # changed = "blank slug"
+            self.slug_changed = "blank slug"  # logging
         else:
             slug = slugify(self.node["wp:post_name"])
-            # changed = "OK"
 
-        # some slugs have illegal characters so will be changed
-        # if self.node["wp:post_name"] and slug != self.node["wp:post_name"]:
-        #     changed = "illegal chars found"
+        # some slugs have illegal characters so it will be changed
+        if slug != self.node["wp:post_name"]:
+            self.slug_changed = "slug fixed"  # logging
 
         return slug
 
@@ -148,8 +164,7 @@ class WordpressItem:
     def cleaned_latest_revision_created_at(self):
         return self.clean_date(self.node["wp:post_modified_gmt"].strip())
 
-    @staticmethod
-    def clean_date(value):
+    def clean_date(self, value):
         """
         We need a nice date to be able to save the page later. Some dates are not suitable
         date strings in the xml. If thats the case return a specific date so it can be saved
@@ -159,6 +174,7 @@ class WordpressItem:
         if value == "0000-00-00 00:00:00":
             # setting this date so it can be found in wagtail admin
             value = "1900-01-01 00:00:00"
+            self.date_changed = True
 
         date_utc = "T".join(value.split(" "))
         date_formatted = make_aware(datetime.strptime(date_utc, "%Y-%m-%dT%H:%M:%S"))
