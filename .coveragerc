@@ -1,6 +1,6 @@
 [run]
 branch = True
-include = wagtail_xmlimport/*
+include = wagtail_wordpress_import/*
 omit = */migrations/*,*/tests/*
 
 [report]

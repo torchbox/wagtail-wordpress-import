@@ -9,7 +9,7 @@
         "esModuleInterop": true
     },
     "files": [
-        "wagtail_xmlimport/static_src/main.tsx",
-        "wagtail_xmlimport/static_src/custom.d.ts"
+        "wagtail_wordpress_import/static_src/main.tsx",
+        "wagtail_wordpress_import/static_src/custom.d.ts"
     ]
 }

@@ -1,7 +1,7 @@
 const path = require('path');
 
 module.exports = {
-  entry: './wagtail_xmlimport/static_src/main.tsx',
+  entry: './wagtail_wordpress_import/static_src/main.tsx',
   module: {
     rules: [
       {
@@ -46,7 +46,7 @@ module.exports = {
     'gettext': 'gettext',
   },
   output: {
-    path: path.resolve(__dirname, 'wagtail_xmlimport/static/wagtail_xmlimport/js'),
-    filename: 'wagtail-xmlimport.js'
+    path: path.resolve(__dirname, 'wagtail_wordpress_import/static/wagtail_wordpress_import/js'),
+    filename: 'wagtail-wordpress-import.js'
   }
 };

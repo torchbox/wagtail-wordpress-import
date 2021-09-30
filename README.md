@@ -12,9 +12,9 @@ It's intended that the data can be used to create page models, image models, doc
 
 ## Installation
 
-* Install the package with `pip install wagtail-xmlimport` (not yet available) but can be installed with pip install -e wagtail-xmlimport for development.
+* Install the package with `pip install wagtail-wordpress-import` (not yet available) but can be installed with pip install -e wagtail-wordpress-import for development.
 
-* Add `wagtail_xmlimport` to INSTALLED_APPS in your project
+* Add `wagtail_wordpress_import` to INSTALLED_APPS in your project
 
 
 
@@ -48,7 +48,7 @@ Place your xml files inside a folder called `xml` at the root of your project. T
 
 The package comes with a default command: 
 
-- [import_xml.py](wagtail_xmlimport/management/commands/import_xml.py)
+- [import_xml.py](wagtail_wordpress_import/management/commands/import_xml.py)
 
 The configuration is set to import all items in the xml file that have a `<wp:post_type>` = `post` or `page`. Also the command only imports an item that has `<wp:status>` = `draft` or `publish`
 
@@ -82,7 +82,7 @@ There is a model mixin in the package which you should use in you own model, at 
 
 `python manage.py extract_xml_mapping` [and add the path to your xml file]
 
-[extract_xml_mapping.py](wagtail_xmlimport/management/commands/extract_xml_mapping.py)
+[extract_xml_mapping.py](wagtail_wordpress_import/management/commands/extract_xml_mapping.py)
 
 This command will output a json file inside the json folder at the root of your project. The output can help you decide whcih fields should be included in your import as well as providing a nice short listing of all tags in the xml for reference.
 
@@ -90,7 +90,7 @@ This command will output a json file inside the json folder at the root of your 
 
 `python manage.py reduce_xml` [and add the path to your xml file]
 
-[reduce_xml.py](wagtail_xmlimport/management/commands/reduce_xml.py)
+[reduce_xml.py](wagtail_wordpress_import/management/commands/reduce_xml.py)
 
 This command will output a new xml file with `-reduced` appended to the xml file name and save it in the root `xml` folder.
 

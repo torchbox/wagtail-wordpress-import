@@ -1,13 +1,13 @@
 {
-  "name": "wagtail-xmlimport",
+  "name": "wagtail-wordpress-import",
   "version": "1.0.0",
   "description": "",
-  "main": "wagtail_xmlimport/static_src/main.tsx",
+  "main": "wagtail_wordpress_import/static_src/main.tsx",
   "scripts": {
     "build": "webpack --mode=production",
     "start": "webpack --mode=development --watch",
-    "format": "prettier --write wagtail_xmlimport/**/*.{ts,tsx,scss}",
-    "lint": "prettier --check wagtail_xmlimport/**/*.{ts,tsx,scss}"
+    "format": "prettier --write wagtail_wordpress_import/**/*.{ts,tsx,scss}",
+    "lint": "prettier --check wagtail_wordpress_import/**/*.{ts,tsx,scss}"
   },
   "author": "",
   "license": "ISC",
