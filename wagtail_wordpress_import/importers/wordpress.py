@@ -1,4 +1,5 @@
 import json
+import sys
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
@@ -15,10 +16,7 @@ from wagtail_wordpress_import.functions import linebreaks_wp, node_to_dict
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
-        self.log_processed = 0
-        self.log_imported = 0
-        self.log_skipped = 0
-        self.logged_items = []
+        self.logged_items = {"processed": 0, "imported": 0, "skipped": 0, "items": []}
 
     def run(self, *args, **kwargs):
         xml_doc = pulldom.parse(self.xml_file)
@@ -48,7 +46,7 @@ class WordpressImporter:
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                self.log_processed += 1
+                self.logged_items["processed"] += 1
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
@@ -73,33 +71,70 @@ class WordpressImporter:
 
                     if page.id:
                         page.save()
-                        self.logged_items.append(
+                        self.logged_items["items"].append(
                             {
+                                "id": page.id,
+                                "title": page.title,
+                                "link": item.get("link"),
                                 "result": "updated",
                                 "reason": "existed",
                                 "datecheck": wordpress_item.date_changed,
                                 "slugcheck": wordpress_item.slug_changed,
                             }
                         )
+                        self.logged_items["imported"] += 1
 
                     else:
                         self.parent_page_obj.add_child(instance=page)
                         page.save()
-                        self.logged_items.append(
+                        self.logged_items["items"].append(
                             {
+                                "id": page.id,
+                                "title": page.title,
+                                "link": item.get("link"),
                                 "result": "updated",
                                 "reason": "existed",
                                 "datecheck": wordpress_item.date_changed,
                                 "slugcheck": wordpress_item.slug_changed,
                             }
                         )
+                        self.logged_items["imported"] += 1
+                else:
+                    self.logged_items["items"].append(
+                        {
+                            "id": 0,
+                            "title": "",
+                            "link": "",
+                            "result": "excluded",
+                            "reason": "not a page type or status to import",
+                            "datecheck": "",
+                            "slugcheck": "",
+                        }
+                    )
+                    self.logged_items["skipped"] += 1
+            else:
+                self.logged_items["items"].append(
+                    {
+                        "id": 0,
+                        "title": "",
+                        "link": "",
+                        "result": "excluded",
+                        "reason": "not a item",
+                        "datecheck": "",
+                        "slugcheck": "",
+                    }
+                )
+            self.log_to_console(self.logged_items["items"][-1])
 
-        return (
-            self.log_imported,
-            self.log_skipped,
-            self.log_processed,
-            self.logged_items,
-        )
+        return self.logged_items
+
+    def log_to_console(self, item):
+        if not item["id"] == 0:
+            sys.stdout.write(
+                f"{item['id']}, {item['title']}, {item['result']}, {self.logged_items['processed']}\n"
+            )
+        else:
+            sys.stdout.write(f"skipped ... {self.logged_items['processed']}\n")
 
     def analyze_html(self, html_analyzer, *, page_types, page_statuses):
         xml_doc = pulldom.parse(self.xml_file)
@@ -130,8 +165,8 @@ class WordpressItem:
         self.linebreaks_wp = linebreaks_wp(self.raw_body)
         self.fix_styles = fix_styles(self.linebreaks_wp)
         self.bleach_clean = bleach_clean(self.fix_styles)
-        self.slug_changed = None
-        self.date_changed = False
+        self.slug_changed = ""
+        self.date_changed = ""
 
     def cleaned_title(self):
         return self.node["title"].strip()
