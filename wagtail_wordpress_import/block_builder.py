@@ -239,8 +239,8 @@ def check_image_src(src):
     # some images have relative src values
     if not src.startswith("http"):
         print(
-            "WARNING: relative file {}. Image may be broken, trying with {} prepended. ".format(
-                src, IMAGE_SRC_DOMAIN
+            "WARNING: relative file {}. Image may be broken, trying with domain name prepended. ".format(
+                src
             )
         )
         return IMAGE_SRC_DOMAIN + "/" + src
