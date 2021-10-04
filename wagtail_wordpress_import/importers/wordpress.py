@@ -10,7 +10,11 @@ from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.functions import linebreaks_wp, node_to_dict
+from wagtail_wordpress_import.functions import (
+    linebreaks_wp,
+    node_to_dict,
+    normalize_style_attrs,
+)
 
 
 class WordpressImporter:
@@ -162,9 +166,18 @@ class WordpressItem:
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
-        self.linebreaks_wp = linebreaks_wp(self.raw_body)
-        self.fix_styles = fix_styles(self.linebreaks_wp)
-        self.bleach_clean = bleach_clean(self.fix_styles)
+        self.linebreaks_wp = linebreaks_wp(
+            self.raw_body
+        )  # generally adds a p tag where it finds a linebreak
+        self.normalize = normalize_style_attrs(
+            self.linebreaks_wp
+        )  # formats style attrs to be lower cased and correctly spaced with trailing ; on each style
+        self.fix_styles = fix_styles(
+            self.normalize
+        )  # takes a complete style attr and alters the html to reflect the style required
+        self.bleach_clean = bleach_clean(
+            self.fix_styles
+        )  # stanity check to remove illegal/iincorrect html
         self.slug_changed = ""
         self.date_changed = ""
 

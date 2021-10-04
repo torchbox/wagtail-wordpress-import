@@ -41,7 +41,7 @@ HTML_TAGS = {
     "big": "inline",
     "br": "inline",
     "button": "inline",
-    "center": "inline", # not stricty allowed but here for later styling
+    "center": "inline",  # not stricty allowed but here for later styling
     "cite": "inline",
     "code": "inline",
     "dfn": "inline",
@@ -252,7 +252,7 @@ ALLOWED_TAGS = [
     "br",
     "button",
     "caption",
-    "center", # not stictly allowed but we convert id later to css on a div
+    "center",  # not stictly allowed but we convert id later to css on a div
     "code",
     "col",
     "colgroup",
