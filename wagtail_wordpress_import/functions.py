@@ -1,5 +1,7 @@
 from collections import defaultdict
 
+from bs4 import BeautifulSoup
+
 
 def clean_node_name(node_name):
     return node_name.replace("-", "_")
@@ -177,3 +179,19 @@ def linebreaks_wp(pee, autoescape=False):
         pee = re.sub("(?is)(<pre[^>]*>)(.*?)</pre>", clean_pre, pee)
     pee = re.sub(r"\n</p>$", "</p>", pee)
     return pee
+
+
+def normalize_style_attrs(html):
+    soup = BeautifulSoup(html, "html.parser")
+    elements = soup.findAll(recursive=True)
+
+    for el in elements:
+        if el.attrs and el.attrs.get("style"):
+            styles_list = [
+                style.strip().lower() + ";"
+                for style in el.attrs["style"].split(";")
+                if style != ""
+            ]
+            el.attrs["style"] = " ".join(styles_list)
+
+    return str(soup)
