@@ -15,12 +15,15 @@ class WPImportedPageMixin(Page):
         abstract = True
 
     wordpress_panels = [
-        FieldRowPanel([
-            FieldPanel("wp_post_id"), 
-            FieldPanel("wp_post_type"),
-        ], heading="wp data"),
+        FieldRowPanel(
+            [
+                FieldPanel("wp_post_id"),
+                FieldPanel("wp_post_type"),
+            ],
+            heading="wp data",
+        ),
         FieldPanel("wp_link", classname="full title"),
-        FieldPanel("wp_block_json", classname="full"),        
+        FieldPanel("wp_block_json", classname="full"),
         FieldPanel("wp_processed_content", classname="full"),
         FieldPanel("wp_raw_content", classname="full"),
     ]

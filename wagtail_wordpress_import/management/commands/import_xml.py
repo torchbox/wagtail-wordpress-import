@@ -59,15 +59,15 @@ class Command(BaseCommand):
     def handle(self, **options):
         xml_file_path = self.get_xml_file(f"{options['xml_file']}")
         importer = WordpressImporter(xml_file_path)
-        imported, skipped, processed, logged = importer.run(
+        logged_items = importer.run(
             page_types=options["type"].split(","),
             page_statuses=options["status"].split(","),
             app_for_pages=options["app"],
             model_for_pages=options["model"],
             parent_id=options["parent_id"],
         )
-        self.summary(imported, skipped, processed)
-        self.save_csv_files(logged)
+        self.summary(logged_items)
+        self.save_csv_files(logged_items)
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
@@ -78,21 +78,20 @@ class Command(BaseCommand):
         )
         exit()
 
-    def summary(self, imported, skipped, processed):
+    def summary(self, log):
         self.stdout.write(self.style.WARNING("Summary ========================"))
         self.stdout.write(
             "Imported: "
-            + str(imported)
+            + str(log["imported"])
             + " Skipped: "
-            + str(skipped)
+            + str(log["skipped"])
             + " Processed: "
-            + str(processed)
+            + str(log["processed"])
         )
-        calc = processed - skipped == imported
-        if calc:
-            self.stdout.write(self.style.SUCCESS(f"Check: {calc}"))
+        if (log["processed"] - log["skipped"]) == log["imported"]:
+            self.stdout.write(self.style.SUCCESS("Success"))
         else:
-            self.stdout.write(self.style.ERROR(f"Check: {calc}"))
+            self.stdout.write(self.style.ERROR("Error"))
 
     def save_csv_files(self, logged):
         file_name = (
@@ -102,18 +101,36 @@ class Command(BaseCommand):
         with open(file_name, "w", newline="") as csvfile:
             writer = csv.DictWriter(
                 csvfile,
-                fieldnames=["id", "title", "url", "reason", "result", "dates", "slug"],
+                fieldnames=[
+                    "id",
+                    "title",
+                    "url",
+                    "reason",
+                    "result",
+                    "dates",
+                    "slug",
+                ],
             )
-            writer.writeheader()
-            for row in logged:
+            writer.writerow(
+                {
+                    "id": "Page ID",
+                    "title": "Page Title",
+                    "url": "Wordpress Link",
+                    "reason": "Reason for result ->",
+                    "result": "Result",
+                    "dates": "Dates Changed",
+                    "slug": "Slug Changed",
+                }
+            )
+            for row in logged["items"]:
                 writer.writerow(
                     {
-                        "id": row["wp:post_id"],
+                        "id": row["id"],
                         "title": row["title"],
                         "url": row["link"],
-                        "reason": row["log"]["reason"],
-                        "result": row["log"]["result"],
-                        "dates": row["log"]["datecheck"],
-                        "slug": row["log"]["slugcheck"],
+                        "reason": row["reason"],
+                        "result": row["result"],
+                        "dates": row["datecheck"],
+                        "slug": row["slugcheck"],
                     }
                 )

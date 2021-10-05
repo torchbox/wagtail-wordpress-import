@@ -6,7 +6,7 @@ from wagtail_wordpress_import.functions import linebreaks_wp
 from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
-FIXTURES_PATH = BASE_PATH + "/test_fixtures"
+FIXTURES_PATH = BASE_PATH + "/fixtures"
 """
 Sanity checks when file is loaded for testing
 Checking the expected count of items is as expected
@@ -25,7 +25,7 @@ OUTPUT_P_OCCURANCE_TOTAL = 8  # <p> we already have one in place which shoudl re
 
 class TestBleach(TestCase):
     def setUp(self):
-        self.raw_html_file = open(f"{FIXTURES_PATH}/input_raw.txt", "r")
+        self.raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
         self.stream = self.raw_html_file.read()
         # import re
         # self.raw_text = re.sub("<[^<]+?>", "", self.stream)
@@ -48,9 +48,3 @@ class TestBleach(TestCase):
         self.assertEqual(lb_wp.count("\n\n"), OUTPUT_DOUBLE_LINES_OCCURANCE_TOTAL)
         self.assertEqual(lb_wp.count("\n"), OUTPUT_SINGLE_LINES_OCCURANCE_TOTAL)
         self.assertEqual(lb_wp.count("<p"), OUTPUT_P_OCCURANCE_TOTAL)
-
-    # def test_fix_styles(self):
-    #     value = self.stream
-    #     value = linebreaks_wp(value)
-    #     value = fix_styles(value)
-    #     value = bleach_clean(value)

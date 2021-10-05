@@ -5,15 +5,14 @@ from lxml import etree
 
 from wagtail_wordpress_import.cls.util import MaxDepthEtree, PathsToDict
 
-FIXTURES_DIR = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-)
+BASE_PATH = os.path.dirname(os.path.dirname(__file__))
+FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 
 class TestDiscovery(TestCase):
     def setUp(self):
         # a known file for testing with
-        self.xml = open(os.path.join(FIXTURES_DIR, "fixtures/test.xml"), "rb").read()
+        self.xml = open(os.path.join(FIXTURES_PATH, "test.xml"), "rb").read()
         # we know the max depth is 5 from the file above
         self.known_depth = 3
         # load the xml file
