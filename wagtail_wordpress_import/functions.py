@@ -1,6 +1,7 @@
 from collections import defaultdict
 
 from bs4 import BeautifulSoup
+from bs4.element import Stylesheet
 
 
 def clean_node_name(node_name):
@@ -182,16 +183,29 @@ def linebreaks_wp(pee, autoescape=False):
 
 
 def normalize_style_attrs(html):
+    """
+    There are different ways that styles are formatted coming out of wordpress.
+    This mornalizes them so the know what the format is for later parsing.
+
+    e.g. font-style: italic becomes font-style:italic;
+    e.g. FONT-WEIGHT:400; becoms font-weight:400;
+
+    So essentially the styles are all lowercased, with appended ; and have no spaces.
+    Worth noting that these styles are actually removed later on when the fix_styles
+    method is run so if they look wrong it's OK here as they are a `template`
+    """
     soup = BeautifulSoup(html, "html.parser")
     elements = soup.findAll(recursive=True)
 
     for el in elements:
         if el.attrs and el.attrs.get("style"):
             styles_list = [
-                style.strip().lower() + ";"
+                style.strip().lower().replace(" ", "") + ";"
                 for style in el.attrs["style"].split(";")
                 if style != ""
             ]
-            el.attrs["style"] = " ".join(styles_list)
+            el.attrs["style"] = " ".join(
+                sorted(styles_list)
+            )  # sorted seems like it might be useful later
 
     return str(soup)
