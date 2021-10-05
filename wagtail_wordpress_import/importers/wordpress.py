@@ -216,10 +216,6 @@ class WordpressItem:
 
         return date_formatted
 
-    def cleaned_raw_content(self):
-        # no cleaning here
-        return self.node["content:encoded"]
-
     def cleaned_post_id(self):
         return int(self.node["wp:post_id"])
 
