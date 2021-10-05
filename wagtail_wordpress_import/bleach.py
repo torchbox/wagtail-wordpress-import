@@ -140,12 +140,17 @@ def fix_styles(value):
                 del item.attrs["style"]
                 item.attrs["class"] = "align-right"
 
-    """edge cases"""
+    """other cases"""
     for item in soup.find_all("center"):
         item.unwrap()
 
     for item in soup.find_all("em"):
         new_item = soup.new_tag("i")
+        new_item.string = item.text
+        item.replace_with(new_item)
+
+    for item in soup.find_all("strong"):
+        new_item = soup.new_tag("b")
         new_item.string = item.text
         item.replace_with(new_item)
 
