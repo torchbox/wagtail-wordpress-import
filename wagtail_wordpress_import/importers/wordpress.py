@@ -8,12 +8,16 @@ from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
-from wagtail_wordpress_import.bleach import filter_bleach_clean
+from wagtail_wordpress_import.prefilters.bleach_filter import filter_bleach_clean
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.fix_styles import filter_fix_styles
+from wagtail_wordpress_import.prefilters.fix_styles_filter import filter_fix_styles
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.linebreaks_wp import filter_linebreaks_wp
-from wagtail_wordpress_import.normalize_styles import filter_normalize_style_attrs
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
+    filter_linebreaks_wp,
+)
+from wagtail_wordpress_import.prefilters.normalize_styles_filter import (
+    filter_normalize_style_attrs,
+)
 
 
 class WordpressImporter:
