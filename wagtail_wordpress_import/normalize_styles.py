@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 
 
-def normalize_style_attrs(html):
+def filter_normalize_style_attrs(html, options=None):
     """
     There are different ways that styles are formatted coming out of wordpress.
     This mornalizes them so the know what the format is for later parsing.

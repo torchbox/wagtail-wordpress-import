@@ -4,7 +4,7 @@ from django.utils.html import escape
 from django.utils.text import normalize_newlines
 
 
-def linebreaks_wp(pee, autoescape=False):
+def filter_linebreaks_wp(pee, options=None):
     """
     Straight up port of http://codex.wordpress.org/Function_Reference/wpautop
     i am greatful https://gist.github.com/albertsun/1160201

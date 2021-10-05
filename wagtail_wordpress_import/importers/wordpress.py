@@ -8,12 +8,12 @@ from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
-from wagtail_wordpress_import.bleach import bleach_clean
+from wagtail_wordpress_import.bleach import filter_bleach_clean
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.fix_styles import fix_styles
+from wagtail_wordpress_import.fix_styles import filter_fix_styles
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.linebreaks_wp import linebreaks_wp
-from wagtail_wordpress_import.normalize_styles import normalize_style_attrs
+from wagtail_wordpress_import.linebreaks_wp import filter_linebreaks_wp
+from wagtail_wordpress_import.normalize_styles import filter_normalize_style_attrs
 
 
 class WordpressImporter:
@@ -155,7 +155,7 @@ class WordpressImporter:
                     stream_fields = self.mapping_stream_fields.split(",")
 
                     for html in stream_fields:
-                        value = linebreaks_wp(
+                        value = filter_linebreaks_wp(
                             item.get(self.mapping_item_inverse.get(html))
                         )
                         html_analyzer.analyze(value)
@@ -165,16 +165,16 @@ class WordpressItem:
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
-        self.linebreaks_wp = linebreaks_wp(
+        self.linebreaks_wp = filter_linebreaks_wp(
             self.raw_body
         )  # generally adds a p tag where it finds a linebreak
-        self.normalize = normalize_style_attrs(
+        self.normalize = filter_normalize_style_attrs(
             self.linebreaks_wp
         )  # formats style attrs to be lower cased and correctly spaced with trailing ; on each style
-        self.fix_styles = fix_styles(
+        self.fix_styles = filter_fix_styles(
             self.normalize
         )  # takes a complete style attr and alters the html to reflect the style required
-        self.bleach_clean = bleach_clean(
+        self.bleach_clean = filter_bleach_clean(
             self.fix_styles
         )  # stanity check to remove illegal/iincorrect html
         self.slug_changed = ""
