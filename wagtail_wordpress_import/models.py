@@ -10,6 +10,7 @@ class WPImportedPageMixin(Page):
     wp_raw_content = models.TextField(blank=True, null=True)
     wp_processed_content = models.TextField(blank=True, null=True)
     wp_block_json = models.TextField(blank=True, null=True)
+    wp_normalized_styles = models.TextField(blank=True, null=True)
 
     class Meta:
         abstract = True
@@ -25,5 +26,6 @@ class WPImportedPageMixin(Page):
         FieldPanel("wp_link", classname="full title"),
         FieldPanel("wp_block_json", classname="full"),
         FieldPanel("wp_processed_content", classname="full"),
+        FieldPanel("wp_normalized_styles", classname="full"),
         FieldPanel("wp_raw_content", classname="full"),
     ]

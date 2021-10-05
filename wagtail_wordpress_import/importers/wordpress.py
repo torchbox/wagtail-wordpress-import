@@ -256,4 +256,5 @@ class WordpressItem:
             "wp_raw_content": self.raw_body,
             "wp_processed_content": self.fix_styles,
             "wp_block_json": self.cleaned_body(),
+            "wp_normalized_styles": self.normalize,
         }
