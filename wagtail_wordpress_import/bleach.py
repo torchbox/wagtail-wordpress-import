@@ -6,7 +6,7 @@ from wagtail_wordpress_import.constants import (
 )
 
 
-def bleach_clean(value):
+def filter_bleach_clean(html, options=None):
     """
     Clean up the raw html to be on the safe side.
     Keeping all styles in place that we know of and care about.
@@ -16,4 +16,6 @@ def bleach_clean(value):
     cleaned = Cleaner(
         tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, styles=ALLOWED_STYLES
     )
-    return cleaned.clean(value)
+
+    cleaned_html = cleaned.clean(html)
+    return cleaned_html
