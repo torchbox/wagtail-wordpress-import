@@ -1,8 +1,10 @@
 import os
 
 from django.test import TestCase
-from wagtail_wordpress_import.bleach import filter_bleach_clean
-from wagtail_wordpress_import.linebreaks_wp import filter_linebreaks_wp
+from wagtail_wordpress_import.prefilters.bleach_filter import filter_bleach_clean
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
+    filter_linebreaks_wp,
+)
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
