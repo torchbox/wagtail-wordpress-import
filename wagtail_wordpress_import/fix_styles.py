@@ -20,7 +20,7 @@ def reverse_styles_dict(mapping):
     return inverse
 
 
-def fix_styles(value):
+def filter_fix_styles(html, options=None):
     """
     This function uses the mapping of the style attribute for an element to break
     matching elements into one or more html tags.
@@ -32,7 +32,7 @@ def fix_styles(value):
     e.g. "margin: 0pt 10px 0px 0pt; float: left;" maps to "leftfloat"
     e.g. "float: left; margin: 0em 1em 1em 0em;" maps to "leftfloat"
     """
-    soup = bs4(value, "html.parser")
+    soup = bs4(html, "html.parser")
     search_styles = reverse_styles_dict(FILTER_MAPPING)
 
     for style_string in search_styles:
@@ -133,4 +133,6 @@ def fix_styles(value):
         new_item.string = item.text
         item.replace_with(new_item)
 
-    return str(soup)
+    fixed_html = str(soup)
+
+    return fixed_html
