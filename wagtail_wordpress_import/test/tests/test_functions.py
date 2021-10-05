@@ -1,5 +1,7 @@
 from django.test import TestCase
-from wagtail_wordpress_import.normalize_styles import filter_normalize_style_attrs
+from wagtail_wordpress_import.prefilters.normalize_styles_filter import (
+    filter_normalize_style_attrs,
+)
 
 
 class TestFuntions(TestCase):
