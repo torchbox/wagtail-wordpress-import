@@ -12,6 +12,8 @@ def filter_normalize_style_attrs(html, options=None):
     So essentially the styles are all lowercased, with appended ; and have no spaces.
     Worth noting that these styles are actually removed later on when the fix_styles
     method is run so if they look wrong it's OK here as they are a `template`
+
+    param: `options` NOT IMPLEMENTED
     """
     soup = BeautifulSoup(html, "html.parser")
     elements = soup.findAll(recursive=True)

@@ -8,6 +8,8 @@ def filter_linebreaks_wp(pee, options=None):
     """
     Straight up port of http://codex.wordpress.org/Function_Reference/wpautop
     i am greatful https://gist.github.com/albertsun/1160201
+
+    param: `options` NOT IMPLEMENTED
     """
     # print(pee)
     # seeing an error here when the first charcter is a int
