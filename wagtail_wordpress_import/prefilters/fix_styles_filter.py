@@ -31,6 +31,8 @@ def filter_fix_styles(html, options=None):
     later to decide if an element can have alignment in the richtext block
     e.g. "margin: 0pt 10px 0px 0pt; float: left;" maps to "leftfloat"
     e.g. "float: left; margin: 0em 1em 1em 0em;" maps to "leftfloat"
+
+    param: `options` NOT IMPLEMENTED
     """
     soup = bs4(html, "html.parser")
     search_styles = reverse_styles_dict(FILTER_MAPPING)
