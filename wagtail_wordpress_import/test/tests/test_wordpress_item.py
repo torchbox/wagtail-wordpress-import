@@ -46,9 +46,9 @@ class WordpressItemTests(TestCase):
         wp_post_id = wordpress_item.cleaned_data["wp_post_id"]
         wp_post_type = wordpress_item.cleaned_data["wp_post_type"]
         wp_link = wordpress_item.cleaned_data["wp_link"]
-        wp_raw_content = wordpress_item.cleaned_data["wp_raw_content"]
-        wp_processed_content = wordpress_item.cleaned_data["wp_processed_content"]
-        wp_block_json = wordpress_item.cleaned_data["wp_block_json"]
+        wp_raw_content = wordpress_item.debug_content["filter_linebreaks_wp"]
+        wp_processed_content = wordpress_item.debug_content["filter_fix_styles"]
+        wp_block_json = wordpress_item.debug_content["block_json"]
 
         self.assertEqual(title, "Page Title")
         self.assertEqual(slug, "page-title")
@@ -61,7 +61,7 @@ class WordpressItemTests(TestCase):
         self.assertEqual(wp_link, "http://www.example.com")
         self.assertIsInstance(wp_raw_content, str)
         self.assertIsInstance(wp_processed_content, str)
-        self.assertIsInstance(wp_block_json, str)
+        self.assertIsInstance(wp_block_json, list)
 
     def test_cleaned_fields(self):
         wordpress_item = WordpressItem(self.bad_node)

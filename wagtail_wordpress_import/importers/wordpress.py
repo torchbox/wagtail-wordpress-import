@@ -11,6 +11,7 @@ from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import filter_linebreaks_wp
 
 
 class WordpressImporter:
@@ -172,29 +173,20 @@ DEFAULT_PREFILTERS = [
     },
 ]
 
+DEBUG_ENABLED = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_DEBUG', True)
 
 class WordpressItem:
+
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
-        # self.content = self.prefilter_content(self.node["content:encoded"])
-        # self.linebreaks_wp = filter_linebreaks_wp(
-        #     self.raw_body
-        # )  # generally adds a p tag where it finds a linebreak
-        # self.normalize = filter_normalize_style_attrs(
-        #     self.linebreaks_wp
-        # )  # formats style attrs to be lower cased and correctly spaced with trailing ; on each style
-        # self.fix_styles = filter_fix_styles(
-        #     self.normalize
-        # )  # takes a complete style attr and alters the html to reflect the style required
-        # self.bleach_clean = filter_bleach_clean(
-        #     self.fix_styles
-        # )  # stanity check to remove illegal/iincorrect html
         self.slug_changed = ""
         self.date_changed = ""
 
-    @staticmethod
-    def prefilter_content(content):
+        self.debug_content = {}
+
+
+    def prefilter_content(self, content):
         """
         FILTERS ARE CUMULATIVE
         cache the result of each filter which is run on the output from the previous filter
@@ -206,6 +198,8 @@ class WordpressItem:
         for filter in filter_config:
             function = import_string(filter['FUNCTION'])
             cached_result = function(cached_result, filter.get('OPTIONS'))
+            if DEBUG_ENABLED:
+                self.debug_content[function.__name__] = cached_result
 
         return cached_result
 
@@ -267,7 +261,10 @@ class WordpressItem:
         return str(self.node["link"].strip())
 
     def body_stream_field(self, content):
-        return json.dumps(BlockBuilder(content).build())
+        blocks_dict = BlockBuilder(content).build()
+        if DEBUG_ENABLED:
+            self.debug_content["block_json"] = blocks_dict
+        return json.dumps(blocks_dict)
 
     @cached_property
     def cleaned_data(self):
@@ -278,16 +275,11 @@ class WordpressItem:
             "last_published_at": self.cleaned_last_published_at(),
             "latest_revision_created_at": self.cleaned_latest_revision_created_at(),
             "body": self.body_stream_field(self.prefilter_content(self.raw_body)),
-            # "body": self.prefilter_content(self.raw_body),
             "wp_post_id": self.cleaned_post_id(),
             "wp_post_type": self.cleaned_post_type(),
             "wp_link": self.cleaned_link(),
-            # "wp_raw_content": self.raw_body,
-            # "wp_processed_content": self.fix_styles,
-            # "wp_block_json": self.cleaned_body(),
-            # "wp_normalized_styles": self.normalize,
-            "wp_raw_content": "",
-            "wp_processed_content": "",
-            "wp_block_json": "",
-            "wp_normalized_styles": "",
+            "wp_block_json": self.debug_content.get("block_json"),
+            "wp_processed_content": self.debug_content.get("filter_fix_styles"),
+            "wp_normalized_styles": self.debug_content.get("filter_normalize_style_attrs"),
+            "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }
