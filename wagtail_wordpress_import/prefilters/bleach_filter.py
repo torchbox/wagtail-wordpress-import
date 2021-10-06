@@ -1,5 +1,5 @@
 from bleach.sanitizer import Cleaner
-from wagtail_wordpress_import.constants import (
+from wagtail_wordpress_import.prefilters.constants import (
     ALLOWED_ATTRIBUTES,
     ALLOWED_STYLES,
     ALLOWED_TAGS,
