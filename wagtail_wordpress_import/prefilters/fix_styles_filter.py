@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup as bs4
 
-from wagtail_wordpress_import.constants import FILTER_MAPPING, HTML_TAGS
+from wagtail_wordpress_import.prefilters.constants import FILTER_MAPPING, HTML_TAGS
 
 
 def reverse_styles_dict(mapping):
