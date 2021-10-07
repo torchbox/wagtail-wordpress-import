@@ -1,5 +1,5 @@
-import sys
 import csv
+import sys
 from datetime import datetime
 
 
@@ -90,7 +90,36 @@ class Logger:
                 )
 
     def save_csv_images_report(self):
-        pass
+        file_name = f"{self.logdir}/images-report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
 
-    def save_csv_urls_report(self):
-        pass
+        with open(file_name, "w", newline="") as csvfile:
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=[
+                    "id",
+                    "title",
+                    "url",
+                    "reason",
+                ],
+            )
+            writer.writerow(
+                {
+                    "id": "Page ID",
+                    "title": "Page Title",
+                    "url": "Wordpress Link",
+                    "reason": "Reason",
+                }
+            )
+            for row in self.images:
+                writer.writerow(
+                    {
+                        "id": row["id"],
+                        "title": row["title"],
+                        "url": row["link"],
+                        "reason": row["reason"],
+                    }
+                )
+
+    # will need implementing later
+    # def save_csv_urls_report(self):
+    #     pass
