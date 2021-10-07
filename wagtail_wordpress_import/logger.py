@@ -1,8 +1,11 @@
 import sys
+import csv
+from datetime import datetime
 
 
 class Logger:
-    def __init__(self):
+    def __init__(self, logdir):
+        self.logdir = logdir
         self.processed = 0
         self.imported = 0
         self.skipped = 0
@@ -10,23 +13,14 @@ class Logger:
         self.images = []
         self.urls = []
 
-    # def get_items(self):
-    #     return self.items
-
-    # def get_images(self):
-    #     return self.images
-
-    # def get_urls(self):
-    #     return self.urls
-
-    # def get_processed(self):
-    #     return self.processed
-
-    # def get_imported(self):
-    #     return self.imported
-
-    # def get_skipped(self):
-    #     return self.skipped
+    def log_progress(self):
+        item = self.items[-1]
+        if not item["id"] == 0:
+            sys.stdout.write(
+                f"{item['id']}, {item['title']}, {item['result']}, {self.processed}\n"
+            )
+        else:
+            sys.stdout.write(f"skipped ... {self.processed}\n")
 
     def get_items_report_data(self):
         report_data = {
@@ -54,3 +48,49 @@ class Logger:
             sys.stdout.write(
                 "\n⚠️ Completed but there were errors with imported amounts\n"
             )
+
+    def save_csv_import_report(self):
+        file_name = f"{self.logdir}/import-report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+
+        with open(file_name, "w", newline="") as csvfile:
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=[
+                    "id",
+                    "title",
+                    "url",
+                    "reason",
+                    "result",
+                    "dates",
+                    "slug",
+                ],
+            )
+            writer.writerow(
+                {
+                    "id": "Page ID",
+                    "title": "Page Title",
+                    "url": "Wordpress Link",
+                    "reason": "Reason for result ->",
+                    "result": "Result",
+                    "dates": "Dates Changed",
+                    "slug": "Slug Changed",
+                }
+            )
+            for row in self.items:
+                writer.writerow(
+                    {
+                        "id": row["id"],
+                        "title": row["title"],
+                        "url": row["link"],
+                        "reason": row["reason"],
+                        "result": row["result"],
+                        "dates": row["datecheck"],
+                        "slug": row["slugcheck"],
+                    }
+                )
+
+    def save_csv_images_report(self):
+        pass
+
+    def save_csv_urls_report(self):
+        pass

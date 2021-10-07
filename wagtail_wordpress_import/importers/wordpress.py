@@ -1,11 +1,11 @@
 import json
-import sys
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
+
+from django.apps import apps
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
@@ -19,7 +19,6 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
-        self.logged_items = {"processed": 0, "imported": 0, "skipped": 0, "items": []}
 
     def run(self, *args, **kwargs):
         logger = kwargs["logger"]
@@ -50,7 +49,7 @@ class WordpressImporter:
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                self.logged_items["processed"] += 1
+                # self.logged_items["processed"] += 1
                 logger.processed += 1
 
                 if (
@@ -76,18 +75,6 @@ class WordpressImporter:
 
                     if page.id:
                         page.save()
-                        self.logged_items["items"].append(
-                            {
-                                "id": page.id,
-                                "title": page.title,
-                                "link": item.get("link"),
-                                "result": "updated",
-                                "reason": "existed",
-                                "datecheck": wordpress_item.date_changed,
-                                "slugcheck": wordpress_item.slug_changed,
-                            }
-                        )
-                        self.logged_items["imported"] += 1
                         logger.imported += 1
                         logger.items.append(
                             {
@@ -103,18 +90,6 @@ class WordpressImporter:
                     else:
                         self.parent_page_obj.add_child(instance=page)
                         page.save()
-                        self.logged_items["items"].append(
-                            {
-                                "id": page.id,
-                                "title": page.title,
-                                "link": item.get("link"),
-                                "result": "updated",
-                                "reason": "existed",
-                                "datecheck": wordpress_item.date_changed,
-                                "slugcheck": wordpress_item.slug_changed,
-                            }
-                        )
-                        self.logged_items["imported"] += 1
                         logger.imported += 1
                         logger.items.append(
                             {
@@ -128,18 +103,6 @@ class WordpressImporter:
                             }
                         )
                 else:
-                    self.logged_items["items"].append(
-                        {
-                            "id": 0,
-                            "title": "",
-                            "link": "",
-                            "result": "excluded",
-                            "reason": "not a page type or status to import",
-                            "datecheck": "",
-                            "slugcheck": "",
-                        }
-                    )
-                    self.logged_items["skipped"] += 1
                     logger.skipped += 1
                     logger.items.append(
                         {
@@ -153,17 +116,6 @@ class WordpressImporter:
                         }
                     )
             else:
-                self.logged_items["items"].append(
-                    {
-                        "id": 0,
-                        "title": "",
-                        "link": "",
-                        "result": "excluded",
-                        "reason": "not a item",
-                        "datecheck": "",
-                        "slugcheck": "",
-                    }
-                )
                 logger.items.append(
                     {
                         "id": 0,
@@ -175,17 +127,7 @@ class WordpressImporter:
                         "slugcheck": "",
                     }
                 )
-            self.log_to_console(self.logged_items["items"][-1])
-
-        return self.logged_items
-
-    def log_to_console(self, item):
-        if not item["id"] == 0:
-            sys.stdout.write(
-                f"{item['id']}, {item['title']}, {item['result']}, {self.logged_items['processed']}\n"
-            )
-        else:
-            sys.stdout.write(f"skipped ... {self.logged_items['processed']}\n")
+            logger.log_progress()
 
     def analyze_html(self, html_analyzer, *, page_types, page_statuses):
         xml_doc = pulldom.parse(self.xml_file)
