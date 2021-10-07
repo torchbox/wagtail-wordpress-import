@@ -11,7 +11,9 @@ from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import filter_linebreaks_wp
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
+    filter_linebreaks_wp,
+)
 
 
 class WordpressImporter:
@@ -20,6 +22,7 @@ class WordpressImporter:
         self.logged_items = {"processed": 0, "imported": 0, "skipped": 0, "items": []}
 
     def run(self, *args, **kwargs):
+        logger = kwargs["logger"]
         xml_doc = pulldom.parse(self.xml_file)
 
         try:
@@ -48,6 +51,7 @@ class WordpressImporter:
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.logged_items["processed"] += 1
+                logger.processed += 1
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
@@ -84,7 +88,18 @@ class WordpressImporter:
                             }
                         )
                         self.logged_items["imported"] += 1
-
+                        logger.imported += 1
+                        logger.items.append(
+                            {
+                                "id": page.id,
+                                "title": page.title,
+                                "link": item.get("link"),
+                                "result": "updated",
+                                "reason": "existed",
+                                "datecheck": wordpress_item.date_changed,
+                                "slugcheck": wordpress_item.slug_changed,
+                            }
+                        )
                     else:
                         self.parent_page_obj.add_child(instance=page)
                         page.save()
@@ -100,6 +115,18 @@ class WordpressImporter:
                             }
                         )
                         self.logged_items["imported"] += 1
+                        logger.imported += 1
+                        logger.items.append(
+                            {
+                                "id": page.id,
+                                "title": page.title,
+                                "link": item.get("link"),
+                                "result": "updated",
+                                "reason": "existed",
+                                "datecheck": wordpress_item.date_changed,
+                                "slugcheck": wordpress_item.slug_changed,
+                            }
+                        )
                 else:
                     self.logged_items["items"].append(
                         {
@@ -113,8 +140,31 @@ class WordpressImporter:
                         }
                     )
                     self.logged_items["skipped"] += 1
+                    logger.skipped += 1
+                    logger.items.append(
+                        {
+                            "id": 0,
+                            "title": "",
+                            "link": "",
+                            "result": "excluded",
+                            "reason": "not a page type or status to import",
+                            "datecheck": "",
+                            "slugcheck": "",
+                        }
+                    )
             else:
                 self.logged_items["items"].append(
+                    {
+                        "id": 0,
+                        "title": "",
+                        "link": "",
+                        "result": "excluded",
+                        "reason": "not a item",
+                        "datecheck": "",
+                        "slugcheck": "",
+                    }
+                )
+                logger.items.append(
                     {
                         "id": 0,
                         "title": "",
@@ -158,6 +208,7 @@ class WordpressImporter:
                         )
                         html_analyzer.analyze(value)
 
+
 DEFAULT_PREFILTERS = [
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter.filter_linebreaks_wp",
@@ -173,10 +224,10 @@ DEFAULT_PREFILTERS = [
     },
 ]
 
-DEBUG_ENABLED = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_DEBUG', True)
+DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG", True)
+
 
 class WordpressItem:
-
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
@@ -185,19 +236,20 @@ class WordpressItem:
 
         self.debug_content = {}
 
-
     def prefilter_content(self, content):
         """
         FILTERS ARE CUMULATIVE
         cache the result of each filter which is run on the output from the previous filter
         """
-        filter_config = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_PREFILTERS', DEFAULT_PREFILTERS)
+        filter_config = getattr(
+            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
+        )
 
         cached_result = content
 
         for filter in filter_config:
-            function = import_string(filter['FUNCTION'])
-            cached_result = function(cached_result, filter.get('OPTIONS'))
+            function = import_string(filter["FUNCTION"])
+            cached_result = function(cached_result, filter.get("OPTIONS"))
             if DEBUG_ENABLED:
                 self.debug_content[function.__name__] = cached_result
 
@@ -261,7 +313,7 @@ class WordpressItem:
         return str(self.node["link"].strip())
 
     def body_stream_field(self, content):
-        blocks_dict = BlockBuilder(content).build()
+        blocks_dict = BlockBuilder(content, self.node).build()
         if DEBUG_ENABLED:
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
@@ -280,6 +332,8 @@ class WordpressItem:
             "wp_link": self.cleaned_link(),
             "wp_block_json": self.debug_content.get("block_json"),
             "wp_processed_content": self.debug_content.get("filter_fix_styles"),
-            "wp_normalized_styles": self.debug_content.get("filter_normalize_style_attrs"),
+            "wp_normalized_styles": self.debug_content.get(
+                "filter_normalize_style_attrs"
+            ),
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }

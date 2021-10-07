@@ -32,9 +32,11 @@ IMAGE_SRC_DOMAIN = "https://www.budgetsaresexy.com"  # note no trailing /
 
 
 class BlockBuilder:
-    def __init__(self, value):
+    def __init__(self, value, node):
         self.soup = BeautifulSoup(value, "lxml", exclude_encodings=True)
         self.blocks = []
+        self.logged_items = {"processed": 0, "imported": 0, "skipped": 0, "items": []}
+        self.node = node
         self.set_up()
 
     def set_up(self):
@@ -65,12 +67,12 @@ class BlockBuilder:
         for tag in soup:
             counter += 1
             """
-            the process here loops though each soup tag to discover the block type to use
-            there's a table and iframe and form block to deal with if they exist
+            the process here loops though each soup tag to discover 
+            the block type to use
             """
 
             # RICHTEXT
-            if not tag.name in TAGS_TO_BLOCKS:
+            if tag.name not in TAGS_TO_BLOCKS:
                 block_value += str(self.image_linker(str(tag)))
 
             # TABLE
@@ -81,10 +83,6 @@ class BlockBuilder:
                 self.blocks.append({"type": "raw_html", "value": str(tag)})
 
             # IFRAME/EMBED
-            """
-            test escaped code to add to xml for parsing
-            &lt;iframe width=&quot;560&quot; height=&quot;315&quot; src=&quot;https://www.youtube.com/embed/CQ7Gx8b7ac4&quot; title=&quot;YouTube video player&quot; frameborder=&quot;0&quot; allow=&quot;accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture&quot; allowfullscreen&gt;&lt;/iframe&gt;
-            """
             if tag.name == "iframe":
                 if len(block_value) > 0:
                     self.blocks.append({"type": "rich_text", "value": block_value})
@@ -99,16 +97,6 @@ class BlockBuilder:
                 )
 
             # FORM
-
-            """
-            test escaped code to add to xml for parsing
-            &lt;form&gt;
-            &lt;label for=&quot;fname&quot;&gt;First name:&lt;/label&gt;&lt;br&gt;
-            &lt;input type=&quot;text&quot; id=&quot;fname&quot; name=&quot;fname&quot;&gt;&lt;br&gt;
-            &lt;label for=&quot;lname&quot;&gt;Last name:&lt;/label&gt;&lt;br&gt;
-            &lt;input type=&quot;text&quot; id=&quot;lname&quot; name=&quot;lname&quot;&gt;
-            &lt;/form&gt;
-            """
             if tag.name == "form":
                 if len(block_value) > 0:
                     self.blocks.append({"type": "rich_text", "value": block_value})
@@ -162,6 +150,7 @@ class BlockBuilder:
                 self.blocks.append({"type": "rich_text", "value": block_value})
                 block_value = str("")
 
+        # print(self.logged_items)
         return self.blocks
 
     def image_linker(self, tag):
@@ -196,8 +185,13 @@ class BlockBuilder:
             name = image.get("src").split("/")[-1]  # need the last part
             temp = NamedTemporaryFile(delete=True)
             image_src = check_image_src(image.get("src")).strip("/")
-        else:
-            print("WARNING: found an src with no value")
+        else: 
+            self.logged_items["items"].append({
+                "id": self.node.get("id"),
+                "title": self.node.get("title"),
+                "link": self.node.get("link"),
+                "reason": "no src provided",
+            })                
             return
 
         try:
@@ -208,18 +202,19 @@ class BlockBuilder:
 
             try:
                 response = requests.get(image_src, timeout=10)
-                status = response.status_code
+                status_code = response.status_code
                 content_type = response.headers.get("Content-Type")
 
-                if not content_type in VALID_IMAGE_CONTENT_TYPES:
-                    print(
-                        "WARNING: No content type returned or invalid content type for image {}. This is what we know {}".format(
-                            image_src, content_type
-                        )
-                    )
+                if content_type and content_type.lower() not in VALID_IMAGE_CONTENT_TYPES:
+                    self.logged_items["items"].append({
+                        "id": self.node.get("id"),
+                        "title": self.node.get("title"),
+                        "link": self.node.get("link"),
+                        "reason": "invalid image types match or no content type",
+                    }) 
                     return
 
-                if status == 200 and content_type.lower() in VALID_IMAGE_CONTENT_TYPES:
+                if status_code == 200:
                     temp.name = name
                     temp.write(response.content)
                     temp.flush()
@@ -228,11 +223,12 @@ class BlockBuilder:
                     return new_image
 
             except requests.exceptions.ConnectionError:
-                print(
-                    "WARNING: Unable to connect to URL {}. Image will be broken.".format(
-                        image.get("src")
-                    )
-                )
+                self.logged_items["items"].append({
+                    "id": self.node.get("id"),
+                    "title": self.node.get("title"),
+                    "link": self.node.get("link"),
+                    "reason": "connection error",
+                })
 
 
 def check_image_src(src):
