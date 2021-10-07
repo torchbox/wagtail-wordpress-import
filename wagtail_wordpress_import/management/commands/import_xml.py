@@ -1,6 +1,4 @@
-import csv
 import os
-from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
@@ -10,7 +8,7 @@ LOG_DIR = "log"
 
 
 class Command(BaseCommand):
-    help = """Run the import process on all items in the XML file and make 
+    help = """Run the import process on all items in the XML file and make
     them child pages of a specific page."""
 
     """
@@ -71,6 +69,7 @@ class Command(BaseCommand):
         )
         logger.output_import_summary()
         logger.save_csv_import_report()
+        logger.save_csv_images_report()
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
