@@ -17,10 +17,8 @@ class Logger:
         item = self.items[-1]
         if not item["id"] == 0:
             sys.stdout.write(
-                f"{item['id']}, {item['title']}, {item['result']}, {self.processed}\n"
+                f"Wagtail ID: {item['id']}, {item['title']}, {item['result']}\n"
             )
-        else:
-            sys.stdout.write(f"skipped ... {self.processed}\n")
 
     def get_items_report_data(self):
         report_data = {
