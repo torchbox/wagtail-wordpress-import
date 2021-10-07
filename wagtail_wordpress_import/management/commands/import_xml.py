@@ -4,6 +4,7 @@ from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.logger import Logger
 
 LOG_DIR = "log"
 
@@ -58,6 +59,7 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         xml_file_path = self.get_xml_file(f"{options['xml_file']}")
+        logger = Logger()
         importer = WordpressImporter(xml_file_path)
         logged_items = importer.run(
             page_types=options["type"].split(","),
@@ -65,9 +67,11 @@ class Command(BaseCommand):
             app_for_pages=options["app"],
             model_for_pages=options["model"],
             parent_id=options["parent_id"],
+            logger=logger,
         )
-        self.summary(logged_items)
+        logger.output_import_summary()
         self.save_csv_files(logged_items)
+        # print(logger.__dict__)
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
@@ -78,20 +82,20 @@ class Command(BaseCommand):
         )
         exit()
 
-    def summary(self, log):
-        self.stdout.write(self.style.WARNING("Summary ========================"))
-        self.stdout.write(
-            "Imported: "
-            + str(log["imported"])
-            + " Skipped: "
-            + str(log["skipped"])
-            + " Processed: "
-            + str(log["processed"])
-        )
-        if (log["processed"] - log["skipped"]) == log["imported"]:
-            self.stdout.write(self.style.SUCCESS("Success"))
-        else:
-            self.stdout.write(self.style.ERROR("Error"))
+    # def summary(self, logger):
+    #     self.stdout.write(self.style.WARNING("Summary ========================"))
+    #     self.stdout.write(
+    #         "Imported: "
+    #         + str(logger.imported)
+    #         + " Skipped: "
+    #         + str(logger.skipped)
+    #         + " Processed: "
+    #         + str(logger.processed)
+    #     )
+    #     if logger.processed - logger.skipped == logger.imported:
+    #         self.stdout.write(self.style.SUCCESS("Success"))
+    #     else:
+    #         self.stdout.write(self.style.ERROR("Error"))
 
     def save_csv_files(self, logged):
         file_name = (
