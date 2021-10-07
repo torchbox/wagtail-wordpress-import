@@ -3,6 +3,7 @@ import json
 from django.test import TestCase
 from datetime import datetime
 from wagtail_wordpress_import.importers.wordpress import WordpressItem
+from wagtail_wordpress_import.logger import Logger
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -10,7 +11,7 @@ FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 class WordpressItemTests(TestCase):
     def setUp(self):
-        # logging.disable(logging.CRITICAL)
+        self.logger = Logger("fakedir")
         raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r").read()
         self.good_node = {
             "title": "Page Title",
@@ -34,7 +35,7 @@ class WordpressItemTests(TestCase):
         }
 
     def test_all_fields_with_good_data(self):
-        wordpress_item = WordpressItem(self.good_node)
+        wordpress_item = WordpressItem(self.good_node, self.logger)
         title = wordpress_item.cleaned_data["title"]
         slug = wordpress_item.cleaned_data["slug"]
         first_published_at = wordpress_item.cleaned_data["first_published_at"]
@@ -64,7 +65,7 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(wp_block_json, list)
 
     def test_cleaned_fields(self):
-        wordpress_item = WordpressItem(self.bad_node)
+        wordpress_item = WordpressItem(self.bad_node, self.logger)
         slug = wordpress_item.cleaned_data["slug"]
         first_published_at = wordpress_item.cleaned_data["first_published_at"]
         last_published_at = wordpress_item.cleaned_data["last_published_at"]
