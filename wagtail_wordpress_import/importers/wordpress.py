@@ -49,7 +49,6 @@ class WordpressImporter:
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                # self.logged_items["processed"] += 1
                 logger.processed += 1
 
                 if (
@@ -57,7 +56,7 @@ class WordpressImporter:
                     and item.get("wp:status") in kwargs["page_statuses"]
                 ):
 
-                    wordpress_item = WordpressItem(item)
+                    wordpress_item = WordpressItem(item, logger)
 
                     try:
                         page = self.page_model_instance.objects.get(
@@ -170,13 +169,16 @@ DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG", True)
 
 
 class WordpressItem:
-    def __init__(self, node):
+    def __init__(self, node, logger):
         self.node = node
         self.raw_body = self.node["content:encoded"]
         self.slug_changed = ""
         self.date_changed = ""
+        self.image_errors = []
+        # self.url_errors = []
 
         self.debug_content = {}
+        self.logger = logger
 
     def prefilter_content(self, content):
         """
@@ -255,7 +257,7 @@ class WordpressItem:
         return str(self.node["link"].strip())
 
     def body_stream_field(self, content):
-        blocks_dict = BlockBuilder(content, self.node).build()
+        blocks_dict = BlockBuilder(content, self.node, self.logger).build()
         if DEBUG_ENABLED:
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
