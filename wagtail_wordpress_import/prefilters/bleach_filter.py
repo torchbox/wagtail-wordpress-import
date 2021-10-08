@@ -18,19 +18,21 @@ def filter_bleach_clean(html, options=None):
     and remove `wagtail_wordpress_import.prefilters.bleach_filter.filter_bleach_clean` filter
     """
 
-    allowed_tags = ALLOWED_TAGS
-    allowed_attributes=ALLOWED_ATTRIBUTES
-    allowed_styles=ALLOWED_STYLES
+    allowed_tags = ALLOWED_TAGS()
+    allowed_attributes = ALLOWED_ATTRIBUTES()
+    allowed_styles = ALLOWED_STYLES()
 
     if options:
         if options.get("ADDITIONAL_ALLOWED_TAGS"):
-            allowed_tags = ALLOWED_TAGS + options["ADDITIONAL_ALLOWED_TAGS"]
+            allowed_tags = ALLOWED_TAGS() + options["ADDITIONAL_ALLOWED_TAGS"]
 
         if options.get("ADDITIONAL_ALLOWED_ATTRIBUTES"):
-            allowed_attributes = ALLOWED_ATTRIBUTES + options["ADDITIONAL_ALLOWED_ATTRIBUTES"]
+            allowed_attributes = (
+                ALLOWED_ATTRIBUTES() + options["ADDITIONAL_ALLOWED_ATTRIBUTES"]
+            )
 
         if options.get("ADDITIONAL_ALLOWED_STYLES"):
-            allowed_styles = ALLOWED_STYLES + options["ADDITIONAL_ALLOWED_STYLES"]
+            allowed_styles = ALLOWED_STYLES() + options["ADDITIONAL_ALLOWED_STYLES"]
 
     cleaned = Cleaner(
         tags=allowed_tags, attributes=allowed_attributes, styles=allowed_styles

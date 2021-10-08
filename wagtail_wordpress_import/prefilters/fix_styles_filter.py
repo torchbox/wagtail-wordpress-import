@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup as bs4
-
+from django.utils.module_loading import import_string
 from wagtail_wordpress_import.prefilters.constants import FILTER_MAPPING, HTML_TAGS
 
 
@@ -12,8 +12,8 @@ def reverse_styles_dict(mapping):
     """
     # note no ending `;` so we can split on it later
     {
-        'FONT-WEIGHT: bold': 'boldify', 
-        'font-weight: bold': 'boldify', 
+        'FONT-WEIGHT: bold': 'boldify',
+        'font-weight: bold': 'boldify',
         'font-weight: bold; color: #006600': 'boldify'
     }
     """
@@ -34,8 +34,22 @@ def filter_fix_styles(html, options=None):
 
     param: `options` NOT IMPLEMENTED
     """
+
+    if options and options["CONFIG"].get("HTML_TAGS"):
+        # if options["CONFIG"].get("HTML_TAGS"):
+        function = import_string(options["CONFIG"]["HTML_TAGS"])
+        CONF_HTML_TAGS = function()
+    else:
+        CONF_HTML_TAGS = HTML_TAGS()
+
+    if options and options["CONFIG"].get("FILTER_MAPPING"):
+        function = import_string(options["CONFIG"]["FILTER_MAPPING"])
+        CONF_FILTER_MAPPING = function()
+    else:
+        CONF_FILTER_MAPPING = FILTER_MAPPING()
+
     soup = bs4(html, "html.parser")
-    search_styles = reverse_styles_dict(FILTER_MAPPING)
+    search_styles = reverse_styles_dict(CONF_FILTER_MAPPING)
 
     for style_string in search_styles:
         filter = search_styles[style_string]
@@ -46,7 +60,7 @@ def filter_fix_styles(html, options=None):
             # directly backk into the final returned soup
 
             try:
-                item_type = HTML_TAGS[item.name]
+                item_type = CONF_HTML_TAGS[item.name]
             except KeyError:
                 print("item.name = tag not found in HTML_TAGS")
                 continue
