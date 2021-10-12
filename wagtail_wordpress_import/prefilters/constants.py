@@ -1,112 +1,110 @@
 # *****************************
 # USED BY filter_fix_styles() *
 # *****************************
-def HTML_TAGS():
-    return {
-        "address": "block",
-        "article": "block",
-        "aside": "block",
-        "blockquote": "block",
-        "canvas": "block",
-        "dd": "block",
-        "div": "block",
-        "dl": "block",
-        "dt": "block",
-        "fieldset": "block",
-        "figcaption": "block",
-        "figure": "block",
-        "footer": "block",
-        "form": "block",
-        "h1": "block",
-        "h2": "block",
-        "h3": "block",
-        "h4": "block",
-        "h5": "block",
-        "h6": "block",
-        "header": "block",
-        "hr": "block",
-        "li": "block",
-        "main": "block",
-        "nav": "block",
-        "noscript": "block",
-        "ol": "block",
-        "p": "block",
-        "pre": "block",
-        "section": "block",
-        "table": "block",
-        "tfoot": "block",
-        "ul": "block",
-        "video": "block",
-        "a": "inline",
-        "abbr": "inline",
-        "acronym": "inline",
-        "b": "inline",
-        "bdo": "inline",
-        "big": "inline",
-        "br": "inline",
-        "button": "inline",
-        "center": "inline",  # not stricty allowed but here for later styling
-        "cite": "inline",
-        "code": "inline",
-        "dfn": "inline",
-        "em": "inline",
-        "i": "inline",
-        "img": "inline",
-        "input": "inline",
-        "kbd": "inline",
-        "label": "inline",
-        "map": "inline",
-        "object": "inline",
-        "output": "inline",
-        "q": "inline",
-        "samp": "inline",
-        "script": "inline",
-        "select": "inline",
-        "small": "inline",
-        "span": "inline",
-        "strong": "inline",
-        "sub": "inline",
-        "sup": "inline",
-        "textarea": "inline",
-        "time": "inline",
-        "tt": "inline",
-        "var": "inline",
-    }
+HTML_TAGS = {
+    "address": "block",
+    "article": "block",
+    "aside": "block",
+    "blockquote": "block",
+    "canvas": "block",
+    "dd": "block",
+    "div": "block",
+    "dl": "block",
+    "dt": "block",
+    "fieldset": "block",
+    "figcaption": "block",
+    "figure": "block",
+    "footer": "block",
+    "form": "block",
+    "h1": "block",
+    "h2": "block",
+    "h3": "block",
+    "h4": "block",
+    "h5": "block",
+    "h6": "block",
+    "header": "block",
+    "hr": "block",
+    "li": "block",
+    "main": "block",
+    "nav": "block",
+    "noscript": "block",
+    "ol": "block",
+    "p": "block",
+    "pre": "block",
+    "section": "block",
+    "table": "block",
+    "tfoot": "block",
+    "ul": "block",
+    "video": "block",
+    "a": "inline",
+    "abbr": "inline",
+    "acronym": "inline",
+    "b": "inline",
+    "bdo": "inline",
+    "big": "inline",
+    "br": "inline",
+    "button": "inline",
+    "center": "inline",  # not stricty allowed but here for later styling
+    "cite": "inline",
+    "code": "inline",
+    "dfn": "inline",
+    "em": "inline",
+    "i": "inline",
+    "img": "inline",
+    "input": "inline",
+    "kbd": "inline",
+    "label": "inline",
+    "map": "inline",
+    "object": "inline",
+    "output": "inline",
+    "q": "inline",
+    "samp": "inline",
+    "script": "inline",
+    "select": "inline",
+    "small": "inline",
+    "span": "inline",
+    "strong": "inline",
+    "sub": "inline",
+    "sup": "inline",
+    "textarea": "inline",
+    "time": "inline",
+    "tt": "inline",
+    "var": "inline",
+}
 
 
-def FILTER_MAPPING():
-    return {
-        "bold": [
-            # transform to <b></b>
-            "font-weight:bold;",
-        ],
-        "italic": [
-            # transform to <i></i>
-            "font-style:italic;",
-        ],
-        "bold-italic": [
-            # transform to <b><i></i></b>
-            "font-style:italic; font-weight:bold;",
-            "font-weight:bold; font-style:italic;",
-        ],
-        "center": [
-            # add class align-center
-            "text-align:center",
-        ],
-        "leftfloat": [
-            # add class float-left
-            "float:left;"
-        ],
-        "rightfloat": [
-            # add class float-right
-            "float:right;",
-        ],
-        "remove": [
-            # remove style tag completely
-            "font-weight:400;",
-            "font-weight:normal;",
-        ],
-    }
+FILTER_MAPPING = {
+    "bold": [
+        # transform to <b></b>
+        "font-weight:bold;",
+    ],
+    "italic": [
+        # transform to <i></i>
+        "font-style:italic;",
+    ],
+    "bold-italic": [
+        # transform to <b><i></i></b>
+        "font-style:italic; font-weight:bold;",
+        "font-weight:bold; font-style:italic;",
+    ],
+    "center": [
+        # add class align-center
+        "text-align:center",
+    ],
+    "leftfloat": [
+        # add class float-left
+        "float:left;"
+    ],
+    "rightfloat": [
+        # add class float-right
+        "float:right;",
+    ],
+    "remove": [
+        # remove style tag completely
+        "font-weight:400;",
+        "font-weight:normal;",
+    ],
+}
 
 
 # ****************

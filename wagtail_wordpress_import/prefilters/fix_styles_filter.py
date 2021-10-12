@@ -35,18 +35,29 @@ def filter_fix_styles(html, options=None):
     param: `options` NOT IMPLEMENTED
     """
 
+    CONF_HTML_TAGS = HTML_TAGS
     if options and options["CONFIG"].get("HTML_TAGS"):
-        # if options["CONFIG"].get("HTML_TAGS"):
-        function = import_string(options["CONFIG"]["HTML_TAGS"])
-        CONF_HTML_TAGS = function()
-    else:
-        CONF_HTML_TAGS = HTML_TAGS()
+        html_tags = import_string(options["CONFIG"]["HTML_TAGS"])
+        if callable(html_tags):
+            CONF_HTML_TAGS = html_tags()
+        else:
+            CONF_HTML_TAGS = html_tags
+    # else:
+    # if options and options["CONFIG"].get("HTML_TAGS"):
+    #     function = import_string(options["CONFIG"]["HTML_TAGS"])
+    #     CONF_HTML_TAGS = function()
+    # else:
 
+    CONF_FILTER_MAPPING = FILTER_MAPPING
     if options and options["CONFIG"].get("FILTER_MAPPING"):
-        function = import_string(options["CONFIG"]["FILTER_MAPPING"])
-        CONF_FILTER_MAPPING = function()
-    else:
-        CONF_FILTER_MAPPING = FILTER_MAPPING()
+        filter_mapping = import_string(options["CONFIG"]["FILTER_MAPPING"])
+        # function = import_string(options["CONFIG"]["FILTER_MAPPING"])
+        if callable(filter_mapping):
+            CONF_FILTER_MAPPING = filter_mapping()
+        else:
+            CONF_FILTER_MAPPING = filter_mapping
+    # else:
+    #     CONF_FILTER_MAPPING = filter_mapping
 
     soup = bs4(html, "html.parser")
     search_styles = reverse_styles_dict(CONF_FILTER_MAPPING)
