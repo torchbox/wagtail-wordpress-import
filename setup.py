@@ -45,6 +45,7 @@ setup(
         "lxml==4.6.3",
         "bleach>=4.1,<4.2",
         "prettytable>=2.2,<2.3",
+        "shortcodes>=5.1,<6.0",
     ],
     extras_require={
         "testing": ["dj-database-url==0.5.0", "freezegun==0.3.15"],

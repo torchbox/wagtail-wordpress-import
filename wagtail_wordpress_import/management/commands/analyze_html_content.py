@@ -116,6 +116,14 @@ class Command(BaseCommand):
         self.stdout.write("Unique inline CSS style values as strings")
         self.stdout.write(str(styles_values_table))
 
+        shortcodes_table = PrettyTable()
+        shortcodes_table.field_names = ["Shortcode", "Pages used on", "Total occurrences"]
+        for shortcode, total_pages in analyzer.shortcodes_unique_pages.most_common():
+            shortcodes_table.add_row([shortcode, total_pages, analyzer.shortcodes_total[shortcode]])
+
+        self.stdout.write("Most commonly used shortcodes")
+        self.stdout.write(str(shortcodes_table))
+
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
             return xml_file
