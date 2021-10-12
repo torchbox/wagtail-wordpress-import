@@ -11,7 +11,9 @@ from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import filter_linebreaks_wp
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
+    filter_linebreaks_wp,
+)
 
 
 class WordpressImporter:
@@ -158,25 +160,26 @@ class WordpressImporter:
                         )
                         html_analyzer.analyze(value)
 
+
 DEFAULT_PREFILTERS = [
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter.filter_linebreaks_wp",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_styles_filter.filter_normalize_style_attrs",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_style_attrs",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles_filter.filter_fix_styles",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_filter.filter_bleach_clean",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
     },
 ]
 
-DEBUG_ENABLED = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_DEBUG', True)
+DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG", True)
+
 
 class WordpressItem:
-
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
@@ -185,19 +188,20 @@ class WordpressItem:
 
         self.debug_content = {}
 
-
     def prefilter_content(self, content):
         """
         FILTERS ARE CUMULATIVE
         cache the result of each filter which is run on the output from the previous filter
         """
-        filter_config = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_PREFILTERS', DEFAULT_PREFILTERS)
+        filter_config = getattr(
+            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
+        )
 
         cached_result = content
 
         for filter in filter_config:
-            function = import_string(filter['FUNCTION'])
-            cached_result = function(cached_result, filter.get('OPTIONS'))
+            function = import_string(filter["FUNCTION"])
+            cached_result = function(cached_result, filter.get("OPTIONS"))
             if DEBUG_ENABLED:
                 self.debug_content[function.__name__] = cached_result
 
@@ -280,6 +284,8 @@ class WordpressItem:
             "wp_link": self.cleaned_link(),
             "wp_block_json": self.debug_content.get("block_json"),
             "wp_processed_content": self.debug_content.get("filter_fix_styles"),
-            "wp_normalized_styles": self.debug_content.get("filter_normalize_style_attrs"),
+            "wp_normalized_styles": self.debug_content.get(
+                "filter_normalize_style_attrs"
+            ),
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }
