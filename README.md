@@ -1,8 +1,6 @@
 # Wagtail Wordpess Import
 
-An package to extend Wagatil CMS and import wordpress content types from an xml file into a Wagail project.
-
-Create page models, image models, document models and more.
+An extension for Wagtail CMS that imports WordPress content from an exported XML file into Wagtail models.
 
 ## Installation
 
@@ -11,7 +9,7 @@ Create page models, image models, document models and more.
 
 # Inital setup
 
-Place your xml files somewhere in your project. The file can have any name you choose.
+Place your XML files somewhere on your disk. The file can have any name you choose.
 
 # Import XML
 
@@ -35,7 +33,7 @@ The package comes with a default command:
 
 - [import_xml.py](wagtail_wordpress_import/management/commands/import_xml.py)
 
-The configuration is set to import all items in the xml file that have a `<wp:post_type>` = `post` or `page`. Also the command only imports an item that has `<wp:status>` = `draft` or `publish`. By default each item is created using a Page model of PostPage()
+The configuration is set to import all items in the XML file that have a `<wp:post_type>` = `post` or `page`. The command only imports an item that has `<wp:status>` = `draft` or `publish`. By default each item is created using a Page model of PostPage()
 
 ## Changing the import configuration
 
@@ -65,7 +63,7 @@ TODO
 
 [extract_xml_mapping.py](wagtail_wordpress_import/management/commands/extract_xml_mapping.py)
 
-This command will output a json file inside the json folder at the root of your project. The output can help you decide which fields should be included in your import as well as providing a nice short listing of all tags in the xml for reference.
+This command will output a JSON file inside the json folder at the root of your project. The output can help you decide which fields should be included in your import as well as providing a nice short listing of all tags in the XLM for reference.
 
 ## XML File Size Reduction
 
@@ -75,5 +73,5 @@ This command will output a json file inside the json folder at the root of your 
 
 This command will output a new xml file with `-reduced` appended to the xml file name and save it in the root `xml` folder.
 
-- It's default behavior is to remove all comments and comment data.
+- Its default behaviour is to remove all comments and comment data.
 - It will also output some stats to explain the difference in lines in the xml file.
