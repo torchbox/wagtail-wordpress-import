@@ -14,31 +14,24 @@
 
 # Why use pre-filters
 
-Each item (e.g. page or post) represented in the XML file has content intended for the body of a page that could include WYSIWYG content as well as short-codes.
+Pre-filters allow transformations to be made on a page's body content before it is converted into blocks. This allows any behavior that affects how the blocks will be generated to be implemented.
 
-That content isn't suitable in it's raw form for parsing and creating a range of stream fields or to be added to a single rich text field.
+For example, WordPress interprets lines of text separated by two line breaks as separate paragraphs so there's a pre-filter that converts them into separate `"<p>"` tags so that the block generator will convert them into separate paragraphs (using a RichText block).
 
-- HTML content can contain inline styles which could be created by WYSIWYG tools or manually entered
-- Tables could be present
-- Forms could be present
-- List could be present
-- and more
-
-We do know that the html is going to be suitable for parsing using python built-ins
-and other third party packages and be manipulated to better suit the requirements of the import and page creation process in wagtail.
+The content could also include shortcodes which wordpress uses to represent more structured HTML that might include nested HTML tags like in a FORM. There's a filter that will convert it to a block type/string that can be used to build the block type in the block builder.
 
 ---
 
 # Pre-filters
 
-Each time the import processes the body content of a page a series of filters are run on the content to transform it.
+Each time the importer processes a page, the body content is transformed by a series of filters.
 
 ***Pre-Filters included***
 
-1. linebreaks_wp_filter.py: this is a [python implementation](https://gist.github.com/albertsun/1160201/0a1f7d7a509fbcfa580725ed3783a29af51b62b4) of the wordpress function wpauto
-2. normalize_styles_filter.py: using [BeautifulSoup](https://www.crummy.com/software/)
-3. fix_styles_filter.py: using [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
-4. bleach_filter.py: using [bleach](https://github.com/mozilla/bleach)
+1. linebreaks_wp_filter.py
+2. normalize_styles_filter.py
+3. fix_styles_filter.py
+4. bleach_filter.py
 
 **The above filters run, by default, in the order above before the content is passed into the page model or parsed to stream field blocks.**
 
@@ -48,9 +41,9 @@ Each time the import processes the body content of a page a series of filters ar
 
 `wagtail_wordpress_import/prefilters/linebreaks_wp_filter.py`
 
-Wordpress uses line breaks as a mechanism for vertical spacing of rendered HTML (paragraphs) as an example. 
+Wordpress uses line breaks as a mechanism for vertical spacing of rendered HTML (paragraphs).
 
-This filter implements the same process as `wpauto` to convert the raw html content into html content  with tags around every piece of content. It avoids changing anything that is acceptable. In the end it mostly deals adds `<p>` tags around text that has no surrounding tag.
+This filter implements the same process as `wpautop` to convert the raw HTML content into HTML content  with tags around every piece of content. It avoids changing anything that is acceptable. In the end it mostly deals with adding `<p>` tags around text that has no surrounding tag.
 
 -- **filter_normalize_style_attrs()**
 
@@ -66,25 +59,20 @@ This filter applies any inline style to the html tag that is useful in the conte
 
 Examples:
 
-- `font-weigh:bold;` is better represented using a `<b>` tag
-- `float: left;` is better represented by a class of `left-align`
+- `font-weigh: bold;` is converted to a `<b>` tag
+- `float: left;` is converted to a class of `left-align`
 
 -- **filter_bleach_clean()**
 
 `wagtail_wordpress_import/prefilters/bleach_filter.py`
 
-This filter is run last and removes tags based on a range of `ALLOWED` Tags, Attributes and Styles.
+This filter is run last and removes tags based on a range of `ALLOWED_TAGS`, `ALLOWED_ATTRIBUTES` and `ALLOWED_STYLES` settings in `wagtail_wordpress_import/prefilters/constants.py`.
 
 ---
 
 ## Pre-filter running order
 
-The order the pre-filters are run will have an impact on the final html output. The default order is:
-
-    1. filter_linebreaks_wp()
-    2. filter_normalize_style_attrs()
-    3. filter_fix_styles()
-    4. filter_bleach_clean()
+The order the pre-filters are run will have an impact on the final HTML output.
 
 Each pre-filter takes the output from the previous pre-filter, with the exception of the first pre-filter which receives the raw content. 
 
@@ -102,6 +90,8 @@ You can use the package without providing any configuration for pre-filters. We 
 ## Defaults
 
 **Pre-filter Default**:
+
+By default, WAGTAIL_WORDPRESS_IMPORT_PREFILTERS is set to the following:
 
 ```python
 DEFAULT_PREFILTERS = [
@@ -122,10 +112,9 @@ DEFAULT_PREFILTERS = [
 
 **To change the configuration:**
 
-copy the `DEFAULT_PREFILTERS` above to your own settings file and change the name to 
-`WAGTAIL_WORDPRESS_IMPORT_PREFILTERS`
+Create you own settings config called `WAGTAIL_WORDPRESS_IMPORT_PREFILTERS` with the FUNCTIONS you need to run, in the order they should be run.
 
-Example: using custom options in the bleach filter
+Example: Using custom options in the bleach filter
 ```python
 
 WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
@@ -170,14 +159,14 @@ def filter_func(input_content, options=None):
     """
     params: 
     
-    input_content
-    most likely a string but depending on your implementation 
-    could be any type that you need to work with
+    input_content:
+    a string of HTML
 
     options:
     you probably won't need to pass in any options 
     in your own function but the signature requires the 
-    parameter to be included
+    parameter to be included. As an example you can pass options
+    to `filter_bleach_clean` to allow other HTML tags
 
     return: 
     most likely a string but depending on your implementation 
