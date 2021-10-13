@@ -1,115 +1,57 @@
-# *************************
-# USED WHEN FIXING STYLES *
-# *************************
-HTML_TAGS = {
-    "address": "block",
-    "article": "block",
-    "aside": "block",
-    "blockquote": "block",
-    "canvas": "block",
-    "dd": "block",
-    "div": "block",
-    "dl": "block",
-    "dt": "block",
-    "fieldset": "block",
-    "figcaption": "block",
-    "figure": "block",
-    "footer": "block",
-    "form": "block",
-    "h1": "block",
-    "h2": "block",
-    "h3": "block",
-    "h4": "block",
-    "h5": "block",
-    "h6": "block",
-    "header": "block",
-    "hr": "block",
-    "li": "block",
-    "main": "block",
-    "nav": "block",
-    "noscript": "block",
-    "ol": "block",
-    "p": "block",
-    "pre": "block",
-    "section": "block",
-    "table": "block",
-    "tfoot": "block",
-    "ul": "block",
-    "video": "block",
-    "a": "inline",
-    "abbr": "inline",
-    "acronym": "inline",
-    "b": "inline",
-    "bdo": "inline",
-    "big": "inline",
-    "br": "inline",
-    "button": "inline",
-    "center": "inline",  # not stricty allowed but here for later styling
-    "cite": "inline",
-    "code": "inline",
-    "dfn": "inline",
-    "em": "inline",
-    "i": "inline",
-    "img": "inline",
-    "input": "inline",
-    "kbd": "inline",
-    "label": "inline",
-    "map": "inline",
-    "object": "inline",
-    "output": "inline",
-    "q": "inline",
-    "samp": "inline",
-    "script": "inline",
-    "select": "inline",
-    "small": "inline",
-    "span": "inline",
-    "strong": "inline",
-    "sub": "inline",
-    "sup": "inline",
-    "textarea": "inline",
-    "time": "inline",
-    "tt": "inline",
-    "var": "inline",
-}
+from bleach.sanitizer import Cleaner
+from django.utils.module_loading import import_string
 
-FILTER_MAPPING = {
-    "bold": [
-        # output content in <b></b>
-        "font-weight:bold;",
-    ],
-    "italic": [
-        # output content in <i> tag
-        "font-style:italic;",
-    ],
-    "bold-italic": [
-        "font-style:italic; font-weight:bold;",
-        "font-weight:bold; font-style:italic;",
-    ],
-    "center": [
-        # add class `align-center`
-        "text-align:center",
-    ],
-    "leftfloat": [
-        # add class `float-left`
-        "float:left;"
-    ],
-    "rightfloat": [
-        # add class `float-right`
-        "float:right;",
-    ],
-    "remove": [
-        # remove style tag completely
-        "font-weight:400;",
-        "font-weight:normal;",
-    ],
-}
-# *****************************
-# END USED WHEN FIXING STYLES *
-# *****************************
 
-# ****************
-# USED BY BLEACH *
-# ****************
+def filter_bleach_clean(html, options=None):
+    """
+    We do a final clean up on the processed html to be on the safe side
+    as part of the default filters.
+
+    See ALLOWED lists in wagtail_wordpress_import/prefilters/constants.py
+
+    You can disable this filter in your app settings WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
+    Copy the default filters from wagtail_wordpress_import/importers/wordpress.py DEFAULT_FILTERS
+    and remove `wagtail_wordpress_import.prefilters.bleach_filter.filter_bleach_clean` filter
+    """
+
+    CONF_ALLOWED_TAGS = ALLOWED_TAGS
+    if options and options.get("ADDITIONAL_ALLOWED_TAGS"):
+        allowed_tags = import_string(options["ADDITIONAL_ALLOWED_TAGS"])
+        if callable(allowed_tags):
+            CONF_ALLOWED_TAGS = allowed_tags()
+        else:
+            CONF_ALLOWED_TAGS = CONF_ALLOWED_TAGS + options["ADDITIONAL_ALLOWED_TAGS"]
+
+    CONF_ALLOWED_ATTRIBUTES = ALLOWED_ATTRIBUTES
+    if options and options.get("ADDITIONAL_ALLOWED_ATTRIBUTES"):
+        allowed_attributes = import_string(options["ADDITIONAL_ALLOWED_ATTRIBUTES"])
+        if callable(allowed_attributes):
+            CONF_ALLOWED_ATTRIBUTES = allowed_attributes()
+        else:
+            CONF_ALLOWED_ATTRIBUTES = (
+                CONF_ALLOWED_ATTRIBUTES + options["ADDITIONAL_ALLOWED_ATTRIBUTES"]
+            )
+
+    CONF_ALLOWED_STYLES = ALLOWED_STYLES
+    if options and options.get("ADDITIONAL_ALLOWED_STYLES"):
+        allowed_styles = import_string(options["ADDITIONAL_ALLOWED_STYLES"])
+        if callable(allowed_styles):
+            CONF_ALLOWED_STYLES = allowed_styles()
+        else:
+            CONF_ALLOWED_STYLES = (
+                CONF_ALLOWED_STYLES + options["ADDITIONAL_ALLOWED_STYLES"]
+            )
+
+    cleaned = Cleaner(
+        tags=CONF_ALLOWED_TAGS,
+        attributes=CONF_ALLOWED_ATTRIBUTES,
+        styles=CONF_ALLOWED_STYLES,
+    )
+
+    cleaned_html = cleaned.clean(html)
+    return cleaned_html
+
+
 ALLOWED_TAGS = [
     "a",
     "abbr",
@@ -256,7 +198,12 @@ ALLOWED_ATTRIBUTES = {
     "p": ["dir", "lang", "data-tocskip", "data-toctitle", "data-mm-rates"],
     "script": ["async", "charset", "defer", "src", "type"],
     "select": ["name"],
-    "span": ["aria-invalid", "data-reactid", "data-preserver-spaces", "data-mm-rates"],
+    "span": [
+        "aria-invalid",
+        "data-reactid",
+        "data-preserver-spaces",
+        "data-mm-rates",
+    ],
     "style": ["*"],
     "table": ["width", "dir", "border", "cellspacing", "cellpadding", "summary"],
     "tbody": ["data-mm-rates"],
@@ -283,7 +230,3 @@ ALLOWED_STYLES = [
     "text-align: center",
     "text-align: center;",
 ]
-
-# ********************
-# END USED BY BLEACH *
-# ********************
