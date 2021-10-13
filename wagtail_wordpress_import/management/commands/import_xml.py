@@ -1,15 +1,14 @@
-import csv
 import os
-from datetime import datetime
 
 from django.core.management.base import BaseCommand
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.logger import Logger
 
 LOG_DIR = "log"
 
 
 class Command(BaseCommand):
-    help = """Run the import process on all items in the XML file and make 
+    help = """Run the import process on all items in the XML file and make
     them child pages of a specific page."""
 
     """
@@ -58,16 +57,19 @@ class Command(BaseCommand):
 
     def handle(self, **options):
         xml_file_path = self.get_xml_file(f"{options['xml_file']}")
+        logger = Logger(LOG_DIR)
         importer = WordpressImporter(xml_file_path)
-        logged_items = importer.run(
+        importer.run(
             page_types=options["type"].split(","),
             page_statuses=options["status"].split(","),
             app_for_pages=options["app"],
             model_for_pages=options["model"],
             parent_id=options["parent_id"],
+            logger=logger,
         )
-        self.summary(logged_items)
-        self.save_csv_files(logged_items)
+        logger.output_import_summary()
+        logger.save_csv_import_report()
+        logger.save_csv_images_report()
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
@@ -77,60 +79,3 @@ class Command(BaseCommand):
             self.style.ERROR(f"The xml file cannot be found at: {xml_file}")
         )
         exit()
-
-    def summary(self, log):
-        self.stdout.write(self.style.WARNING("Summary ========================"))
-        self.stdout.write(
-            "Imported: "
-            + str(log["imported"])
-            + " Skipped: "
-            + str(log["skipped"])
-            + " Processed: "
-            + str(log["processed"])
-        )
-        if (log["processed"] - log["skipped"]) == log["imported"]:
-            self.stdout.write(self.style.SUCCESS("Success"))
-        else:
-            self.stdout.write(self.style.ERROR("Error"))
-
-    def save_csv_files(self, logged):
-        file_name = (
-            f"{LOG_DIR}/import-results-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
-        )
-
-        with open(file_name, "w", newline="") as csvfile:
-            writer = csv.DictWriter(
-                csvfile,
-                fieldnames=[
-                    "id",
-                    "title",
-                    "url",
-                    "reason",
-                    "result",
-                    "dates",
-                    "slug",
-                ],
-            )
-            writer.writerow(
-                {
-                    "id": "Page ID",
-                    "title": "Page Title",
-                    "url": "Wordpress Link",
-                    "reason": "Reason for result ->",
-                    "result": "Result",
-                    "dates": "Dates Changed",
-                    "slug": "Slug Changed",
-                }
-            )
-            for row in logged["items"]:
-                writer.writerow(
-                    {
-                        "id": row["id"],
-                        "title": row["title"],
-                        "url": row["link"],
-                        "reason": row["reason"],
-                        "result": row["result"],
-                        "dates": row["datecheck"],
-                        "slug": row["slugcheck"],
-                    }
-                )

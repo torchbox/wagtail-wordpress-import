@@ -1,9 +1,10 @@
 import os
 
 from django.test import TestCase
-
-from wagtail_wordpress_import.functions import linebreaks_wp
-from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
+from wagtail_wordpress_import.prefilters.bleach_filter import filter_bleach_clean
+from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
+    filter_linebreaks_wp,
+)
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -37,11 +38,11 @@ class TestBleach(TestCase):
         self.assertEqual(self.stream.count("\n\n"), LINES_OCCURANCE_TOTAL)
 
     def test_bleach_clean(self):
-        bc = bleach_clean(self.stream)
+        bc = filter_bleach_clean(self.stream)
         self.assertNotIn('onmouseover=alert("Boo!")', bc)
 
     def test_linebreaks_wp(self):
-        lb_wp = linebreaks_wp(self.stream)
+        lb_wp = filter_linebreaks_wp(self.stream)
         self.assertEqual(lb_wp.count("(xcounterx)"), COUNTER_OCCURANCE_TOTAL)
         self.assertEqual(lb_wp.count("ipsum"), IPSUM_OCCURANCE_TOTAL)
         self.assertEqual(lb_wp.count("<span"), SPAN_OCCURANCE_TOTAL)
