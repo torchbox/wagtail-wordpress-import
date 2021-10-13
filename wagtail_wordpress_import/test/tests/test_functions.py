@@ -1,13 +1,11 @@
 from django.test import TestCase
-from wagtail_wordpress_import.prefilters.normalize_styles_filter import (
-    filter_normalize_style_attrs,
-)
+from wagtail_wordpress_import.functions import normalize_style_attrs
 
 
 class TestFuntions(TestCase):
     def test_normalize_style_attrs(self):
 
-        html = filter_normalize_style_attrs(
+        html = normalize_style_attrs(
             """
             <span style="FONT-WEIGHT:BOLD; font-style: italic ">Lorem</span>
             """
