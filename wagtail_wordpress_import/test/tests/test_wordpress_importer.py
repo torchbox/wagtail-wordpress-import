@@ -14,4 +14,7 @@ class WordpressImporterTests(TestCase):
         self.assertIsInstance(self.importer, WordpressImporter)
 
     def test_importer_init(self):
-        self.assertEqual(self.importer.xml_file, f"{FIXTURES_PATH}/test.xml")
+        self.assertEqual(self.importer.logged_items["processed"], 0)
+        self.assertEqual(self.importer.logged_items["imported"], 0)
+        self.assertEqual(self.importer.logged_items["skipped"], 0)
+        self.assertIsInstance(self.importer.logged_items["items"], list)
