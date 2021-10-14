@@ -141,13 +141,10 @@ class WordpressImporter:
                     item.get("wp:post_type") in page_types
                     and item.get("wp:status") in page_statuses
                 ):
-                    stream_fields = self.mapping_stream_fields.split(",")
 
-                    for html in stream_fields:
-                        value = filter_linebreaks_wp(
-                            item.get(self.mapping_item_inverse.get(html))
-                        )
-                        html_analyzer.analyze(value)
+                    html_analyzer.analyze(
+                        filter_linebreaks_wp(item.get("content:encoded"))
+                    )
 
 
 DEFAULT_PREFILTERS = [
