@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup as bs4
-
-from wagtail_wordpress_import.prefilters.constants import FILTER_MAPPING, HTML_TAGS
+from django.utils.module_loading import import_string
 
 
 def reverse_styles_dict(mapping):
@@ -12,8 +11,8 @@ def reverse_styles_dict(mapping):
     """
     # note no ending `;` so we can split on it later
     {
-        'FONT-WEIGHT: bold': 'boldify', 
-        'font-weight: bold': 'boldify', 
+        'FONT-WEIGHT: bold': 'boldify',
+        'font-weight: bold': 'boldify',
         'font-weight: bold; color: #006600': 'boldify'
     }
     """
@@ -34,8 +33,25 @@ def filter_fix_styles(html, options=None):
 
     param: `options` NOT IMPLEMENTED
     """
+
+    CONF_HTML_TAGS = HTML_TAGS
+    if options and options["CONFIG"].get("HTML_TAGS"):
+        html_tags = import_string(options["CONFIG"]["HTML_TAGS"])
+        if callable(html_tags):
+            CONF_HTML_TAGS = html_tags()
+        else:
+            CONF_HTML_TAGS = html_tags
+
+    CONF_FILTER_MAPPING = FILTER_MAPPING
+    if options and options["CONFIG"].get("FILTER_MAPPING"):
+        filter_mapping = import_string(options["CONFIG"]["FILTER_MAPPING"])
+        if callable(filter_mapping):
+            CONF_FILTER_MAPPING = filter_mapping()
+        else:
+            CONF_FILTER_MAPPING = filter_mapping
+
     soup = bs4(html, "html.parser")
-    search_styles = reverse_styles_dict(FILTER_MAPPING)
+    search_styles = reverse_styles_dict(CONF_FILTER_MAPPING)
 
     for style_string in search_styles:
         filter = search_styles[style_string]
@@ -46,7 +62,7 @@ def filter_fix_styles(html, options=None):
             # directly backk into the final returned soup
 
             try:
-                item_type = HTML_TAGS[item.name]
+                item_type = CONF_HTML_TAGS[item.name]
             except KeyError:
                 print("item.name = tag not found in HTML_TAGS")
                 continue
@@ -138,3 +154,108 @@ def filter_fix_styles(html, options=None):
     fixed_html = str(soup)
 
     return fixed_html
+
+
+HTML_TAGS = {
+    "address": "block",
+    "article": "block",
+    "aside": "block",
+    "blockquote": "block",
+    "canvas": "block",
+    "dd": "block",
+    "div": "block",
+    "dl": "block",
+    "dt": "block",
+    "fieldset": "block",
+    "figcaption": "block",
+    "figure": "block",
+    "footer": "block",
+    "form": "block",
+    "h1": "block",
+    "h2": "block",
+    "h3": "block",
+    "h4": "block",
+    "h5": "block",
+    "h6": "block",
+    "header": "block",
+    "hr": "block",
+    "li": "block",
+    "main": "block",
+    "nav": "block",
+    "noscript": "block",
+    "ol": "block",
+    "p": "block",
+    "pre": "block",
+    "section": "block",
+    "table": "block",
+    "tfoot": "block",
+    "ul": "block",
+    "video": "block",
+    "a": "inline",
+    "abbr": "inline",
+    "acronym": "inline",
+    "b": "inline",
+    "bdo": "inline",
+    "big": "inline",
+    "br": "inline",
+    "button": "inline",
+    "center": "inline",  # not stricty allowed but here for later styling
+    "cite": "inline",
+    "code": "inline",
+    "dfn": "inline",
+    "em": "inline",
+    "i": "inline",
+    "img": "inline",
+    "input": "inline",
+    "kbd": "inline",
+    "label": "inline",
+    "map": "inline",
+    "object": "inline",
+    "output": "inline",
+    "q": "inline",
+    "samp": "inline",
+    "script": "inline",
+    "select": "inline",
+    "small": "inline",
+    "span": "inline",
+    "strong": "inline",
+    "sub": "inline",
+    "sup": "inline",
+    "textarea": "inline",
+    "time": "inline",
+    "tt": "inline",
+    "var": "inline",
+}
+
+FILTER_MAPPING = {
+    "bold": [
+        # transform to <b></b>
+        "font-weight:bold;",
+    ],
+    "italic": [
+        # transform to <i></i>
+        "font-style:italic;",
+    ],
+    "bold-italic": [
+        # transform to <b><i></i></b>
+        "font-style:italic; font-weight:bold;",
+        "font-weight:bold; font-style:italic;",
+    ],
+    "center": [
+        # add class align-center
+        "text-align:center",
+    ],
+    "leftfloat": [
+        # add class float-left
+        "float:left;"
+    ],
+    "rightfloat": [
+        # add class float-right
+        "float:right;",
+    ],
+    "remove": [
+        # remove style tag completely
+        "font-weight:400;",
+        "font-weight:normal;",
+    ],
+}

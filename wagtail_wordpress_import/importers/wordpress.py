@@ -152,16 +152,16 @@ class WordpressImporter:
 
 DEFAULT_PREFILTERS = [
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter.filter_linebreaks_wp",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_styles_filter.filter_normalize_style_attrs",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_style_attrs",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles_filter.filter_fix_styles",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_filter.filter_bleach_clean",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
     },
 ]
 
