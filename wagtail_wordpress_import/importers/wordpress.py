@@ -3,16 +3,17 @@ import sys
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
-from django.conf import settings
-from django.utils.module_loading import import_string
+
 from django.apps import apps
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
+from wagtail_wordpress_import.bleach import bleach_clean, fix_styles
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
-    filter_linebreaks_wp,
+from wagtail_wordpress_import.functions import (
+    linebreaks_wp,
+    node_to_dict,
+    normalize_style_attrs,
 )
 
 
@@ -155,57 +156,30 @@ class WordpressImporter:
                     stream_fields = self.mapping_stream_fields.split(",")
 
                     for html in stream_fields:
-                        value = filter_linebreaks_wp(
+                        value = linebreaks_wp(
                             item.get(self.mapping_item_inverse.get(html))
                         )
                         html_analyzer.analyze(value)
-
-
-DEFAULT_PREFILTERS = [
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_style_attrs",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-    },
-]
-
-DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG", True)
 
 
 class WordpressItem:
     def __init__(self, node):
         self.node = node
         self.raw_body = self.node["content:encoded"]
+        self.linebreaks_wp = linebreaks_wp(
+            self.raw_body
+        )  # generally adds a p tag where it finds a linebreak
+        self.normalize = normalize_style_attrs(
+            self.linebreaks_wp
+        )  # formats style attrs to be lower cased and correctly spaced with trailing ; on each style
+        self.fix_styles = fix_styles(
+            self.normalize
+        )  # takes a complete style attr and alters the html to reflect the style required
+        self.bleach_clean = bleach_clean(
+            self.fix_styles
+        )  # stanity check to remove illegal/iincorrect html
         self.slug_changed = ""
         self.date_changed = ""
-
-        self.debug_content = {}
-
-    def prefilter_content(self, content):
-        """
-        FILTERS ARE CUMULATIVE
-        cache the result of each filter which is run on the output from the previous filter
-        """
-        filter_config = getattr(
-            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
-        )
-
-        cached_result = content
-
-        for filter in filter_config:
-            function = import_string(filter["FUNCTION"])
-            cached_result = function(cached_result, filter.get("OPTIONS"))
-            if DEBUG_ENABLED:
-                self.debug_content[function.__name__] = cached_result
-
-        return cached_result
 
     def cleaned_title(self):
         return self.node["title"].strip()
@@ -264,11 +238,8 @@ class WordpressItem:
     def cleaned_link(self):
         return str(self.node["link"].strip())
 
-    def body_stream_field(self, content):
-        blocks_dict = BlockBuilder(content).build()
-        if DEBUG_ENABLED:
-            self.debug_content["block_json"] = blocks_dict
-        return json.dumps(blocks_dict)
+    def cleaned_body(self):
+        return json.dumps(BlockBuilder(self.bleach_clean).build())
 
     @cached_property
     def cleaned_data(self):
@@ -278,14 +249,12 @@ class WordpressItem:
             "first_published_at": self.cleaned_first_published_at(),
             "last_published_at": self.cleaned_last_published_at(),
             "latest_revision_created_at": self.cleaned_latest_revision_created_at(),
-            "body": self.body_stream_field(self.prefilter_content(self.raw_body)),
+            "body": self.cleaned_body(),
             "wp_post_id": self.cleaned_post_id(),
             "wp_post_type": self.cleaned_post_type(),
             "wp_link": self.cleaned_link(),
-            "wp_block_json": self.debug_content.get("block_json"),
-            "wp_processed_content": self.debug_content.get("filter_fix_styles"),
-            "wp_normalized_styles": self.debug_content.get(
-                "filter_normalize_style_attrs"
-            ),
-            "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
+            "wp_raw_content": self.raw_body,
+            "wp_processed_content": self.fix_styles,
+            "wp_block_json": self.cleaned_body(),
+            "wp_normalized_styles": self.normalize,
         }
