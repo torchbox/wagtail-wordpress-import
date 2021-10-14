@@ -2,9 +2,8 @@ import os
 
 from django.core.management.base import BaseCommand
 from prettytable import PrettyTable
-
-from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.analysis import HTMLAnalyzer
+from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 
 
 class Command(BaseCommand):
@@ -107,19 +106,16 @@ class Command(BaseCommand):
         self.stdout.write("Most commonly used inline CSS styles")
         self.stdout.write(str(styles_table))
 
-        styles_values_table = PrettyTable()
-        styles_values_table.field_names = ["Style Value"]
-        for value in analyzer.unique_style_strings:
-            styles_values_table.add_row([value])
-
-        self.stdout.write("")
-        self.stdout.write("Unique inline CSS style values as strings")
-        self.stdout.write(str(styles_values_table))
-
         shortcodes_table = PrettyTable()
-        shortcodes_table.field_names = ["Shortcode", "Pages used on", "Total occurrences"]
+        shortcodes_table.field_names = [
+            "Shortcode",
+            "Pages used on",
+            "Total occurrences",
+        ]
         for shortcode, total_pages in analyzer.shortcodes_unique_pages.most_common():
-            shortcodes_table.add_row([shortcode, total_pages, analyzer.shortcodes_total[shortcode]])
+            shortcodes_table.add_row(
+                [shortcode, total_pages, analyzer.shortcodes_total[shortcode]]
+            )
 
         self.stdout.write("Most commonly used shortcodes")
         self.stdout.write(str(shortcodes_table))
