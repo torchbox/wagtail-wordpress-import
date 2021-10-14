@@ -1,27 +1,6 @@
 from bs4 import BeautifulSoup as bs4
-from wagtail_wordpress_import.constants import (
-    ALLOWED_TAGS,
-    ALLOWED_STYLES,
-    ALLOWED_ATTRIBUTES,
-    FILTER_MAPPING,
-    HTML_TAGS,
-)
 
-
-from bleach.sanitizer import Cleaner
-
-
-def bleach_clean(value):
-    """
-    Clean up the raw html to be on the safe side.
-    Keeping all styles in place that we know of and care about.
-    See ALLOWED lists in wagtail-wordpress-import/wagtail_wordpress_import/constants.py
-    """
-
-    cleaned = Cleaner(
-        tags=ALLOWED_TAGS, attributes=ALLOWED_ATTRIBUTES, styles=ALLOWED_STYLES
-    )
-    return cleaned.clean(value)
+from wagtail_wordpress_import.prefilters.constants import FILTER_MAPPING, HTML_TAGS
 
 
 def reverse_styles_dict(mapping):
@@ -41,7 +20,7 @@ def reverse_styles_dict(mapping):
     return inverse
 
 
-def fix_styles(value):
+def filter_fix_styles(html, options=None):
     """
     This function uses the mapping of the style attribute for an element to break
     matching elements into one or more html tags.
@@ -52,8 +31,10 @@ def fix_styles(value):
     later to decide if an element can have alignment in the richtext block
     e.g. "margin: 0pt 10px 0px 0pt; float: left;" maps to "leftfloat"
     e.g. "float: left; margin: 0em 1em 1em 0em;" maps to "leftfloat"
+
+    param: `options` NOT IMPLEMENTED
     """
-    soup = bs4(value, "html.parser")
+    soup = bs4(html, "html.parser")
     search_styles = reverse_styles_dict(FILTER_MAPPING)
 
     for style_string in search_styles:
@@ -154,4 +135,6 @@ def fix_styles(value):
         new_item.string = item.text
         item.replace_with(new_item)
 
-    return str(soup)
+    fixed_html = str(soup)
+
+    return fixed_html
