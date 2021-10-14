@@ -21,8 +21,6 @@ class HTMLAnalyzer:
         self.classes_unique_pages = Counter()
         self.shortcodes_unique_pages = Counter()
 
-        self.unique_style_strings = []
-
     @classmethod
     def find_all_tags(cls, dom):
         names = Counter()
@@ -61,27 +59,12 @@ class HTMLAnalyzer:
                     for rule in attr_value.split(";"):
                         if rule.strip():
                             styles[
-                                (child.name[:30], rule.split(":")[0].strip()[:30])
+                                (child.name[:30], rule.strip()[:30])
                             ] += 1
 
             styles.update(cls.find_all_styles(child))
 
         return styles
-
-    @classmethod
-    def find_all_unique_style_strings(cls, dom):
-        style_strings = []
-        for child in dom.children:
-            if isinstance(child, str):
-                continue
-
-            for attr_name, attr_value in child.attributes:
-                if attr_name == "style":
-                    style_strings.append(attr_value)
-
-            cls.find_all_unique_style_strings(child)
-
-        return style_strings
 
     @classmethod
     def find_all_classes(cls, dom):
@@ -123,8 +106,6 @@ class HTMLAnalyzer:
         attributes = self.find_all_attributes(dom)
         styles = self.find_all_styles(dom)
         classes = self.find_all_classes(dom)
-        unique_style_strings = self.find_all_unique_style_strings(dom)
-        shortcodes = self.find_all_shortcodes(dom)
 
         self.tags_total.update(tags)
         self.attributes_total.update(attributes)
@@ -136,9 +117,3 @@ class HTMLAnalyzer:
         self.attributes_unique_pages.update(attributes.keys())
         self.styles_unique_pages.update(styles.keys())
         self.classes_unique_pages.update(classes.keys())
-
-        for style_string in unique_style_strings:
-            if style_string not in self.unique_style_strings:
-                self.unique_style_strings.append(style_string)
-
-        self.shortcodes_unique_pages.update(shortcodes.keys())
