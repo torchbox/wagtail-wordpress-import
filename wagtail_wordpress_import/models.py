@@ -15,6 +15,11 @@ class WPImportedPageMixin(Page):
     class Meta:
         abstract = True
 
+    def import_wordpress_data(self, data):
+        raise NotImplementedError(
+            "import_wordpress_data() method not implemented in your page model"
+        )
+
     wordpress_panels = [
         FieldRowPanel(
             [
