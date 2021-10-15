@@ -111,7 +111,7 @@ ALLOWED_TAGS = [
 ]
 
 ALLOWED_ATTRIBUTES = {
-    "*": ["class", "style", "id"],
+    "*": ["id"],
     "a": [
         "aria-label",
         "data-wplink-edit",
