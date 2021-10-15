@@ -43,6 +43,8 @@ class WordpressItemTests(TestCase):
         latest_revision_created_at = wordpress_item.cleaned_data[
             "latest_revision_created_at"
         ]
+        # the body content here will have all attrs, classes etc stripped
+        # by the bleach filter
         body = wordpress_item.cleaned_data["body"]
         wp_post_id = wordpress_item.cleaned_data["wp_post_id"]
         wp_post_type = wordpress_item.cleaned_data["wp_post_type"]
