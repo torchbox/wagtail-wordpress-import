@@ -20,12 +20,13 @@ TAGS_TO_BLOCKS = [
 
 IRELLEVANT_PARENTS = ["p", "div", "span"]
 
+# this is not what i'd expect to see but some images return text/html CDN maybe?
 VALID_IMAGE_CONTENT_TYPES = [
     "image/gif",
     "image/jpeg",
     "image/png",
     "image/webp",
-    "text/html",  # this is not what i'd expect to see but some images retun this CDN maybe?
+    "text/html",
 ]
 
 IMAGE_SRC_DOMAIN = "https://www.budgetsaresexy.com"  # note no trailing /
