@@ -3,6 +3,7 @@ from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
 
+from bs4 import BeautifulSoup
 from django.apps import apps
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -19,9 +20,11 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
+        self.imported_pages = []
+        self.page_link_errors = []
 
     def run(self, *args, **kwargs):
-        logger = kwargs["logger"]
+        self.logger = kwargs["logger"]
         xml_doc = pulldom.parse(self.xml_file)
 
         try:
@@ -49,14 +52,14 @@ class WordpressImporter:
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                logger.processed += 1
+                self.logger.processed += 1
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
                     and item.get("wp:status") in kwargs["page_statuses"]
                 ):
 
-                    wordpress_item = WordpressItem(item, logger)
+                    wordpress_item = WordpressItem(item, self.logger)
 
                     try:
                         page = self.page_model_instance.objects.get(
@@ -74,8 +77,8 @@ class WordpressImporter:
 
                     if page.id:
                         page.save()
-                        logger.imported += 1
-                        logger.items.append(
+                        self.logger.imported += 1
+                        self.logger.items.append(
                             {
                                 "id": page.id,
                                 "title": page.title,
@@ -89,8 +92,8 @@ class WordpressImporter:
                     else:
                         self.parent_page_obj.add_child(instance=page)
                         page.save()
-                        logger.imported += 1
-                        logger.items.append(
+                        self.logger.imported += 1
+                        self.logger.items.append(
                             {
                                 "id": page.id,
                                 "title": page.title,
@@ -101,9 +104,11 @@ class WordpressImporter:
                                 "slugcheck": wordpress_item.slug_changed,
                             }
                         )
+
+                    self.imported_pages.append(page)
                 else:
-                    logger.skipped += 1
-                    logger.items.append(
+                    self.logger.skipped += 1
+                    self.logger.items.append(
                         {
                             "id": 0,
                             "title": "",
@@ -115,7 +120,7 @@ class WordpressImporter:
                         }
                     )
             else:
-                logger.items.append(
+                self.logger.items.append(
                     {
                         "id": 0,
                         "title": "",
@@ -126,7 +131,9 @@ class WordpressImporter:
                         "slugcheck": "",
                     }
                 )
-            logger.log_progress()
+            self.logger.log_progress()
+
+        self.connect_richtext_page_links(self.imported_pages)
 
     def analyze_html(self, html_analyzer, *, page_types, page_statuses):
         xml_doc = pulldom.parse(self.xml_file)
@@ -145,6 +152,41 @@ class WordpressImporter:
                     html_analyzer.analyze(
                         filter_linebreaks_wp(item.get("content:encoded"))
                     )
+
+    def connect_richtext_page_links(self, imported_pages):
+        # example <a id="3" linktype="page">a page link</a>
+        for page in imported_pages:
+            stream_data = page.body._raw_data
+            reconstructed_blocks = []
+            for block in stream_data:
+                del block["id"]  # these get created on save so loose the old id
+                if block["type"] == "rich_text":
+                    block["value"] = str(self.update_rich_text_page_links(block, page))
+                reconstructed_blocks.append(block)
+            page.body = json.dumps(stream_data)
+            page.save()
+
+    def update_rich_text_page_links(self, block, page):
+        soup = BeautifulSoup(block["value"], "html.parser")
+        links = soup.findAll("a")
+
+        for link in links:
+            page_link = self.get_page(link.attrs.get("href"), page)
+            if page_link:
+                new_tag = soup.new_tag("a")
+                new_tag.attrs["id"] = page_link.id
+                new_tag.attrs["linktype"] = "page"
+                new_tag.string = link.text
+                link.replace_with(new_tag)
+        return soup
+
+    def get_page(self, link, page):
+        try:
+            if DEBUG_ENABLED:
+                self.logger.page_link_errors.append((link, page))
+            return self.page_model_instance.objects.get(wp_link=link)
+        except self.page_model_instance.DoesNotExist:
+            pass
 
 
 DEFAULT_PREFILTERS = [
@@ -169,7 +211,6 @@ class WordpressItem:
         self.slug_changed = ""
         self.date_changed = ""
         self.image_errors = []
-        # self.url_errors = []
 
         self.debug_content = {}
         self.logger = logger
@@ -200,7 +241,7 @@ class WordpressItem:
         """
         Oddly some page have no slug and some have illegal characters!
         If None make one from title.
-        Also pass any slug through slugify to be sure and if it's chnaged make a note
+        Also pass any slug through slugify to be sure and if it's changed make a note
         """
 
         if not self.node["wp:post_name"]:

@@ -70,6 +70,7 @@ class Command(BaseCommand):
         logger.output_import_summary()
         logger.save_csv_import_report()
         logger.save_csv_images_report()
+        logger.save_csv_pagelink_errors_report()
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):
