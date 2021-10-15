@@ -48,7 +48,9 @@ class WordpressItemTests(TestCase):
         wp_post_type = wordpress_item.cleaned_data["wp_post_type"]
         wp_link = wordpress_item.cleaned_data["wp_link"]
         wp_raw_content = wordpress_item.debug_content["filter_linebreaks_wp"]
-        wp_processed_content = wordpress_item.debug_content["filter_fix_styles"]
+        wp_processed_content = wordpress_item.debug_content[
+            "filter_transform_inline_styles_to_tags"
+        ]
         wp_block_json = wordpress_item.debug_content["block_json"]
 
         self.assertEqual(title, "Page Title")
