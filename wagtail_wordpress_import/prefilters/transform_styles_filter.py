@@ -5,19 +5,17 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 
-def normalize_style_attrs(html, options=None):
+def normalize_style_attrs(html):
     """
     There are different ways that styles are formatted coming out of wordpress.
-    This normalizes them so the know what the format is for later parsing.
+    This normalizes them so we have a predictable format is for later parsing.
 
     e.g. font-style: italic becomes font-style:italic;
     e.g. FONT-WEIGHT:400; becomes font-weight:400;
 
     So essentially the styles are all lowercased, with appended ; and have no spaces.
-    Worth noting that these styles are actually removed later on when the fix_styles
-    method is run so if they look wrong it's OK here as they are a `template`
-
-    param: `options` NOT IMPLEMENTED
+    If the format isn't strictly correct is because they are a `template` we match
+    by here. These style attrs are removed later on in filter_bleach_clean() method.
     """
     soup = BeautifulSoup(html, "html.parser")
     elements = soup.findAll(recursive=True)
@@ -31,7 +29,7 @@ def normalize_style_attrs(html, options=None):
             ]
             el.attrs["style"] = " ".join(sorted(styles_list))
 
-    return str(soup)
+    return soup
 
 
 def filter_transform_inline_styles_to_tags(html, options=None):
@@ -45,14 +43,14 @@ def filter_transform_inline_styles_to_tags(html, options=None):
             CONF_HTML_TAGS = html_tags
 
     CONF_STYLES_MAPPING = TRANSFORM_STYLES_MAPPING
-    if options and options["CONFIG"].get("FILTER_MAPPING"):
-        styles_mapping = import_string(options["CONFIG"]["FILTER_MAPPING"])
+    if options and options["CONFIG"].get("TRANSFORM_STYLES_MAPPING"):
+        styles_mapping = import_string(options["CONFIG"]["TRANSFORM_STYLES_MAPPING"])
         if callable(styles_mapping):
             CONF_STYLES_MAPPING = styles_mapping()
         else:
             CONF_STYLES_MAPPING = styles_mapping
 
-    soup = BeautifulSoup(normalize_style_attrs(html), "html.parser")
+    soup = normalize_style_attrs(html)
 
     for filter in CONF_STYLES_MAPPING:
         tags = soup.findAll(style=filter[0])
