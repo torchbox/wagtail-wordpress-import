@@ -1,17 +1,63 @@
 import os
 from django.test import TestCase
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.logger import Logger
+from django.core.management import call_command
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
+LOG_DIR = "fakedir"
 
 
 class WordpressImporterTests(TestCase):
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
     def setUp(self):
         self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages="example",
+            model_for_pages="TestPage",
+            parent_id="2",
+            page_types=["post", "page"],
+            page_statuses=["publish", "draft"],
+        )
 
     def test_importer_class(self):
         self.assertIsInstance(self.importer, WordpressImporter)
 
     def test_importer_init(self):
         self.assertEqual(self.importer.xml_file, f"{FIXTURES_PATH}/raw_xml.xml")
+
+    def test_logger(self):
+        logdir = self.logger.logdir
+        self.assertEqual(logdir, "fakedir")
+
+        processed = self.logger.processed
+        self.assertEqual(processed, 2)
+
+        imported = self.logger.imported
+        self.assertEqual(imported, 2)
+
+        skipped = self.logger.skipped
+        self.assertEqual(skipped, 0)
+
+        item_id_3 = next(filter(lambda item: item["id"] == 3, self.logger.items))
+        self.assertEqual(item_id_3["title"], "Item one title")
+
+        item_id_4 = next(filter(lambda item: item["id"] == 4, self.logger.items))
+        self.assertEqual(item_id_4["title"], "Item two title")
+
+        images = self.logger.images
+        self.assertEqual(len(images), 0)  # TODO no data for this yet, temp test
+
+        urls = self.logger.urls
+        self.assertEqual(len(urls), 0)  # TODO no data for this yet, temp test
+
+        page_link_errors = self.logger.page_link_errors
+        self.assertEqual(
+            len(page_link_errors), 2
+        )  # TODO no data for this yet, temp test
