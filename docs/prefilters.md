@@ -141,7 +141,7 @@ or provide your own pre-filter add:
 
 ```python
 {
-    "FUNCTION": "[app].[file].[method]",
+    "FUNCTION": "[path to function]",
 },
 ```
 at the position to match the running order you need. `[path to function]` is the  dotted path to your function.
