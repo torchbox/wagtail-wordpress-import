@@ -27,7 +27,7 @@ def normalize_style_attrs(html):
                 for style in el.attrs["style"].split(";")
                 if style != ""
             ]
-            el.attrs["style"] = " ".join(sorted(styles_list))
+            el.attrs["style"] = "".join(sorted(styles_list))
 
     return soup
 
