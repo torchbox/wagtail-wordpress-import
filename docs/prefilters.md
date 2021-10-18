@@ -33,7 +33,7 @@ Each time the importer processes a page, the body content is transformed by a se
 3. fix_styles_filter.py
 4. bleach_filter.py
 
-**The above filters run, by default, in the order above before the content is passed into the page model or parsed to stream field blocks.**
+**The above filters run, by default, in the order above before the content is passed into the page model or parsed to StreamField blocks.**
 
 ## Available filters
 
