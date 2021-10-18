@@ -7,7 +7,7 @@ An extension for Wagtail CMS that imports WordPress content from an exported XML
 * Install the package with `pip install wagtail-wordpress-import` (not yet available) but can be installed with pip install -e wagtail-wordpress-import for development.
 
 
-# Inital setup
+# Initial setup
 
 Place your XML files somewhere on your disk. The file can have any name you choose.
 
