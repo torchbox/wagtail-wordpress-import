@@ -144,7 +144,7 @@ or provide your own pre-filter add:
     "FUNCTION": "[app].[file].[method]",
 },
 ```
-at the position to match the running order you need. `[app].[file].[method]` is the  dotted path to your function.
+at the position to match the running order you need. `[path to function]` is the  dotted path to your function.
 
 **If you don't need any of the provided pre-filters you can exclude them from the config**
 
