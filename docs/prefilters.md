@@ -14,7 +14,7 @@
 
 # Why use pre-filters
 
-Pre-filters allow transformations to be made on a page's body content before it is converted into blocks. This allows any behavior that affects how the blocks will be generated to be implemented.
+Pre-filters allow transformations to be made on a page's body content before it is converted into blocks. This allows you to implement behaviour that affects how the blocks will be generated.
 
 For example, WordPress interprets lines of text separated by two line breaks as separate paragraphs so there's a pre-filter that converts them into separate `"<p>"` tags so that the block generator will convert them into separate paragraphs (using a RichText block).
 
