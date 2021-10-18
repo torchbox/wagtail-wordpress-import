@@ -112,7 +112,7 @@ DEFAULT_PREFILTERS = [
 
 **To change the configuration:**
 
-Create you own settings config called `WAGTAIL_WORDPRESS_IMPORT_PREFILTERS` with the FUNCTIONS you need to run, in the order they should be run.
+Create your own settings config called `WAGTAIL_WORDPRESS_IMPORT_PREFILTERS` with the FUNCTIONS you need to run, in the order they should be run.
 
 Example: Using custom options in the bleach filter
 ```python
