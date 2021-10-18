@@ -154,7 +154,11 @@ class WordpressImporter:
                     )
 
     def connect_richtext_page_links(self, imported_pages):
-        # example <a id="3" linktype="page">a page link</a>
+        """
+        Update the stream field content of each page by reconstructing
+        the existing blocks. Only update rich_text blocks by analysing the anchor links
+        in update_rich_text_page_links()
+        """
         for page in imported_pages:
             stream_data = page.body._raw_data
             reconstructed_blocks = []
@@ -167,6 +171,12 @@ class WordpressImporter:
             page.save()
 
     def update_rich_text_page_links(self, block, page):
+        """
+        Get all the anchor tags (bs4) and replace the anchor tag with
+        <a id="{wagtail page id}" linktype="page">{the current anchor text}</a>
+        If a wagtail page cannot be found for the anchor link, ignore it but
+        save to the log.
+        """
         soup = BeautifulSoup(block["value"], "html.parser")
         links = soup.findAll("a")
 
