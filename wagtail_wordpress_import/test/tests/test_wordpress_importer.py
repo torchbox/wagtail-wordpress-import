@@ -8,10 +8,10 @@ FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 class WordpressImporterTests(TestCase):
     def setUp(self):
-        self.importer = WordpressImporter(f"{FIXTURES_PATH}/test.xml")
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
 
     def test_importer_class(self):
         self.assertIsInstance(self.importer, WordpressImporter)
 
     def test_importer_init(self):
-        self.assertEqual(self.importer.xml_file, f"{FIXTURES_PATH}/test.xml")
+        self.assertEqual(self.importer.xml_file, f"{FIXTURES_PATH}/raw_xml.xml")
