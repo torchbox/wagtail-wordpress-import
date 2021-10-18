@@ -185,7 +185,7 @@ Then you need to include the pre-filter in your own custom config at the positio
 
 # Pre-filter tools
 
-If you use the provided `WPImportedPageMixin` it has fields to receive the output from each pre-filter step which can be see on the Debug tab when editing a page. [Read about the mixin](models.md)
+If you use the provided `WPImportedPageMixin` it has fields to receive the output from each pre-filter step which can be seen on the Debug tab when editing a page. [Read about the mixin](models.md)
 
 ```
 DEBUG_ENABLED = getattr(settings, 'WAGTAIL_WORDPRESS_IMPORT_DEBUG', True)
