@@ -34,7 +34,7 @@ def normalize_style_attrs(soup):
     return soup
 
 
-def filter_transform_inline_styles_to_tags(html, options=None):
+def filter_transform_inline_styles(html, options=None):
     """
     Use the default or provided CONFIG to loop through each filter
     and apply the transform_* method

@@ -12,7 +12,7 @@ from wagtail_wordpress_import.prefilters.transform_styles_filter import (
     transform_style_right,
     transform_html_tag_em,
     transform_html_tag_strong,
-    filter_transform_inline_styles_to_tags,
+    filter_transform_inline_styles,
 )
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -27,9 +27,9 @@ class TestTransformStylesFilter(TestCase):
 
         self.assertEqual(span.attrs["style"], "font-style:italic;font-weight:bold;")
 
-    def test_filter_transform_inline_styles_to_tags(self):
+    def test_filter_transform_inline_styles(self):
         input = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
-        output = filter_transform_inline_styles_to_tags(input)
+        output = filter_transform_inline_styles(input)
         soup = BeautifulSoup(output, "html.parser")
 
         first_tag = soup.find("b")
