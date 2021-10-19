@@ -11,12 +11,13 @@ def normalize_style_attrs(soup):
 
     e.g. font-style: italic becomes font-style:italic;
     e.g. FONT-WEIGHT:400; becomes font-weight:400;
+    e.g. font-weight: bold;font-style:italic; becomes font-style:italic;font-weight:bold;
+    The style rules are all lowercased, with `;` appended and have no spaces.
+    Spaces are removed between multiple style rules.
+    Style rules are sorted alphabetically
 
-    The styles are all lowercased, with ; appended and have no spaces. Spaces are
-    also remove between multiple rules.
-
-    The attrs won't exist in the final page content they are removed later on
-    in filter_bleach_clean() method.
+    The styles attrs won't exist in the final page content they are removed later on
+    in filter_bleach_clean() method, they are kept around for any other processing needs.
     """
 
     elements = soup.findAll(recursive=True)
@@ -34,6 +35,17 @@ def normalize_style_attrs(soup):
 
 
 def filter_transform_inline_styles_to_tags(html, options=None):
+    """
+    Use the default or provided CONFIG to loop through each filter
+    and apply the transform_* method
+
+    params
+        html: raw html input, the input needs to be valid html
+        options: allows a developer to override the default config
+        and pass in HTML_TAGS and TRANSFORM_STYLES_MAPPING
+    """
+
+    soup = normalize_style_attrs(BeautifulSoup(html, "html.parser"))
 
     CONF_HTML_TAGS = HTML_TAGS
     if options and options["CONFIG"].get("HTML_TAGS"):
@@ -51,8 +63,6 @@ def filter_transform_inline_styles_to_tags(html, options=None):
         else:
             CONF_STYLES_MAPPING = styles_mapping
 
-    soup = normalize_style_attrs(BeautifulSoup(html, "html.parser"))
-
     for filter in CONF_STYLES_MAPPING:
         tags = soup.findAll(style=filter[0])
 
@@ -62,8 +72,20 @@ def filter_transform_inline_styles_to_tags(html, options=None):
 
             filter[1](soup, tag)
 
-    if TRANSFORM_TAGS_ENABLED:
-        for filter in TRANSFORM_TAGS_MAPPING:
+    transform_html_tags_enabled = getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED",
+        TRANSFORM_HTML_TAGS_ENABLED,
+    )
+
+    transform_html_tags_mapping = getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING",
+        TRANSFORM_HTML_TAGS_MAPPING,
+    )
+
+    if transform_html_tags_enabled:
+        for filter in transform_html_tags_mapping:
             tags = soup.findAll(filter[0])
 
             for tag in tags:
@@ -73,7 +95,11 @@ def filter_transform_inline_styles_to_tags(html, options=None):
 
 
 def transform_style_bold(soup, tag):
-
+    """
+    replace the input tag name with `b`
+    and add the existing attrs["style"] to
+    the new tag
+    """
     new_tag = soup.new_tag("b")
     new_tag.attrs["style"] = tag.attrs["style"]
     new_tag.string = tag.text
@@ -82,6 +108,10 @@ def transform_style_bold(soup, tag):
 
 def transform_style_italic(soup, tag):
     """
+    replace the input tag name with `b`
+    and add the existing attrs["style"] to
+    the new tag
+
     there are instances of <i> tag inside a <b> tag
     preseve the <b> tag and add the <i> tag as a child
     e.g. <b><i>text</i></b>
@@ -102,29 +132,85 @@ def transform_style_italic(soup, tag):
 
 
 def transform_style_center(soup, tag):
+    """
+    apply a new css class to any existing classes
+    """
     _class = tag.get("class", "") + " align-center"
     tag.attrs["class"] = _class.strip()
 
 
 def transform_style_left(soup, tag):
+    """
+    apply a new css class to any existing classes
+    """
     _class = tag.get("class", "") + " align-left"
     tag.attrs["class"] = _class.strip()
 
 
 def transform_style_right(soup, tag):
+    """
+    apply a new css class to any existing classes
+    """
     _class = tag.get("class", "") + " align-right"
     tag.attrs["class"] = _class.strip()
 
 
-def transform_tag_strong(soup, tag):
+def transform_float_left(soup, tag):
+    """
+    apply a new css class to any existing classes
+    """
+    _class = tag.get("class", "") + " float-left"
+    tag.attrs["class"] = _class.strip()
+
+
+def transform_float_right(soup, tag):
+    """
+    apply a new css class to any existing classes
+    """
+    _class = tag.get("class", "") + " float-right"
+    tag.attrs["class"] = _class.strip()
+
+
+def transform_html_tag_strong(soup, tag):
+    """
+    replace the input tag name of `strong` with `b`
+    """
     tag.name = "b"
 
 
-def transform_tag_em(soup, tag):
+def transform_html_tag_em(soup, tag):
+    """
+    replace the input tag name of `em` with `i`
+    """
     tag.name = "i"
 
 
-# normalize_style_attrs() makes sure we can search for these patterns
+"""
+Its intended that a developer can override TRANSFORM_STYLES_MAPPING
+and provide their own style rules to match for by adding WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
+to their own settings
+
+# example WAGTAIL_WORDPRESS_IMPORT_PREFILTERS config in your own settings is below
+
+WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
+    {"FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter",},
+    {"FUNCTION": "wagtail_wordpress_import.prefilters.transform_styles_filter",},
+    {"FUNCTION": "prefilters.bleach_clean.clean",
+        "OPTIONS": {
+            "ADDITIONAL_ALLOWED_TAGS": ["h1", "h2", ...],
+            "ADDITIONAL_ALLOWED_ATTRIBUTES": ["style", "class", "data-attr", ...],
+            "ADDITIONAL_ALLOWED_STYLES": ["font-weight: bold", "font-style: italic", ...],
+        },
+    },
+]
+
+The prefilters are run in the order of the list above.
+If you don't need a filter to run you can remove it from the list.
+If you need another filter to run you can include it in the list and will need
+to provide the filter module in your own wagtail site
+
+See the documentation in this repo for further help with creating filters
+"""
 TRANSFORM_STYLES_MAPPING = [
     (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
     (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
@@ -135,18 +221,44 @@ TRANSFORM_STYLES_MAPPING = [
         ),
         transform_style_center,
     ),
-    (re.compile(r"float:left*", re.IGNORECASE), transform_style_left),
-    (re.compile(r"float:right*", re.IGNORECASE), transform_style_right),
+    (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
+    (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
+    (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
+    (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
 ]
 
-TRANSFORM_TAGS_MAPPING = [
-    ("strong", transform_tag_strong),
-    ("em", transform_tag_em),
+"""
+Its intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
+and provide their own tag rules
+
+# example WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING config in your own settings is below
+
+WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING [
+    ("strong", transform_html_tag_strong),
+    ("em", transform_html_tag_em),
 ]
 
-TRANSFORM_TAGS_ENABLED = getattr(
-    settings, "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_TAGS_MAPPING_ENABLED", True
+The tag filters can be listed in any order.
+If you don't need a tag filter to run you can remove it from the list.
+If you need another filter to run you can include it in the list and will need
+to provide the filter method in your own wagtail site
+
+See the documentation in this repo for further help with creating tag filters
+"""
+TRANSFORM_HTML_TAGS_MAPPING = [
+    ("strong", transform_html_tag_strong),
+    ("em", transform_html_tag_em),
+]
+
+"""
+In your own settings you can disable the transformation of HTML tags using
+
+WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING = False
+"""
+TRANSFORM_HTML_TAGS_ENABLED = getattr(
+    settings, "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED", True
 )
+
 
 HTML_TAGS = [
     "address",
