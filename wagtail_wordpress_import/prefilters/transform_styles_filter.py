@@ -5,19 +5,20 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 
-def normalize_style_attrs(html):
+def normalize_style_attrs(soup):
     """
-    There are different ways that styles are formatted coming out of wordpress.
-    This normalizes them so we have a predictable format is for later parsing.
+    Normalize the style attrs on tags so we have a predictable format for parsing.
 
     e.g. font-style: italic becomes font-style:italic;
     e.g. FONT-WEIGHT:400; becomes font-weight:400;
 
-    So essentially the styles are all lowercased, with appended ; and have no spaces.
-    If the format isn't strictly correct is because they are a `template` we match
-    by here. These style attrs are removed later on in filter_bleach_clean() method.
+    The styles are all lowercased, with ; appended and have no spaces. Spaces are
+    also remove between multiple rules.
+
+    The attrs won't exist in the final page content they are removed later on
+    in filter_bleach_clean() method.
     """
-    soup = BeautifulSoup(html, "html.parser")
+
     elements = soup.findAll(recursive=True)
 
     for el in elements:
@@ -50,7 +51,7 @@ def filter_transform_inline_styles_to_tags(html, options=None):
         else:
             CONF_STYLES_MAPPING = styles_mapping
 
-    soup = normalize_style_attrs(html)
+    soup = normalize_style_attrs(BeautifulSoup(html, "html.parser"))
 
     for filter in CONF_STYLES_MAPPING:
         tags = soup.findAll(style=filter[0])
