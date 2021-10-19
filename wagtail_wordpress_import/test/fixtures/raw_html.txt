@@ -1,4 +1,4 @@
-<span style="font-weight: 400;">Lorem ipsum (xcounterx) dolor sit amet</span>
+<span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
 
 <a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
 

@@ -152,17 +152,14 @@ DEFAULT_PREFILTERS = [
         "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.normalize_style_attrs",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.fix_styles",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles_to_tags",
     },
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
     },
 ]
 
-DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG", True)
+DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
 
 
 class WordpressItem:
@@ -272,9 +269,9 @@ class WordpressItem:
             "wp_post_type": self.cleaned_post_type(),
             "wp_link": self.cleaned_link(),
             "wp_block_json": self.debug_content.get("block_json"),
-            "wp_processed_content": self.debug_content.get("filter_fix_styles"),
-            "wp_normalized_styles": self.debug_content.get(
-                "filter_normalize_style_attrs"
+            "wp_processed_content": self.debug_content.get(
+                "filter_transform_inline_styles_to_tags"
             ),
+            "wp_normalized_styles": "",
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }
