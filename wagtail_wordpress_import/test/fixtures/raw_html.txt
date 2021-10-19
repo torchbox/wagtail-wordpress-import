@@ -5,27 +5,37 @@
 <h2><strong>Lorem ipsum dolor sit amet?</strong></h2>
 
 <ul>
-    <li style="font-weight: 400;"><span style="text-align: center;">Lorem ipsum (xcounterx) dolor sit amet</span></li>
-    <li style="font-weight: bold; font-style: italic;"><span style="font-weight: 400;">Lorem (xcounterx) ipsum dolor sit amet</span></li>
-    <li style="float: left; margin: 0em 1em 1em 0em;"><span style="font-style: italic;">Lorem (xcounterx) ipsum dolor sit amet</span></li>
+<li style="font-weight: 400;" onmouseover=alert("Boo!")><span style="font-weight: 400;">Lorem 1</span></li>
+<li style="font-weight: 400;"><span style="font-weight: 400;">Lorem 2</span></li>
+<li style="font-weight: 400;"><span style="font-weight: 400;">Lorem 3</span></li>
+<li style="font-weight: 400;"><span style="font-weight: 400;">Lorem 4</span></li>
+<li style="font-weight: 400;"><span style="font-weight: 400;">Lorem 5</span></li>
 </ul>
-
-<strong>Title #83: <a href="https://www.domain.com/">Lorem (xcounterx) ipsum dolor sit amet</a> <span style="color: #008000;">(Lorem ipsum dolor sit amet)</span></strong>
-
-Lorem ipsum dolor (xcounterx) sit amet
-
-Lorem ipsum dolor sit (xcounterx) amet <a href="https://www.domain.com/folder/">Lorem ipsum dolor sit (xcounterx) amet</a> Lorem ipsum dolor sit amet
-
-<h2>Lorem ipsum dolor sit (xcounterx) amet <b onmouseover=alert("Boo!")>click me!</b></h2>
-
-<ul>
-    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum (xcounterx) dolor sit amet</a> <span style="color: #ff0000;">(-$127.00)</span></li>
-    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum dolor (xcounterx) sit amet</a> <span style="color: #ff0000;">($0.00)</span></li>
-    <li><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer">Lorem ipsum (xcounterx) dolor sit amet</a> <span style="color: #ff0000;">(minimum wage)</span></li>
-</ul>
-
-<center><a href="https://www.domain.com/folder/" target="_blank" rel="noopener noreferrer"><img class="alignnone" style="margin: 0pt 10px 10px 0pt; float: none;" src="https://https://www.domain.com/folder/image.jpg" alt="alt title" width="500" height="382" border="0" /></a>Lorem (xcounterx) ipsum dolor sit amet :)</center>
-
-<em><strong>Lorem ipsum dolor (xcounterx) sit amet!</strong></em>
-
-<p style="text-align: center;">An already in place paragraph (xcounterx) tag</p>
+<h2><strong>Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua.?</strong></h2>
+<table id="tablepress-1" class="tablepress tablepress-id-1 dataTable"><caption>&#160;</caption>
+<thead>
+<tr class="row-1 odd">
+<th class="column-1 sorting_disabled" colspan="1" rowspan="1">Item</th>
+<th class="column-2 sorting_disabled" colspan="1" rowspan="1">Amount</th>
+</tr>
+</thead>
+<tfoot>
+<tr class="row-35 odd">
+<th class="column-1" colspan="1" rowspan="1">TOTAL:</th>
+<th class="column-2" colspan="1" rowspan="1">$1,127.67</th>
+</tr>
+</tfoot>
+<tbody class="row-hover">
+<tr class="row-2 even">
+<td class="column-1">Lorem 1</td>
+<td class="column-2">Lorem 1/1</td>
+</tr>
+<tr class="row-3 odd">
+<td class="column-1">Lorem 2</td>
+<td class="column-2">Lorem 2/1</td>
+</tr>
+</tbody>
+</table>
+<iframe src="https://www.youtube.com/embed/CQ7Gx8b7ac4" width="560" height="315" frameborder="0" allowfullscreen="allowfullscreen"></iframe>
+<blockquote>Lorem ipsum dolor sit amet, consectetur adipisici elit, sed eiusmod tempor incidunt ut labore et dolore magna aliqua. 
+Nihil hic munitissimus habendi senatus locus, nihil horum?.</blockquote>
