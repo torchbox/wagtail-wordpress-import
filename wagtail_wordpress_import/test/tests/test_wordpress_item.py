@@ -51,7 +51,7 @@ class WordpressItemTests(TestCase):
         wp_link = wordpress_item.cleaned_data["wp_link"]
         wp_raw_content = wordpress_item.debug_content["filter_linebreaks_wp"]
         wp_processed_content = wordpress_item.debug_content[
-            "filter_transform_inline_styles_to_tags"
+            "filter_transform_inline_styles"
         ]
         wp_block_json = wordpress_item.debug_content["block_json"]
 
