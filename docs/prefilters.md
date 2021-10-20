@@ -14,7 +14,7 @@
 
 Pre-filters provide transformations to be made on a page's content before it is used to build StreamField blocks. In the imported XML file, the page's content is available in each `<item><content:encoded />text content is here ...` element.
 
-*One example of the transformations is: WordPress interprets lines of text separated by two line breaks as separate paragraphs when rendered. The import process requires valid `HTML` rather than the `plain text` that's available in the XML file we are importing. We have included a pre-filter that uses a python implementation of the PHP script that's used in wordpress to convert 2 line breaks into `<p>`.*
+*For example, WordPress renders a double line break as separate paragraphs. The import process requires valid HTML rather than the plain text of the source XML. We have included a pre-filter that uses a Python implementation of the PHP script that's used in WordPress to convert two line breaks into `</p><p>`.*
 
 ---
 
