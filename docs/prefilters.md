@@ -42,7 +42,7 @@ This filter reimplements the `wpautop` PHP script into Python, to convert the ra
 
 -- **filter_transform_inline_styles()** [source](wagtail_wordpress_import/prefilters/transform_styles_filter.py)
 
-This filter applies any inline styles to the html tag directly where that's possible. It generally wraps a tag around a piece of text as well as applying css classes to a tag to represent alignment.
+This filter converts any inline style rules to their corresponding HTML tags where possible (e.g. bold and italic text). Otherwise it converts alignment style rules to CSS classes.
 
 *e.g:*
 
