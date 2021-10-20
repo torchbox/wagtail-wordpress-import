@@ -12,7 +12,7 @@
 
 # Why use pre-filters
 
-Pre-filters provide transformations to be made on a page's content before it is used to build streamfield blocks. In the XML file thats imported, the pages content is available in each `<item><content:encoded />text content is here ...` element.
+Pre-filters provide transformations to be made on a page's content before it is used to build StreamField blocks. In the imported XML file, the page's content is available in each `<item><content:encoded />text content is here ...` element.
 
 *One example of the transformations is: WordPress interprets lines of text separated by two line breaks as separate paragraphs when rendered. The import process requires valid `HTML` rather than the `plain text` that's available in the XML file we are importing. We have included a pre-filter that uses a python implementation of the PHP script that's used in wordpress to convert 2 line breaks into `<p>`.*
 
