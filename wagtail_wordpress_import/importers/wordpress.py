@@ -307,6 +307,28 @@ class WordpressItem:
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
 
+    def cleaned_search_description(self):
+        search_description = ""
+        if self.node.get("description") is not None:
+            search_description = self.node.get("description")
+        return search_description.strip()
+        # return search_description.strip()
+        # wp_meta = self.node.get("wp:postmeta")
+        # # wp:postmeta will return a list of dicts
+        # """
+        # [{
+        #     "wp:meta_key": "_facebook_shares",
+        #     "wp:meta_value": 0
+        # }]
+        # """
+        # value = ""
+        # if wp_meta:
+        #     for item in wp_meta:
+        #         meta_key = item.get("wp:meta_key")
+        #         if meta_key == "_yoast_wpseo_metadesc":
+        #             value = item.get("wp:meta_value")
+        # return value.strip()
+
     @cached_property
     def cleaned_data(self):
         return {
@@ -316,6 +338,7 @@ class WordpressItem:
             "last_published_at": self.cleaned_last_published_at(),
             "latest_revision_created_at": self.cleaned_latest_revision_created_at(),
             "body": self.body_stream_field(self.prefilter_content(self.raw_body)),
+            "search_description": self.cleaned_search_description(),
             "wp_post_id": self.cleaned_post_id(),
             "wp_post_type": self.cleaned_post_type(),
             "wp_link": self.cleaned_link(),
