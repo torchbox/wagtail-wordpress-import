@@ -55,7 +55,7 @@ def filter_transform_inline_styles(html, options=None):
         else:
             CONF_HTML_TAGS = html_tags
 
-    CONF_STYLES_MAPPING = TRANSFORM_STYLES_MAPPING
+    CONF_STYLES_MAPPING = conf_styles_mapping()
     if options and options["CONFIG"].get("TRANSFORM_STYLES_MAPPING"):
         styles_mapping = import_string(options["CONFIG"]["TRANSFORM_STYLES_MAPPING"])
         if callable(styles_mapping):
@@ -72,20 +72,8 @@ def filter_transform_inline_styles(html, options=None):
 
             filter[1](soup, tag)
 
-    transform_html_tags_enabled = getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED",
-        TRANSFORM_HTML_TAGS_ENABLED,
-    )
-
-    transform_html_tags_mapping = getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING",
-        TRANSFORM_HTML_TAGS_MAPPING,
-    )
-
-    if transform_html_tags_enabled:
-        for filter in transform_html_tags_mapping:
+    if conf_transform_html_tags_enabled():
+        for filter in conf_transform_html_tags_mapping():
             tags = soup.findAll(filter[0])
 
             for tag in tags:
@@ -185,79 +173,92 @@ def transform_html_tag_em(soup, tag):
     tag.name = "i"
 
 
-"""
-Its intended that a developer can override TRANSFORM_STYLES_MAPPING
-and provide their own style rules to match for by adding WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
-to their own settings
+def conf_styles_mapping():
+    """
+    Its intended that a developer can override TRANSFORM_STYLES_MAPPING
+    and provide their own style rules to match for by adding WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
+    to their own settings
 
-# example WAGTAIL_WORDPRESS_IMPORT_PREFILTERS config in your own settings is below
+    # example WAGTAIL_WORDPRESS_IMPORT_PREFILTERS config in your own settings is below
 
-WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
-    {"FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter",},
-    {"FUNCTION": "wagtail_wordpress_import.prefilters.transform_styles_filter",},
-    {"FUNCTION": "prefilters.bleach_clean.clean",
-        "OPTIONS": {
-            "ADDITIONAL_ALLOWED_TAGS": ["h1", "h2", ...],
-            "ADDITIONAL_ALLOWED_ATTRIBUTES": ["style", "class", "data-attr", ...],
-            "ADDITIONAL_ALLOWED_STYLES": ["font-weight: bold", "font-style: italic", ...],
+    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
+        {"FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter",},
+        {"FUNCTION": "wagtail_wordpress_import.prefilters.transform_styles_filter",},
+        {"FUNCTION": "prefilters.bleach_clean.clean",
+            "OPTIONS": {
+                "ADDITIONAL_ALLOWED_TAGS": ["h1", "h2", ...],
+                "ADDITIONAL_ALLOWED_ATTRIBUTES": ["style", "class", "data-attr", ...],
+                "ADDITIONAL_ALLOWED_STYLES": ["font-weight: bold", "font-style: italic", ...],
+            },
         },
-    },
-]
+    ]
 
-The prefilters are run in the order of the list above.
-If you don't need a filter to run you can remove it from the list.
-If you need another filter to run you can include it in the list and will need
-to provide the filter module in your own wagtail site
+    The prefilters are run in the order of the list above.
+    If you don't need a filter to run you can remove it from the list.
+    If you need another filter to run you can include it in the list and will need
+    to provide the filter module in your own wagtail site
 
-See the documentation in this repo for further help with creating filters
-"""
-TRANSFORM_STYLES_MAPPING = [
-    (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
-    (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
-    (
-        re.compile(
-            r"text-align:center*",
-            re.IGNORECASE,
-        ),
-        transform_style_center,
-    ),
-    (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
-    (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
-    (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
-    (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
-]
+    See the documentation in this repo for further help with creating filters
+    """
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS",
+        [
+            (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
+            (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
+            (
+                re.compile(
+                    r"text-align:center*",
+                    re.IGNORECASE,
+                ),
+                transform_style_center,
+            ),
+            (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
+            (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
+            (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
+            (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
+        ],
+    )
 
-"""
-It's intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
-and provide their own tag rules
 
-# example WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING config in your own settings is below
+def conf_transform_html_tags_mapping():
+    """
+    It's intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
+    and provide their own tag rules
 
-WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING [
-    ("strong", transform_html_tag_strong),
-    ("em", transform_html_tag_em),
-]
+    # example WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING config in your own settings is below
 
-The tag filters can be listed in any order.
-If you don't need a tag filter to run you can remove it from the list.
-If you need another filter to run you can include it in the list and will need
-to provide the filter method in your own wagtail site
+    WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING [
+        ("strong", transform_html_tag_strong),
+        ("em", transform_html_tag_em),
+    ]
 
-See the documentation in this repo for further help with creating tag filters
-"""
-TRANSFORM_HTML_TAGS_MAPPING = [
-    ("strong", transform_html_tag_strong),
-    ("em", transform_html_tag_em),
-]
+    The tag filters can be listed in any order.
+    If you don't need a tag filter to run you can remove it from the list.
+    If you need another filter to run you can include it in the list and will need
+    to provide the filter method in your own wagtail site
 
-"""
-In your own settings you can disable the transformation of HTML tags using
+    See the documentation in this repo for further help with creating tag filters
+    """
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING",
+        [
+            ("strong", transform_html_tag_strong),
+            ("em", transform_html_tag_em),
+        ],
+    )
 
-WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING = False
-"""
-TRANSFORM_HTML_TAGS_ENABLED = getattr(
-    settings, "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED", True
-)
+
+def conf_transform_html_tags_enabled():
+    """
+    In your own settings you can disable the transformation of HTML tags using
+
+    WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED = False
+    """
+    return getattr(
+        settings, "WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_ENABLED", True
+    )
 
 
 HTML_TAGS = [
