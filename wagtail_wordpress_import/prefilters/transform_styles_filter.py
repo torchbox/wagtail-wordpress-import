@@ -228,7 +228,7 @@ TRANSFORM_STYLES_MAPPING = [
 ]
 
 """
-Its intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
+It's intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
 and provide their own tag rules
 
 # example WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING config in your own settings is below
