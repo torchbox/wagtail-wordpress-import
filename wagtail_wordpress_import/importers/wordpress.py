@@ -163,7 +163,7 @@ class WordpressImporter:
             stream_data = page.body._raw_data
             reconstructed_blocks = []
             for block in stream_data:
-                del block["id"]  # these get created on save so loose the old id
+                del block["id"]  # these get created on save so lose the old id
                 if block["type"] == "rich_text":
                     block["value"] = str(self.update_rich_text_page_links(block, page))
                 reconstructed_blocks.append(block)
