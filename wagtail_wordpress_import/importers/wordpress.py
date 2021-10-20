@@ -155,7 +155,7 @@ class WordpressImporter:
 
     def connect_richtext_page_links(self, imported_pages):
         """
-        Update the stream field content of each page by reconstructing
+        Update the StreamField content of each page by reconstructing
         the existing blocks. Only update rich_text blocks by analysing the anchor links
         in update_rich_text_page_links()
         """
