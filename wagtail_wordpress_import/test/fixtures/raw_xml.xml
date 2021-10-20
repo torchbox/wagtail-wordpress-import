@@ -39,7 +39,7 @@
             <pubDate>Tue, 13 Jul 2010 16:16:46 +0000</pubDate>
             <dc:creator>author1</dc:creator>
             <guid isPermaLink="false">https://www.example.com/wp-content/uploads/2010/07/haunted-house.jpg</guid>
-            <description/>
+            <description>This page has a default description</description>
             <content:encoded>&lt;span style=" float: left;"&gt;Log Files&lt;/span&gt;
 &lt;span style="font-weight: bold;"&gt;If there's a way to make extra money, you&#8217;d better believe that someone is trying it.&lt;/span&gt;
 &lt;span style="font-weight: 400;"&gt;Here we're sharing the &lt;strong&gt;real-life stories of all 80+ side hustles ever featured on this blog.&lt;/strong&gt;&lt;/span&gt;
@@ -102,6 +102,10 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:postmeta>
                 <wp:meta_key>_thumbnail_id</wp:meta_key>
                 <wp:meta_value><![CDATA[43124]]></wp:meta_value>
+            </wp:postmeta>
+            <wp:postmeta>
+                <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+                <wp:meta_value>a search description from yoast for Item one</wp:meta_value>
             </wp:postmeta>
         </item>
         <item>
@@ -173,6 +177,10 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:postmeta>
                 <wp:meta_key>_thumbnail_id</wp:meta_key>
                 <wp:meta_value><![CDATA[43124]]></wp:meta_value>
+            </wp:postmeta>
+            <wp:postmeta>
+                <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+                <wp:meta_value>a search description from yaost for Item two</wp:meta_value>
             </wp:postmeta>
         </item>
     </channel>
