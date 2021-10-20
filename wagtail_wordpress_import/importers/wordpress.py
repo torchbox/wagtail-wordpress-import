@@ -1,7 +1,6 @@
 import json
 from datetime import datetime
 from functools import cached_property
-from os import PRIO_PGRP
 from xml.dom import pulldom
 
 from bs4 import BeautifulSoup
@@ -193,50 +192,11 @@ class WordpressImporter:
 
     def get_page(self, link, page):
         try:
-            if DEBUG_ENABLED:
+            if debug_enabled():
                 self.logger.page_link_errors.append((link, page))
             return self.page_model_instance.objects.get(wp_link=link)
         except self.page_model_instance.DoesNotExist:
             pass
-
-
-DEFAULT_PREFILTERS = [
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
-    },
-    {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-    },
-]
-
-DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
-
-
-def check_yoast_plugin_enabled():
-    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED", False)
-
-
-def get_yoast_plugin_config():
-    """
-    XML file fields
-    <wp:postmeta>
-        <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
-        <wp:meta_value>a search description from yaost for Item two</wp:meta_value>
-    </wp:postmeta>
-    """
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING",
-        {
-            "xml_item_key": "wp:postmeta",
-            "description_key": "wp:meta_key",
-            "description_value": "wp:meta_value",
-            "description_key_value": "_yoast_wpseo_metadesc",
-        },
-    )
 
 
 class WordpressItem:
@@ -255,16 +215,16 @@ class WordpressItem:
         FILTERS ARE CUMULATIVE
         cache the result of each filter which is run on the output from the previous filter
         """
-        filter_config = getattr(
-            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
-        )
+        # filter_config = getattr(
+        #     settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
+        # )
 
         cached_result = content
 
-        for filter in filter_config:
+        for filter in default_prefilters():
             function = import_string(filter["FUNCTION"])
             cached_result = function(cached_result, filter.get("OPTIONS"))
-            if DEBUG_ENABLED:
+            if debug_enabled():
                 self.debug_content[function.__name__] = cached_result
 
         return cached_result
@@ -328,7 +288,7 @@ class WordpressItem:
 
     def body_stream_field(self, content):
         blocks_dict = BlockBuilder(content, self.node, self.logger).build()
-        if DEBUG_ENABLED:
+        if debug_enabled():
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
 
@@ -340,20 +300,20 @@ class WordpressItem:
         is available. If not it returns a blank string.
         """
         search_description = ""
-        for item in self.node[get_yoast_plugin_config()["xml_item_key"]]:
+        for item in self.node[yoast_plugin_config()["xml_item_key"]]:
             if (
-                item.get(get_yoast_plugin_config()["description_key"])  # wp:meta_key
+                item.get(yoast_plugin_config()["description_key"])  # wp:meta_key
                 == "_yoast_wpseo_metadesc"  # config: description_key_value
             ):
                 search_description = item.get(
-                    get_yoast_plugin_config()["description_value"]  # wp:meta_value
+                    yoast_plugin_config()["description_value"]  # wp:meta_value
                 )
         return search_description
 
     def cleaned_search_description(self):
         search_description = ""
 
-        if not check_yoast_plugin_enabled():
+        if not yoast_plugin_enabled():
             if self.node.get("description") is not None:
                 search_description = self.node.get("description")
 
@@ -382,3 +342,45 @@ class WordpressItem:
             "wp_normalized_styles": "",
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }
+
+
+def default_prefilters():
+    return [
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
+        },
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+        },
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
+        },
+    ]
+
+
+def debug_enabled():
+    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
+
+
+def yoast_plugin_enabled():
+    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED", False)
+
+
+def yoast_plugin_config():
+    """
+    XML file fields
+    <wp:postmeta>
+        <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+        <wp:meta_value>a search description from yaost for Item two</wp:meta_value>
+    </wp:postmeta>
+    """
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING",
+        {
+            "xml_item_key": "wp:postmeta",
+            "description_key": "wp:meta_key",
+            "description_value": "wp:meta_value",
+            "description_key_value": "_yoast_wpseo_metadesc",
+        },
+    )
