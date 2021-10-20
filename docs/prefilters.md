@@ -71,7 +71,7 @@ The outcome of these transformations helps us normalize the content that's likel
 
 This filter removes tags that aren't included in range of `ALLOWED_TAGS`, `ALLOWED_ATTRIBUTES` and `ALLOWED_STYLES` configuration settings.
 
-It's possible to add new settings to this configuration to suit your own use case. We provide a sensible range to cover most use cases.
+It's possible to add new settings to this configuration to suit your own use case. We provide a sensible range to cover most use cases. For the use of bleach's configuration options, see https://bleach.readthedocs.io/en/latest/.
 
 ---
 
