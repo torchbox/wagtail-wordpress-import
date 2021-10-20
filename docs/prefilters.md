@@ -36,7 +36,7 @@ Each time the importer processes a page, the body content is transformed by runn
 
 Converts double line breaks into paragraphs
 
-This filter implements a python script that uses the same process as `wpautop` to convert the raw HTML content into HTML content. It generally adds `<p>` tags around text that has no surrounding tag. Therefore the text lines in the filtered content will have a surround HTML tag in place if one was not already included.
+This filter reimplements the `wpautop` PHP script into Python, to convert the raw HTML content into HTML content. It generally adds `<p>` tags around text that has no surrounding tag. Therefore the text lines in the filtered content will have a surround HTML tag in place if one was not already included.
 
 ---
 
