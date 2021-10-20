@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 from functools import cached_property
+from os import PRIO_PGRP
 from xml.dom import pulldom
 
 from bs4 import BeautifulSoup
@@ -214,6 +215,30 @@ DEFAULT_PREFILTERS = [
 DEBUG_ENABLED = getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
 
 
+def check_yoast_plugin_enabled():
+    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED", False)
+
+
+def get_yoast_plugin_config():
+    """
+    XML file fields
+    <wp:postmeta>
+        <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+        <wp:meta_value>a search description from yaost for Item two</wp:meta_value>
+    </wp:postmeta>
+    """
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING",
+        {
+            "xml_item_key": "wp:postmeta",
+            "description_key": "wp:meta_key",
+            "description_value": "wp:meta_value",
+            "description_key_value": "_yoast_wpseo_metadesc",
+        },
+    )
+
+
 class WordpressItem:
     def __init__(self, node, logger):
         self.node = node
@@ -307,27 +332,35 @@ class WordpressItem:
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
 
+    def get_yoast_description_value(self):
+        """
+        The Wordpress yoast plugin seems to have different fields available on
+        a item record and not always contains the _yoast_wpseo_metadesc field.
+        This parses the wp:postmeta field to check if a _yoast_wpseo_metadesc
+        is available. If not it returns a blank string.
+        """
+        search_description = ""
+        for item in self.node[get_yoast_plugin_config()["xml_item_key"]]:
+            if (
+                item.get(get_yoast_plugin_config()["description_key"])  # wp:meta_key
+                == "_yoast_wpseo_metadesc"  # config: description_key_value
+            ):
+                search_description = item.get(
+                    get_yoast_plugin_config()["description_value"]  # wp:meta_value
+                )
+        return search_description
+
     def cleaned_search_description(self):
         search_description = ""
-        if self.node.get("description") is not None:
-            search_description = self.node.get("description")
+
+        if not check_yoast_plugin_enabled():
+            if self.node.get("description") is not None:
+                search_description = self.node.get("description")
+
+        else:
+            search_description = self.get_yoast_description_value()
+
         return search_description.strip()
-        # return search_description.strip()
-        # wp_meta = self.node.get("wp:postmeta")
-        # # wp:postmeta will return a list of dicts
-        # """
-        # [{
-        #     "wp:meta_key": "_facebook_shares",
-        #     "wp:meta_value": 0
-        # }]
-        # """
-        # value = ""
-        # if wp_meta:
-        #     for item in wp_meta:
-        #         meta_key = item.get("wp:meta_key")
-        #         if meta_key == "_yoast_wpseo_metadesc":
-        #             value = item.get("wp:meta_value")
-        # return value.strip()
 
     @cached_property
     def cleaned_data(self):
