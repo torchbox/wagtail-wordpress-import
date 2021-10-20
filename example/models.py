@@ -21,6 +21,7 @@ class TestPage(WPImportedPageMixin, Page):
         self.first_published_at = data["first_published_at"]
         self.last_published_at = data["last_published_at"]
         self.latest_revision_created_at = data["latest_revision_created_at"]
+        self.search_description = data["search_description"]
 
         # debug fields
         self.wp_post_id = data["wp_post_id"]
