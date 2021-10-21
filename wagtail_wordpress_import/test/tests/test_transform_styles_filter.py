@@ -3,6 +3,10 @@ from django.test import TestCase
 from bs4 import BeautifulSoup
 from wagtail_wordpress_import.prefilters.transform_styles_filter import (
     normalize_style_attrs,
+    filter_transform_inline_styles,
+)
+
+from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
     transform_style_bold,
     transform_style_italic,
     transform_style_center,
@@ -12,7 +16,6 @@ from wagtail_wordpress_import.prefilters.transform_styles_filter import (
     transform_style_right,
     transform_html_tag_em,
     transform_html_tag_strong,
-    filter_transform_inline_styles,
 )
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
