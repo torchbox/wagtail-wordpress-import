@@ -1,6 +1,6 @@
 import os
 import json
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from datetime import datetime
 from wagtail_wordpress_import.importers.wordpress import WordpressItem
 from wagtail_wordpress_import.logger import Logger
@@ -9,6 +9,7 @@ BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 
+# @override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=False)
 class WordpressItemTests(TestCase):
     def setUp(self):
         self.logger = Logger("fakedir")

@@ -5,13 +5,18 @@ from xml.dom import pulldom
 
 from bs4 import BeautifulSoup
 from django.apps import apps
-from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
+from wagtail_wordpress_import.importers.wordpress_defaults import (
+    debug_enabled,
+    default_prefilters,
+    yoast_plugin_config,
+    yoast_plugin_enabled,
+)
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
@@ -296,34 +301,46 @@ class WordpressItem:
         """
         The Wordpress yoast plugin seems to have different fields available on
         a item record and not always contains the _yoast_wpseo_metadesc field.
+
         This parses the wp:postmeta field to check if a _yoast_wpseo_metadesc
-        is available. If not it returns a blank string.
+        is available. If not it returns a blank string or the default description field
+        in the XML <item><description>...</description></item> .
         """
-        search_description = ""
-        for item in self.node[yoast_plugin_config()["xml_item_key"]]:
-            if (
-                item.get(yoast_plugin_config()["description_key"])  # wp:meta_key
-                == "_yoast_wpseo_metadesc"  # config: description_key_value
-            ):
-                search_description = item.get(
-                    yoast_plugin_config()["description_value"]  # wp:meta_value
-                )
-        return search_description
+        meta_value = ""
+
+        if yoast_plugin_config()["xml_item_key"] in self.node.keys():
+            for item in self.node.get(yoast_plugin_config()["xml_item_key"]):
+                meta_key_values = list(item.values())
+
+                if meta_key_values[0] == yoast_plugin_config()["description_key_value"]:
+                    meta_value = meta_key_values[1] or ""
+
+        if not meta_value:
+            meta_value = self.node.get("description") or ""
+
+        return meta_value
 
     def cleaned_search_description(self):
-        search_description = ""
+        if yoast_plugin_enabled():
+            return self.get_yoast_description_value().strip()
 
-        if not yoast_plugin_enabled():
-            if self.node.get("description") is not None:
-                search_description = self.node.get("description")
-
+        if self.node.get("description") is not None:
+            return self.node.get("description").strip()
         else:
-            search_description = self.get_yoast_description_value()
-
-        return search_description.strip()
+            return ""
 
     @cached_property
     def cleaned_data(self):
+        """
+        I'm leaving a note here because later on we will be adding the ability
+        for a developer to specify fields we haven't included in the import
+        process. That'll need to happend starting here. Check out self.cleaned_search_description()
+        which imports to a standard Wagtail field.
+
+        This came out of dealing with the Yoast search_description field which we have
+        included and can be configured by a developer to accept different values as
+        the wp:postmeta keys
+        """
         return {
             "title": self.cleaned_title(),
             "slug": self.cleaned_slug(),
@@ -342,45 +359,3 @@ class WordpressItem:
             "wp_normalized_styles": "",
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
         }
-
-
-def default_prefilters():
-    return [
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-        },
-    ]
-
-
-def debug_enabled():
-    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
-
-
-def yoast_plugin_enabled():
-    return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED", False)
-
-
-def yoast_plugin_config():
-    """
-    XML file fields
-    <wp:postmeta>
-        <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
-        <wp:meta_value>a search description from yaost for Item two</wp:meta_value>
-    </wp:postmeta>
-    """
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING",
-        {
-            "xml_item_key": "wp:postmeta",
-            "description_key": "wp:meta_key",
-            "description_value": "wp:meta_value",
-            "description_key_value": "_yoast_wpseo_metadesc",
-        },
-    )
