@@ -292,7 +292,9 @@ class WordpressItem:
         return str(self.node["link"].strip())
 
     def body_stream_field(self, content):
-        blocks_dict = BlockBuilder(content, self.node, self.logger).build()
+        builder = BlockBuilder(content, self.node, self.logger)
+        builder.remove_parent_tags()
+        blocks_dict = builder.build()
         if debug_enabled():
             self.debug_content["block_json"] = blocks_dict
         return json.dumps(blocks_dict)
