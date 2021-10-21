@@ -1,4 +1,5 @@
 from bs4 import BeautifulSoup
+from django.conf import settings
 from django.utils.module_loading import import_string
 from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
     conf_styles_mapping,

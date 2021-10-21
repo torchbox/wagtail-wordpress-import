@@ -1,5 +1,5 @@
 import os
-from django.test import TestCase
+from django.test import TestCase, override_settings, modify_settings
 from bs4 import BeautifulSoup
 from wagtail_wordpress_import.prefilters.transform_styles_filter import (
     normalize_style_attrs,
@@ -117,7 +117,7 @@ class TestTransformStylesFilter(TestCase):
         self.assertTrue(paragraph)
         self.assertEqual(paragraph.attrs["class"], "float-right")
 
-    def transform_html_tag_strong(self):
+    def test_transform_html_tag_strong(self):
         input = "<strong>Text content</strong>"
         soup = BeautifulSoup(input, "html.parser")
         transform_html_tag_strong(soup, soup.find("strong"))
@@ -125,10 +125,82 @@ class TestTransformStylesFilter(TestCase):
 
         self.assertTrue(strong)
 
-    def transform_html_tag_em(self):
+    def test_transform_html_tag_em(self):
         input = "<em>Text content</em>"
         soup = BeautifulSoup(input, "html.parser")
         transform_html_tag_em(soup, soup.find("em"))
         italic = soup.find("i")
 
         self.assertTrue(italic)
+
+
+def testing_transform_html_tag_blockquote(soup, tag):
+    """
+    a function to test as if passed in by a developer
+    in their own config
+    """
+    tag.name = "div"
+
+
+class TestTransformStylesFilterHtmlTagsDeveloperOverrides(TestCase):
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING=[],
+    )
+    def test_filter_transform_html_tag_empty(self):
+        input = "<em>Text content</em><strong>Text content</strong>"
+        output = filter_transform_inline_styles(input)
+        soup = BeautifulSoup(output, "html.parser")
+        italic = soup.find("em")
+        bold = soup.find("strong")
+
+        self.assertTrue(italic)
+        self.assertTrue(bold)
+
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING=[
+            ("strong", transform_html_tag_strong),
+        ],
+    )
+    def test_filter_transform_html_tag_strong(self):
+        input = "<em>Text content</em><strong>Text content</strong>"
+        output = filter_transform_inline_styles(input)
+        soup = BeautifulSoup(output, "html.parser")
+        italic = soup.find("em")
+        bold = soup.find("b")
+
+        self.assertTrue(italic)
+        self.assertTrue(bold)
+
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING=[
+            ("em", transform_html_tag_em),
+        ],
+    )
+    def test_filter_transform_html_tag_em(self):
+        input = "<em>Text content</em><strong>Text content</strong>"
+        output = filter_transform_inline_styles(input)
+        soup = BeautifulSoup(output, "html.parser")
+        italic = soup.find("i")
+        bold = soup.find("strong")
+
+        self.assertTrue(italic)
+        self.assertTrue(bold)
+
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING=[
+            ("strong", transform_html_tag_strong),
+            ("em", transform_html_tag_em),
+            ("blockquote", testing_transform_html_tag_blockquote),
+        ],
+    )
+    def test_filter_transform_html_tag_em(self):
+        input = "<em>Text content</em><strong>Text content</strong><blockquote>Text content</blockquote>"
+        output = filter_transform_inline_styles(input)
+        soup = BeautifulSoup(output, "html.parser")
+        italic = soup.find("i")
+        bold = soup.find("b")
+        div = soup.find("div")
+
+        self.assertTrue(italic)
+        self.assertTrue(bold)
+        self.assertTrue(div)
