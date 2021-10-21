@@ -8,7 +8,7 @@ from django.conf import settings
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 LOG_DIR = "fakedir"
-IMPORTER_RUN_PARAMS = {
+IMPORTER_RUN_PARAMS_TEST = {
     "app_for_pages": "example",
     "model_for_pages": "TestPage",
     "parent_id": "2",
@@ -27,14 +27,14 @@ class WordpressImporterTests(TestCase):
         self.logger = Logger(LOG_DIR)
         self.importer.run(
             logger=self.logger,
-            app_for_pages=IMPORTER_RUN_PARAMS["app_for_pages"],
-            model_for_pages=IMPORTER_RUN_PARAMS["model_for_pages"],
-            parent_id=IMPORTER_RUN_PARAMS["parent_id"],
-            page_types=IMPORTER_RUN_PARAMS["page_types"],
-            page_statuses=IMPORTER_RUN_PARAMS["page_statuses"],
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST["page_statuses"],
         )
 
-        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS["parent_id"])
+        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS_TEST["parent_id"])
         self.imported_pages = self.parent_page.get_children().all()
         self.published_pages = self.parent_page.get_children().live()
         self.draft_pages = self.parent_page.get_children().filter(live=False)
@@ -91,13 +91,13 @@ class WordpressImporterTests(TestCase):
 
     def test_logger_totals(self):
         processed = self.logger.processed
-        self.assertEqual(processed, 2)
+        self.assertEqual(processed, 4)
 
         imported = self.logger.imported
         self.assertEqual(imported, 2)
 
         skipped = self.logger.skipped
-        self.assertEqual(skipped, 0)
+        self.assertEqual(skipped, 2)
 
     def test_logger_lists(self):
         logger = Logger(LOG_DIR)
@@ -130,9 +130,32 @@ class WordpressImporterTests(TestCase):
         item_id_4 = next(filter(lambda item: item["id"] == 4, logger.items))
         self.assertEqual(item_id_4["title"], "Item two title")
 
+    def test_page_field_values_with_yoast_plugin_disbaled(self):
+        self.assertEqual(
+            self.published_pages.first().search_description,
+            "This page has a default description",
+        )
+
+
+IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["post"],
+    "page_statuses": ["publish", "draft"],
+}
+
 
 @override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True)
-class WordpressImporterTestsOverrideSettings(TestCase):
+class WordpressImporterTestsYoastEnabled(TestCase):
+    """
+    We check here that if the Yoast plugin is enabled then use the search description
+    from there.
+    If the search description is blank or not available then we use the
+    <item><description>...</description></item> field
+    If thats blank then search_description is set as a blank value
+    """
+
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",
     ]
@@ -142,14 +165,16 @@ class WordpressImporterTestsOverrideSettings(TestCase):
         self.logger = Logger(LOG_DIR)
         self.importer.run(
             logger=self.logger,
-            app_for_pages=IMPORTER_RUN_PARAMS["app_for_pages"],
-            model_for_pages=IMPORTER_RUN_PARAMS["model_for_pages"],
-            parent_id=IMPORTER_RUN_PARAMS["parent_id"],
-            page_types=IMPORTER_RUN_PARAMS["page_types"],
-            page_statuses=IMPORTER_RUN_PARAMS["page_statuses"],
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["page_statuses"],
         )
 
-        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS["parent_id"])
+        self.parent_page = Page.objects.get(
+            id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1["parent_id"]
+        )
         self.imported_pages = self.parent_page.get_children().all()
         self.published_pages = self.parent_page.get_children().live()
         self.draft_pages = self.parent_page.get_children().filter(live=False)
@@ -158,4 +183,108 @@ class WordpressImporterTestsOverrideSettings(TestCase):
         self.assertEqual(
             self.published_pages.first().search_description,
             "a search description from yoast for Item one",
+        )
+
+
+IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2 = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["testpostmeta"],
+    "page_statuses": ["publish", "draft"],
+}
+
+
+@override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True)
+class WordpressImporterTestsYoastEnabledMissingTag(TestCase):
+    """
+    This tests when the expected config for Yoast is different from the
+    package default it defaults to use the
+    <item><description>...</description></item> field.
+    """
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["page_statuses"],
+        )
+
+        self.parent_page = Page.objects.get(
+            id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2["parent_id"]
+        )
+        self.imported_pages = self.parent_page.get_children().all()
+        self.published_pages = self.parent_page.get_children().live()
+        self.draft_pages = self.parent_page.get_children().filter(live=False)
+
+    def test_page_field_values_with_yoast_plugin_enabled(self):
+        self.assertEqual(
+            self.published_pages.first().search_description,
+            "This page has a default description",
+        )
+
+
+IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3 = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["postmetachanged"],
+    "page_statuses": ["publish", "draft"],
+}
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING={
+        "xml_item_key": "wp:postmeta",
+        "description_key": "wp:meta_key",
+        "description_value": "wp:meta_value",
+        "description_key_value": "metadescription",
+    },
+)
+class WordpressImporterTestsYoastEnabledChangedKey(TestCase):
+    """
+    This tests when the developer changes the config for Yoast in that the key for the
+    search description is not the same as the package default.
+    If the search description is blank or not available then we use the
+    <item><description>...</description></item> field
+    If thats blank then search_description is set as a blank value
+    """
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["page_statuses"],
+        )
+
+        self.parent_page = Page.objects.get(
+            id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3["parent_id"]
+        )
+        self.imported_pages = self.parent_page.get_children().all()
+        self.published_pages = self.parent_page.get_children().live()
+        self.draft_pages = self.parent_page.get_children().filter(live=False)
+
+    def test_page_field_values_with_yoast_plugin_enabled(self):
+        self.assertEqual(
+            self.published_pages.first().search_description,
+            "a search description from yoast using a different key",
         )
