@@ -98,7 +98,7 @@ class WordpressImporter:
                                 "id": page.id,
                                 "title": page.title,
                                 "link": item.get("link"),
-                                "result": "updated",
+                                "result": "created",
                                 "reason": "existed",
                                 "datecheck": wordpress_item.date_changed,
                                 "slugcheck": wordpress_item.slug_changed,
