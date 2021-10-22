@@ -58,12 +58,6 @@ class BlockBuilder:
                 if promotee.parent.name in removee_tags:
                     promotee.parent.replace_with(promotee)
 
-    # def get_none_block_content_function(self, cache, blocks):
-    #     return import_string(conf_fallback_block)
-    # blocks.append({"type": "rich_text", "value": cache})
-    # cache = ""
-    # return cache
-
     def get_builder_function(self, element):
         function = [
             import_string(builder[1]["FUNCTION"])
@@ -100,7 +94,8 @@ class BlockBuilder:
                     )
                 self.blocks.append(builder_function(element))
             else:
-                cached_fallback_value += str(element)
+                if element.text.strip():  # just in case it's a tag without content
+                    cached_fallback_value += str(element)
 
             if cached_fallback_value and counter == len(soup):
                 cached_fallback_value = cached_fallback_function(

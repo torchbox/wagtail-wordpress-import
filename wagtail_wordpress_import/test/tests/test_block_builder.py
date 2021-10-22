@@ -125,3 +125,31 @@ class TestBlockBuilderBlockDefaults(TestCase):
         output = build_table_block(get_soup(input, "html.parser"))
         self.assertEqual(output["type"], "raw_html")
         self.assertTrue(output["value"].startswith("<table"))
+
+
+class TestBlockBuilderBuild(TestCase):
+    def setUp(self):
+        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
+        self.builder = BlockBuilder(raw_html_file, None, None)
+        self.builder.promote_child_tags()
+        self.blocks = self.builder.build()
+
+    def test_rich_text_blocks_count(self):
+        blocks = [
+            block["type"] for block in self.blocks if block["type"] == "rich_text"
+        ]
+        self.assertEqual(len(blocks), 2)
+
+    def test_blockquote_blocks_count(self):
+        blocks = [
+            block["type"] for block in self.blocks if block["type"] == "block_quote"
+        ]
+        self.assertEqual(len(blocks), 2)
+
+    def test_raw_html_blocks_count(self):
+        blocks = [block["type"] for block in self.blocks if block["type"] == "raw_html"]
+        self.assertEqual(len(blocks), 5)
+
+    def test_heading_blocks_count(self):
+        blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
+        self.assertEqual(len(blocks), 2)
