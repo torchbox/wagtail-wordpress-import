@@ -1,32 +1,15 @@
 from django.conf import settings
+from django.utils.module_loading import import_string
 import requests
-import copy
-from bs4 import BeautifulSoup, element
+from bs4 import BeautifulSoup
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from wagtail.images.models import Image as ImportedImage
-from wagtail_wordpress_import.block_builder_defaults import (
-    build_table_block,
-    build_block_quote_block,
-    build_form_block,
-    build_heading_block,
-    build_iframe_block,
-    build_image_block,
-)
 
-TAGS_TO_BLOCKS = [
-    "table",
-    "iframe",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "img",
-    "blockquote",
-]
+from wagtail_wordpress_import.block_builder_defaults import (
+    conf_html_tags_to_blocks,
+    conf_fallback_block,
+)
 
 
 def conf_promote_child_tags():
@@ -75,75 +58,54 @@ class BlockBuilder:
                 if promotee.parent.name in removee_tags:
                     promotee.parent.replace_with(promotee)
 
+    # def get_none_block_content_function(self, cache, blocks):
+    #     return import_string(conf_fallback_block)
+    # blocks.append({"type": "rich_text", "value": cache})
+    # cache = ""
+    # return cache
+
+    def get_builder_function(self, element):
+        function = [
+            import_string(builder[1]["FUNCTION"])
+            for builder in conf_html_tags_to_blocks()
+            if element.name == builder[0]
+        ]
+        if function:
+            return function[0]
+
     def build(self):
+        """
+        Not Recursive when findChildren:
+        At this point the value passed in to this class should have
+        top level elements should represent the HTML we are need to build a
+        sequence of StreamField blocks.
+        Where there may be child elements in a tag that should be dealt with inside the
+        build_block_* method
+        """
         soup = self.soup.find("body").findChildren(recursive=False)
-        block_value = str("")
+        cached_fallback_value = ""
+        cached_fallback_function = import_string(
+            conf_fallback_block()
+        )  # default is a rich text block
         counter = 0
-        for tag in soup:
+        for element in soup:  # each single top level tag
             counter += 1
-            """
-            the process here loops though each soup tag to discover
-            the block type to use
-            """
+            # the builder function for the element tag from config
+            builder_function = self.get_builder_function(element)
 
-            # RICHTEXT
-            if tag.name not in TAGS_TO_BLOCKS:
-                block_value += str(self.image_linker(str(tag)))
+            if builder_function:
+                if cached_fallback_value:
+                    cached_fallback_value = cached_fallback_function(
+                        cached_fallback_value, self.blocks
+                    )
+                self.blocks.append(builder_function(element))
+            else:
+                cached_fallback_value += str(element)
 
-            if tag.name == "table":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(build_table_block(tag))
-
-            if tag.name == "iframe":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(build_iframe_block(tag))
-
-            if tag.name == "form":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(build_form_block(tag))
-
-            if (
-                tag.name == "h1"
-                or tag.name == "h2"
-                or tag.name == "h3"
-                or tag.name == "h4"
-                or tag.name == "h5"
-                or tag.name == "h6"
-            ):
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                options = {}
-                options["importance"] = tag.name
-                self.blocks.append(build_heading_block(tag))
-
-            if tag.name == "img":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(build_image_block(tag))
-
-            if tag.name == "blockquote":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                options = {}
-                options["cite"] = ""
-                if tag.attrs and tag.attrs.get("cite"):
-                    options["cite"] = tag.attrs["cite"]
-                self.blocks.append(build_block_quote_block(tag))
-
-            if counter == len(soup) and len(block_value) > 0:
-                # when we reach the end and something is in the
-                # block_value just output and clear
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
+            if cached_fallback_value and counter == len(soup):
+                cached_fallback_value = cached_fallback_function(
+                    cached_fallback_value, self.blocks
+                )
 
         return self.blocks
 
