@@ -1,5 +1,7 @@
 from django.conf import settings
 
+"""StreamField blocks"""
+
 
 def build_block_quote_block(tag):
     block_dict = {
@@ -118,6 +120,9 @@ def conf_html_tags_to_blocks():
             ),
         ],
     )
+
+
+"""Fall back StreamField block"""
 
 
 def conf_fallback_block():
