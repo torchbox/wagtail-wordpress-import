@@ -2,7 +2,7 @@ import os
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
-from wagtail_wordpress_import.block_builder import BlockBuilder, check_image_src
+from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
     build_form_block,
