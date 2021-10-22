@@ -1,4 +1,9 @@
+import requests
+from bs4 import BeautifulSoup
 from django.conf import settings
+from django.core.files import File
+from django.core.files.temp import NamedTemporaryFile
+from wagtail.images.models import Image as ImportedImage
 
 """StreamField blocks"""
 
@@ -134,6 +139,127 @@ def conf_fallback_block():
 
 
 def build_none_block_content(cache, blocks):
-    blocks.append({"type": "rich_text", "value": cache})
+    """
+    image_linker is called to link up and retrive the remote image
+    """
+    blocks.append({"type": "rich_text", "value": image_linker(cache)})
     cache = ""
     return cache
+
+
+"""Rich Text Functions"""
+
+
+def conf_valid_image_content_types():
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORTER_VALID_IMAGE_CONTENT_TYPES",
+        [
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "text/html",
+        ],
+    )
+
+
+def conf_domain_prefix():
+    if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
+        return getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL")
+
+    if not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
+        settings, "BASE_URL"
+    ):
+        return getattr(settings, "BASE_URL")
+
+    return None
+
+
+def image_linker(html):
+    """
+    params
+    ======
+        html: html from a single rich_text block
+
+    returns
+    =======
+        string: the html with img tags modified
+
+    BS4 performs a find and replace on all img tags found in the HTML.
+    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    the soup is modified.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    images = soup.find_all("img")
+    for image in images:
+        if image.attrs and image.attrs["src"]:
+            image_src = get_abolute_src(image.attrs["src"], conf_domain_prefix())
+            saved_image = get_or_save_image(image_src)
+            if saved_image:
+                image_embed = soup.new_tag("embed")
+                image_embed.attrs["embedtype"] = "image"
+                image_embed.attrs["id"] = saved_image.id
+                image_embed.attrs["alt"] = get_image_alt(image)
+                image_embed.attrs["format"] = get_alignment_class(image)
+                image.replace_with(image_embed)
+        else:
+            print(f"IMAGE HAS NO SRC: {image}")
+
+    return str(soup)
+
+
+def get_image_alt(img_tag):
+    return img_tag.attrs["alt"] if "alt" in img_tag.attrs else None
+
+
+def get_image_file_name(src):
+    return src.split("/")[-1] if src else None  # need the last part
+
+
+def image_exists(name):
+    try:
+        return ImportedImage.objects.get(title=name)
+    except ImportedImage.DoesNotExist:
+        pass
+
+
+def get_or_save_image(src):
+    image_file_name = get_image_file_name(src)
+    existing_image = image_exists(image_file_name)
+    if existing_image:
+        return existing_image
+    elif image_file_name:
+        response = requests.get(src, timeout=10, stream=True)
+        valid_response = response.status_code == 200
+        content_type = response.headers.get("Content-Type")
+        temp_image = NamedTemporaryFile(delete=True)
+        if valid_response and content_type.lower() in conf_valid_image_content_types():
+            temp_image.write(response.content)
+            temp_image.flush()
+            retrieved_image = ImportedImage(
+                file=File(file=temp_image), title=image_file_name
+            )
+            retrieved_image.save()
+            return retrieved_image
+        else:
+            print(f"RECEIVED INVALID RESPONSE: {src}")
+
+
+def get_abolute_src(src, domain_prefix=None):
+    if not src.startswith("http") and domain_prefix:
+        return domain_prefix + "/" + src
+
+    return src
+
+
+def get_alignment_class(image):
+    alignment = "fullwidth"
+
+    if "class" in image.attrs:
+        if "align-left" in image.attrs["class"]:
+            alignment = "left"
+        elif "align-right" in image.attrs["class"]:
+            alignment = "right"
+
+    return alignment

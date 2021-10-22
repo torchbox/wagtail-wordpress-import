@@ -2,7 +2,7 @@ import os
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
-from wagtail_wordpress_import.block_builder import BlockBuilder, check_image_src
+from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
     build_form_block,
@@ -10,6 +10,10 @@ from wagtail_wordpress_import.block_builder_defaults import (
     build_iframe_block,
     build_image_block,
     build_table_block,
+    get_abolute_src,
+    get_alignment_class,
+    get_image_alt,
+    get_image_file_name,
 )
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -153,3 +157,85 @@ class TestBlockBuilderBuild(TestCase):
     def test_heading_blocks_count(self):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
         self.assertEqual(len(blocks), 2)
+
+
+class TestRichTextImageLinking(TestCase):
+    def test_images_linked_rich_text(self):
+        """
+        <p>Absolute image url.
+            <a href="#">
+                <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+            </a>
+        </p>
+        In the fixture file is the only one that will be converted.
+        The other img tags will become image blocks
+        """
+        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
+        self.builder = BlockBuilder(raw_html_file, None, None)
+        self.builder.promote_child_tags()
+        self.blocks = self.builder.build()
+
+        blocks = [
+            block["type"]
+            for block in self.blocks
+            if block["type"] == "rich_text" and 'embedtype="image"' in block["value"]
+        ]
+
+        # self.assertEqual(len(blocks), 1) how to test images
+
+    def test_get_image_alt(self):
+        input = get_soup(
+            '<img src="fakeimage.jpg" alt="image alt" />', "html.parser"
+        ).find("img")
+        self.assertEqual(get_image_alt(input), "image alt")
+
+    def test_get_image_file_name(self):
+        self.assertEqual(get_image_file_name("fakeimage.jpg"), "fakeimage.jpg")
+        self.assertEqual(get_image_file_name("folder/fakeimage.jpg"), "fakeimage.jpg")
+        self.assertEqual(
+            get_image_file_name(
+                "http://www.example.com/folder1/folder2//fakeimage.jpg"
+            ),
+            "fakeimage.jpg",
+        )
+
+    def test_get_abolute_src(self):
+        self.assertEqual(
+            get_abolute_src("fakeimage.jpg", "http://www.example.com"),
+            "http://www.example.com/fakeimage.jpg",
+        )
+        self.assertEqual(
+            get_abolute_src("folder/fakeimage.jpg", "http://www.example.com"),
+            "http://www.example.com/folder/fakeimage.jpg",
+        )
+        self.assertEqual(
+            get_abolute_src("folder/fakeimage.jpg"),
+            "folder/fakeimage.jpg",
+        )  # the test settings has no BASE_URL setting so try having no domain prefix
+
+    def test_get_alignment_class(self):
+        input = get_soup(
+            '<img src="fakeimage.jpg" alt="image alt" class="align-left" />',
+            "html.parser",
+        ).find("img")
+        self.assertEqual(get_alignment_class(input), "left")
+        input = get_soup(
+            '<img src="fakeimage.jpg" alt="image alt" class="align-right" />',
+            "html.parser",
+        ).find("img")
+        self.assertEqual(get_alignment_class(input), "right")
+        input = get_soup(
+            '<img src="fakeimage.jpg" alt="image alt" />',
+            "html.parser",
+        ).find("img")
+        self.assertEqual(get_alignment_class(input), "fullwidth")
+
+    def test_with_real_image(self):
+        # but we need to test with mocked images if we can.
+        raw_html_file = """
+        <p>Lorem <img src="https://dummyimage.com/600x400/000/fff" alt=""></p>
+        """
+        self.builder = BlockBuilder(raw_html_file, None, None)
+        self.builder.promote_child_tags()
+        self.blocks = self.builder.build()
+        self.assertTrue("<embed" in self.blocks[0]["value"])
