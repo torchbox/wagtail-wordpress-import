@@ -139,42 +139,125 @@ def conf_fallback_block():
 
 
 def build_none_block_content(cache, blocks):
-    blocks.append({"type": "rich_text", "value": cache})
+    """
+    image_linker is called to link up and retrive the remote image
+    """
+    blocks.append({"type": "rich_text", "value": image_linker(cache)})
     cache = ""
     return cache
 
 
 """Rich Text Functions"""
 
-# this is not what i'd expect to see but some images return text/html CDN maybe?
-VALID_IMAGE_CONTENT_TYPES = [
-    "image/gif",
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "text/html",
-]
 
-IMAGE_SRC_DOMAIN = "https://www.budgetsaresexy.com"  # note no trailing /
+def conf_valid_image_content_types():
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORTER_VALID_IMAGE_CONTENT_TYPES",
+        [
+            "image/gif",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+            "text/html",
+        ],
+    )
 
 
-def image_linker(self, tag):
-    soup = BeautifulSoup(tag, "html.parser", exclude_encodings=True)
+def conf_domain_prefix():
+    if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
+        print("dev")
+        return getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL")
+
+    if not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
+        settings, "BASE_URL"
+    ):
+        print("base")
+        return getattr(settings, "BASE_URL")
+
+    return None
+
+
+def image_linker(html):
+    """
+    params
+    ======
+        html: html from a single rich_text block
+
+    returns
+    =======
+        string: the html with img tags modified
+
+    BS4 performs a find and replace on all img tags found in the HTML.
+    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    the soup is modified.
+    """
+    soup = BeautifulSoup(html, "html.parser")
     images = soup.find_all("img")
 
     for image in images:
-        image_saved = self.get_image(image)
-        if image_saved:
-            alignment = self.get_alignment_class(image)
-            img_alt = image.attrs["alt"] if "alt" in image.attrs else None
-            tag = '<embed embedtype="image" id="{}" alt="{}" format="{}" />'.format(
-                image_saved.id, img_alt, alignment
-            )
+        if image.attrs and image.attrs["src"]:
+            image_src = get_abolute_src(image.attrs["src"], conf_domain_prefix())
+            saved_image = get_or_save_image(image_src)
+            if saved_image:
+                image_embed = soup.new_tag("embed")
+                image_embed.attrs["embedtype"] = "image"
+                image_embed.attrs["id"] = saved_image.id
+                image_embed.attrs["alt"] = get_image_alt(image)
+                image_embed.attrs["format"] = get_alignment_class(image)
+                image.replace_with(image_embed)
+        else:
+            print(f"IMAGE HAS NO SRC: {image}")
 
-    return tag
+    return str(soup)
 
 
-def get_alignment_class(self, image):
+def get_image_alt(img_tag):
+    return img_tag.attrs["alt"] if "alt" in img_tag.attrs else None
+
+
+def get_image_file_name(src):
+    return src.split("/")[-1]  # need the last part
+
+
+def image_exists(name):
+    try:
+        return ImportedImage.objects.get(title=name)
+    except ImportedImage.DoesNotExist:
+        pass
+
+
+def get_or_save_image(src):
+    image_file_name = get_image_file_name(src)
+    existing_image = image_exists(image_file_name)
+    if existing_image:
+        return existing_image
+    else:
+        response = requests.get(src, timeout=10)
+        valid_response = response.status_code == 200
+        content_type = response.headers.get("Content-Type")
+        if valid_response and content_type.lower() in conf_valid_image_content_types():
+            temp_image = NamedTemporaryFile(delete=True)
+            temp_image.name = get_image_file_name(src)
+            temp_image.write(response.content)
+            retrieved_image = ImportedImage(
+                file=File(file=temp_image), title=temp_image.name
+            ).save()
+            temp_image.flush()
+            return retrieved_image
+        else:
+            print(f"RECEIVED INVALID RESPONSE: {src}")
+
+
+def get_abolute_src(src, domain_prefix=None):
+    if not domain_prefix:
+        return src
+
+    if not src.startswith("http") and domain_prefix:
+        return domain_prefix + "/" + src
+
+
+def get_alignment_class(image):
     alignment = "fullwidth"
 
     if "class" in image.attrs:
@@ -184,97 +267,3 @@ def get_alignment_class(self, image):
             alignment = "right"
 
     return alignment
-
-
-def get_image(self, image):
-
-    if image.get("src"):
-        name = image.get("src").split("/")[-1]  # need the last part
-        temp = NamedTemporaryFile(delete=True)
-        image_src = check_image_src(image.get("src")).strip("/")
-    else:
-        self.logged_items["items"].append(
-            {
-                "id": self.node.get("wp:post_id"),
-                "title": self.node.get("title"),
-                "link": self.node.get("link"),
-                "reason": "no src provided",
-            }
-        )
-        self.logger.images.append(
-            {
-                "id": self.node.get("wp:post_id"),
-                "title": self.node.get("title"),
-                "link": self.node.get("link"),
-                "reason": "no src provided",
-            }
-        )
-        return
-
-    try:
-        image_exists = ImportedImage.objects.get(title=name)
-        return image_exists
-
-    except ImportedImage.DoesNotExist:
-
-        try:
-            response = requests.get(image_src, timeout=10)
-            status_code = response.status_code
-            content_type = response.headers.get("Content-Type")
-
-            if content_type and content_type.lower() not in VALID_IMAGE_CONTENT_TYPES:
-                self.logged_items["items"].append(
-                    {
-                        "id": self.node.get("wp:post_id"),
-                        "title": self.node.get("title"),
-                        "link": self.node.get("link"),
-                        "reason": "invalid image types match or no content type",
-                    }
-                )
-                self.logger.images.append(
-                    {
-                        "id": self.node.get("wp:post_id"),
-                        "title": self.node.get("title"),
-                        "link": self.node.get("link"),
-                        "reason": "invalid image types match or no content type",
-                    }
-                )
-                return
-
-            if status_code == 200:
-                temp.name = name
-                temp.write(response.content)
-                temp.flush()
-                new_image = ImportedImage(file=File(file=temp), title=name)
-                new_image.save()
-                return new_image
-
-        except requests.exceptions.ConnectionError:
-            self.logged_items["items"].append(
-                {
-                    "id": self.node.get("wp:post_id"),
-                    "title": self.node.get("title"),
-                    "link": self.node.get("link"),
-                    "reason": "connection error",
-                }
-            )
-            self.logger.images.append(
-                {
-                    "id": self.node.get("wp:post_id"),
-                    "title": self.node.get("title"),
-                    "link": self.node.get("link"),
-                    "reason": "connection error",
-                }
-            )
-
-
-def check_image_src(src):
-    # some images have relative src values
-    if not src.startswith("http"):
-        print(
-            "WARNING: relative file {}. Image may be broken, trying with domain name prepended. ".format(
-                src
-            )
-        )
-        return IMAGE_SRC_DOMAIN + "/" + src
-    return src
