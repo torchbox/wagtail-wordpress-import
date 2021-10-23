@@ -192,7 +192,6 @@ def image_linker(html):
     """
     soup = BeautifulSoup(html, "html.parser")
     images = soup.find_all("img")
-
     for image in images:
         if image.attrs and image.attrs["src"]:
             image_src = get_abolute_src(image.attrs["src"], conf_domain_prefix())
@@ -231,17 +230,17 @@ def get_or_save_image(src):
     if existing_image:
         return existing_image
     elif image_file_name:
-        response = requests.get(src, timeout=10)
+        response = requests.get(src, timeout=10, stream=True)
         valid_response = response.status_code == 200
         content_type = response.headers.get("Content-Type")
+        temp_image = NamedTemporaryFile(delete=True)
         if valid_response and content_type.lower() in conf_valid_image_content_types():
-            temp_image = NamedTemporaryFile(delete=True)
-            temp_image.name = get_image_file_name(src)
             temp_image.write(response.content)
-            retrieved_image = ImportedImage(
-                file=File(file=temp_image), title=temp_image.name
-            ).save()
             temp_image.flush()
+            retrieved_image = ImportedImage(
+                file=File(file=temp_image), title=image_file_name
+            )
+            retrieved_image.save()
             return retrieved_image
         else:
             print(f"RECEIVED INVALID RESPONSE: {src}")
