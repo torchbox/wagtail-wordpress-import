@@ -166,13 +166,11 @@ def conf_valid_image_content_types():
 
 def conf_domain_prefix():
     if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
-        print("dev")
         return getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL")
 
     if not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
         settings, "BASE_URL"
     ):
-        print("base")
         return getattr(settings, "BASE_URL")
 
     return None
@@ -217,7 +215,7 @@ def get_image_alt(img_tag):
 
 
 def get_image_file_name(src):
-    return src.split("/")[-1]  # need the last part
+    return src.split("/")[-1] if src else None  # need the last part
 
 
 def image_exists(name):
@@ -232,7 +230,7 @@ def get_or_save_image(src):
     existing_image = image_exists(image_file_name)
     if existing_image:
         return existing_image
-    else:
+    elif image_file_name:
         response = requests.get(src, timeout=10)
         valid_response = response.status_code == 200
         content_type = response.headers.get("Content-Type")
@@ -250,11 +248,10 @@ def get_or_save_image(src):
 
 
 def get_abolute_src(src, domain_prefix=None):
-    if not domain_prefix:
-        return src
-
     if not src.startswith("http") and domain_prefix:
         return domain_prefix + "/" + src
+
+    return src
 
 
 def get_alignment_class(image):
