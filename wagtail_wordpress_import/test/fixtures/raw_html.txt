@@ -1,3 +1,4 @@
+<img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
 <span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
 
 <a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
@@ -9,6 +10,7 @@
         <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
     </a>
 </p>
+
 
 <ul>
 <li style="font-weight: 400;" onmouseover="alert('Boo!')"><span style="font-weight: 400;">Lorem 1</span></li>
