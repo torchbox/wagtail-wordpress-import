@@ -3,7 +3,7 @@
 <span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
 
 <a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
-
+<a href="https://www.budgetsaresexy.com/files/personal-finance-culminating-assignment.pdf">Read this</a>
 <h2><strong>Lorem ipsum dolor sit amet?</strong></h2>
 
 <p>Absolute image url.
