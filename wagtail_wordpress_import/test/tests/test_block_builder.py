@@ -95,6 +95,7 @@ class TestBlockBuilderBlockDefaults(TestCase):
         self.assertEqual(output["type"], "raw_html")
         self.assertTrue(output["value"].startswith("<div"))
 
+    # work in progress
     def test_build_image_block(self):
         input = """<img src="http://www.example.com/image.jpg" />"""
         soup = get_soup(input, "html.parser")
@@ -262,6 +263,7 @@ class TestRichTextImageLinking(TestCase):
         ).find("img")
         self.assertEqual(get_alignment_class(input), "fullwidth")
 
+    # work in progress
     def test_with_real_image(self):
         # but we need to test with mocked images if we can.
         raw_html_file = """
@@ -271,3 +273,16 @@ class TestRichTextImageLinking(TestCase):
         self.builder.promote_child_tags()
         self.blocks = self.builder.build()
         self.assertTrue("<embed" in self.blocks[0]["value"])
+
+    # work in progress
+    def test_with_real_pdf(self):
+        # but we need to test with mocked files if we can.
+        raw_html_file = """
+        <p>
+        <a href="https://file-examples-com.github.io/uploads/2017/10/file-sample_150kB.pdf">A pdf</a>
+        </p>
+        """
+        self.builder = BlockBuilder(raw_html_file, None, None)
+        self.builder.promote_child_tags()
+        self.blocks = self.builder.build()
+        self.assertTrue('linktype="document"' in self.blocks[0]["value"])
