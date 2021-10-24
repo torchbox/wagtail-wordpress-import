@@ -43,40 +43,50 @@ def transform_style_center(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    _class = tag.get("class", "") + " align-center"
-    tag.attrs["class"] = _class.strip()
+    if tag.attrs.get("class"):
+        tag.attrs["class"].append("align-center")
+    else:
+        tag.attrs["class"] = "align-center"
 
 
 def transform_style_left(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    _class = tag.get("class", "") + " align-left"
-    tag.attrs["class"] = _class.strip()
+    if tag.attrs.get("class"):
+        tag.attrs["class"].append("align-left")
+    else:
+        tag.attrs["class"] = "align-left"
 
 
 def transform_style_right(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    _class = tag.get("class", "") + " align-right"
-    tag.attrs["class"] = _class.strip()
+    if tag.attrs.get("class"):
+        tag.attrs["class"].append("align-right")
+    else:
+        tag.attrs["class"] = "align-right"
 
 
 def transform_float_left(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    _class = tag.get("class", "") + " float-left"
-    tag.attrs["class"] = _class.strip()
+    if tag.attrs.get("class"):
+        tag.attrs["class"].append("float-left")
+    else:
+        tag.attrs["class"] = "float-left"
 
 
 def transform_float_right(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    _class = tag.get("class", "") + " float-right"
-    tag.attrs["class"] = _class.strip()
+    if tag.attrs.get("class"):
+        tag.attrs["class"].append("float-right")
+    else:
+        tag.attrs["class"] = "float-right"
 
 
 def conf_styles_mapping():
