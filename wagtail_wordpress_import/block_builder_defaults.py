@@ -1,3 +1,5 @@
+import re
+
 import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
@@ -240,14 +242,16 @@ def get_or_save_image(src):
     existing_image = image_exists(image_file_name)
     if not existing_image:
         response, valid, type = fetch_url(src)
-        temp_image = NamedTemporaryFile(delete=True)
         if valid and (type in conf_valid_image_content_types()):
+            temp_image = NamedTemporaryFile(delete=True)
+            temp_image.name = image_file_name
             temp_image.write(response.content)
             temp_image.flush()
             retrieved_image = ImportedImage(
                 file=File(file=temp_image), title=image_file_name
             )
             retrieved_image.save()
+            temp_image.close()
             return retrieved_image
         else:
             print(f"RECEIVED INVALID RESPONSE: {src}")
@@ -268,9 +272,9 @@ def fetch_url(src, r=None, status=False, content_type=None):
 
 
 def get_abolute_src(src, domain_prefix=None):
+    src = re.sub("^\/+", "", src)
     if not src.startswith("http") and domain_prefix:
         return domain_prefix + "/" + src
-
     return src
 
 

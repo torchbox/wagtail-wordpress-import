@@ -10,6 +10,10 @@ FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 
 # @override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=False)
+@override_settings(
+    BASE_URL="http://localhost:8000"
+)  # testing requires a live domain for requests to use, this is something I need to change before package release
+# mocking of somesort, using localhost:8000 for now
 class WordpressItemTests(TestCase):
     def setUp(self):
         self.logger = Logger("fakedir")
