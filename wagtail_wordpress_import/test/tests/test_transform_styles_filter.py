@@ -79,7 +79,7 @@ class TestTransformStylesFilter(TestCase):
         paragraph = soup.find("p")
 
         self.assertTrue(paragraph)
-        self.assertEqual(paragraph.attrs["class"], "align-center")
+        self.assertTrue("align-center" in paragraph.attrs["class"])
 
     def test_transform_style_left(self):
         input = '<p style="text-align: left;">Text content</p>'
@@ -88,7 +88,7 @@ class TestTransformStylesFilter(TestCase):
         paragraph = soup.find("p")
 
         self.assertTrue(paragraph)
-        self.assertEqual(paragraph.attrs["class"], "align-left")
+        self.assertTrue("align-left" in paragraph.attrs["class"])
 
     def test_transform_style_right(self):
         input = '<p style="text-align: right;">Text content</p>'
@@ -97,7 +97,7 @@ class TestTransformStylesFilter(TestCase):
         paragraph = soup.find("p")
 
         self.assertTrue(paragraph)
-        self.assertEqual(paragraph.attrs["class"], "align-right")
+        self.assertTrue("align-right" in paragraph.attrs["class"])
 
     def test_transform_float_left(self):
         input = '<p style="float: left;">Text content</p>'
@@ -106,7 +106,7 @@ class TestTransformStylesFilter(TestCase):
         paragraph = soup.find("p")
 
         self.assertTrue(paragraph)
-        self.assertEqual(paragraph.attrs["class"], "float-left")
+        self.assertTrue("float-left" in paragraph.attrs["class"])
 
     def test_transform_float_right(self):
         input = '<p style="float: right;">Text content</p>'
@@ -115,7 +115,7 @@ class TestTransformStylesFilter(TestCase):
         paragraph = soup.find("p")
 
         self.assertTrue(paragraph)
-        self.assertEqual(paragraph.attrs["class"], "float-right")
+        self.assertTrue("float-right" in paragraph.attrs["class"])
 
     def test_transform_html_tag_strong(self):
         input = "<strong>Text content</strong>"
