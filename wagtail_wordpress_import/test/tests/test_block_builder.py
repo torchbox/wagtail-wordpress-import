@@ -133,6 +133,7 @@ class TestBlockBuilderBlockDefaults(TestCase):
         self.assertTrue(output["value"].startswith("<table"))
 
 
+@override_settings(BASE_URL="http://www.example.com")
 class TestBlockBuilderBuild(TestCase):
     def setUp(self):
         raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
@@ -239,6 +240,12 @@ class TestRichTextImageLinking(TestCase):
             get_abolute_src("folder/fakeimage.jpg"),
             "folder/fakeimage.jpg",
         )  # the test settings has no BASE_URL setting so try having no domain prefix
+
+    def test_get_abolute_src_slashes_at_start(self):
+        self.assertEqual(
+            get_abolute_src("//folder/fakeimage.jpg", "http://www.example.com"),
+            "http://www.example.com/folder/fakeimage.jpg",
+        )
 
     def test_get_alignment_class(self):
         input = get_soup(
