@@ -1,7 +1,8 @@
 import os
 
 from bs4 import BeautifulSoup
-from django.test import TestCase
+from django.conf import settings
+from django.test import TestCase, override_settings, modify_settings
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
@@ -10,6 +11,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     build_iframe_block,
     build_image_block,
     build_table_block,
+    conf_domain_prefix,
     get_abolute_src,
     get_alignment_class,
     get_image_alt,
@@ -157,6 +159,31 @@ class TestBlockBuilderBuild(TestCase):
     def test_heading_blocks_count(self):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
         self.assertEqual(len(blocks), 2)
+
+
+class TestBlockBuilderDefaultsBaseUrl(TestCase):
+    @override_settings(BASE_URL="http://www.example.com")
+    def test_conf_domain_prefix(self):
+        prefix = conf_domain_prefix()
+        self.assertEqual(prefix, "http://www.example.com")
+
+    @override_settings(WAGTAIL_WORDPRESS_IMPORTER_BASE_URL="http://www.example.com")
+    def test_conf_domain_prefix(self):
+        prefix = conf_domain_prefix()
+        self.assertEqual(prefix, "http://www.example.com")
+
+    @override_settings(
+        BASE_URL="http://www.example.com",
+        WAGTAIL_WORDPRESS_IMPORTER_BASE_URL="http://www.domain.com",
+    )  # WAGTAIL_WORDPRESS_IMPORTER_BASE_URL takes preference
+    def test_conf_domain_prefix(self):
+        prefix = conf_domain_prefix()
+        self.assertEqual(prefix, "http://www.domain.com")
+
+    @override_settings()  # no BASE_URL or WAGTAIL_WORDPRESS_IMPORTER_BASE_URL
+    def test_conf_domain_prefix_no_base_url_config(self):
+        prefix = conf_domain_prefix()
+        self.assertIsNone(prefix)
 
 
 class TestRichTextImageLinking(TestCase):

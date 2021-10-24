@@ -165,15 +165,14 @@ def conf_valid_image_content_types():
 
 
 def conf_domain_prefix():
+
     if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
         return getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL")
 
-    if not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
+    elif not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
         settings, "BASE_URL"
     ):
         return getattr(settings, "BASE_URL")
-
-    return None
 
 
 def image_linker(html):
