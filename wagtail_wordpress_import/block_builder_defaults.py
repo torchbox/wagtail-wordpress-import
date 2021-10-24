@@ -224,17 +224,25 @@ def image_exists(name):
         pass
 
 
+def conf_get_requests_settings():
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS",
+        {
+            "headers": {"User-Agent": "WagtailWordpressImporter"},
+            "timeout": 1,
+            "stream": False,
+        },
+    )
+
+
 def get_or_save_image(src):
     image_file_name = get_image_file_name(src)
     existing_image = image_exists(image_file_name)
-    if existing_image:
-        return existing_image
-    elif image_file_name:
-        response = requests.get(src, timeout=10, stream=True)
-        valid_response = response.status_code == 200
-        content_type = response.headers.get("Content-Type")
+    if not existing_image:
+        response, valid, type = fetch_url(src)
         temp_image = NamedTemporaryFile(delete=True)
-        if valid_response and content_type.lower() in conf_valid_image_content_types():
+        if valid and (type in conf_valid_image_content_types()):
             temp_image.write(response.content)
             temp_image.flush()
             retrieved_image = ImportedImage(
@@ -244,6 +252,20 @@ def get_or_save_image(src):
             return retrieved_image
         else:
             print(f"RECEIVED INVALID RESPONSE: {src}")
+    return existing_image
+
+
+def fetch_url(src, r=None, status=False, content_type=None):
+    """general purpose url fetcher with ability to pass in own config"""
+    try:
+        r = requests.get(src, **conf_get_requests_settings())
+        status = r.status_code == 200
+        content_type = (
+            r.headers["content-type"].lower() if r.headers.get("content-type") else ""
+        )
+    except requests.ConnectTimeout:
+        print(f"THERE WAS A PROBLEM WITH REQUESTS FETCHING: {src}")
+    return r, status, content_type
 
 
 def get_abolute_src(src, domain_prefix=None):
