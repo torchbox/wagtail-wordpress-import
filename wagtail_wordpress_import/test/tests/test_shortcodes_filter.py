@@ -9,7 +9,7 @@ BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 
 
-class TestShortcodesRegex(TestCase):
+class TestBlockShortcodeRegex(TestCase):
     def test_shortcode_is_found(self):
         class FooHandler(BlockShortcodeHandler):
             tag_name = "foo"
@@ -57,6 +57,18 @@ class TestShortcodesRegex(TestCase):
         )
         self.assertEqual(match.group("attrs"), "")
 
+    def test_block_shortcode_handler_requires_the_closing_shortcode_tag(self):
+        """This tests that an aside in square brackets is not accidentally matched."""
+
+        class FooHandler(BlockShortcodeHandler):
+            tag_name = "foo"
+
+        handler = FooHandler()
+        html = "Metasyntactic variables [foo and the like] are common placeholders"
+
+        match = handler._pattern.search(html)
+        self.assertFalse(match)
+
 
 class TestShortcodesSubstitution(TestCase):
     fodder = (
@@ -101,6 +113,20 @@ class TestShortcodesSubstitution(TestCase):
         self.assertEqual(len(tags), 1)
         self.assertEqual(str(tags[0]), "<wagtail_block_foo>eggs</wagtail_block_foo>")
 
+    def test_beautifulsoup_can_parse_attrs(self):
+        class FooHandler(BlockShortcodeHandler):
+            tag_name = "foo"
+
+        html = 'ham[foo quantity=3 state="over easy" garnish="more spam"]eggs[/foo]spam'
+        handler = FooHandler()
+        html = handler.pre_filter(html)
+        soup = BeautifulSoup(html, "html.parser")
+        tags = soup.find_all(True)
+        self.assertEqual(len(tags), 1)
+        self.assertEqual(tags[0]["quantity"], "3")
+        self.assertEqual(tags[0]["state"], "over easy")
+        self.assertEqual(tags[0]["garnish"], "more spam")
+
     def test_caption(self):
         class CaptionHandler(BlockShortcodeHandler):
             tag_name = "caption"
@@ -112,6 +138,17 @@ class TestShortcodesSubstitution(TestCase):
             html,
             'Some pretext<wagtail_block_caption width="100">The content of the tag</wagtail_block_caption>',
         )
+
+    def test_unclosed_shortcode_rejected_by_block_shortcode_handler(self):
+        """This tests that an aside in square brackets is not accidentally matched."""
+
+        class CaptionHandler(BlockShortcodeHandler):
+            tag_name = "caption"
+
+        original = "Some pretext [caption this however you want] "
+        handler = CaptionHandler()
+        html = handler.pre_filter(original)
+        self.assertEqual(html, original)
 
     def test_known_content(self):
         class CaptionHandler(BlockShortcodeHandler):

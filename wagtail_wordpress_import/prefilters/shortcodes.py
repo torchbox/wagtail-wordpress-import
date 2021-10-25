@@ -1,5 +1,5 @@
-from typing import Pattern
 import re
+from typing import Pattern
 
 
 class BlockShortcodeHandler:
@@ -60,6 +60,7 @@ class BlockShortcodeHandler:
     @property
     def element_name(self) -> str:
         return f"wagtail_block_{self.tag_name}"
+
 
 # Subclasses should declare a tag_name, and provide a construct_block method for
 # converting their prefiltered HTML to Wagtail StreamField block JSON.
