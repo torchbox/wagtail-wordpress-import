@@ -2,12 +2,25 @@ import os
 import json
 from django.test import TestCase, override_settings
 from datetime import datetime
-from wagtail_wordpress_import.importers.wordpress import WordpressItem
+from example.models import Category
+from wagtail.core.models import Page
+from wagtail_wordpress_import.importers.wordpress import (
+    WordpressImporter,
+    WordpressItem,
+)
 from wagtail_wordpress_import.logger import Logger
+
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
-
+LOG_DIR = "fakedir"
+IMPORTER_RUN_PARAMS_TEST = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["post", "page"],
+    "page_statuses": ["publish", "draft"],
+}
 
 class WordpressItemTests(TestCase):
     def setUp(self):
@@ -82,3 +95,45 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(last_published_at, datetime)
         self.assertIsInstance(latest_revision_created_at, datetime)
         self.assertEqual(wp_link, "")
+
+
+@override_settings(
+    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+)  # testing requires a live domain for requests to use, this is something I need to change before package release
+# mocking of somesort, using localhost:8000 for now
+class WordpressItemImportTests(TestCase):
+    from example.models import Category
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST["page_statuses"],
+        )
+
+        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS_TEST["parent_id"])
+        self.imported_pages = self.parent_page.get_children().all()
+
+    def test_category_snippets_are_saved(self):
+        snippets = Category.objects.all()
+        self.assertEqual(len(snippets), 4)
+
+    def test_page_has_categories(self):
+        page_one = self.imported_pages.get(title="Item one title")
+        page_one_categories = page_one.specific.categories.all()
+        self.assertEqual(2, page_one_categories.count())
+
+        page_two = self.imported_pages.get(title="Item two title")
+        page_two_categories = page_two.specific.categories.all()
+        self.assertEqual(2, page_two_categories.count())
