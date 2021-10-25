@@ -1,8 +1,7 @@
 import os
 
 from bs4 import BeautifulSoup
-from django.conf import settings
-from django.test import TestCase, override_settings, modify_settings
+from django.test import TestCase, override_settings
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,

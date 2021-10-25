@@ -356,8 +356,6 @@ def document_linker(html):
                 document_embed.attrs["linktype"] = "document"
                 document_embed.attrs["id"] = saved_document.id
                 document_embed.string = anchor_inner_content
-                # image_embed.attrs["alt"] = get_image_alt(image)
-                # image_embed.attrs["format"] = get_alignment_class(image)
                 anchor.replace_with(document_embed)
         else:
             print(f"DOCUMENT HAS NO HREF: {anchor}")
