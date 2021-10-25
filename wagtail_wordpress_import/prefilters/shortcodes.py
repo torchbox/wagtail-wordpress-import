@@ -4,6 +4,8 @@ import re
 
 class BlockShortcodeHandler:
 
+    tag_name: str
+
     @property
     def _pattern(self) -> Pattern:
         """Return a regex to match a block shortcode and capture the attrs and text.
