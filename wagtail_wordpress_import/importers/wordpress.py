@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
+from django.utils.module_loading import import_string
 
 from bs4 import BeautifulSoup
 from django.apps import apps
@@ -14,8 +15,10 @@ from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress_defaults import (
     debug_enabled,
     default_prefilters,
+    get_category_model,
     yoast_plugin_config,
     yoast_plugin_enabled,
+    category_plugin_enabled,
 )
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
@@ -75,6 +78,12 @@ class WordpressImporter:
                     except self.page_model_instance.DoesNotExist:
                         page = self.page_model_instance()
 
+                    # add categories for this page if categories plugin is enabled
+                    if category_plugin_enabled() and get_category_model():
+                        self.connect_page_categories(
+                            page, import_string(get_category_model()), item
+                        )
+
                     page.import_wordpress_data(wordpress_item.cleaned_data)
 
                     if item.get("wp:status") == "draft":
@@ -113,6 +122,7 @@ class WordpressImporter:
                         )
 
                     self.imported_pages.append(page)
+
                 else:
                     self.logger.skipped += 1
                     self.logger.items.append(
@@ -206,6 +216,18 @@ class WordpressImporter:
             return self.page_model_instance.objects.get(wp_link=link)
         except self.page_model_instance.DoesNotExist:
             pass
+
+    def connect_page_categories(self, page, category_model, item):
+        categories = item.get("category")
+        page_categories = []
+        for name in categories:
+            existing_category = None
+            try:
+                existing_category = category_model.objects.get(name=name)
+            except category_model.DoesNotExist:
+                existing_category = category_model.objects.create(name=name)
+            page_categories.append(existing_category)
+        page.categories = page_categories
 
 
 class WordpressItem:
@@ -341,6 +363,7 @@ class WordpressItem:
         This came out of dealing with the Yoast search_description field which we have
         included and can be configured to accept different values that are in wp:postmeta keys
         """
+
         return {
             "title": self.cleaned_title(),
             "slug": self.cleaned_slug(),
