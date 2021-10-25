@@ -95,6 +95,8 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_type>post</wp:post_type>
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
+            <category domain="category" nicename="blogging">Blogging</category>
+            <category domain="category" nicename="life">Life</category>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
@@ -170,6 +172,8 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_type>page</wp:post_type>
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
+            <category domain="category" nicename="blogging">Cars</category>
+            <category domain="category" nicename="life">Computing</category>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
@@ -206,6 +210,7 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_type>testpostmeta</wp:post_type>
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
+            <category domain="category" nicename="life">Life</category>
         </item>
         <item>
             <title>Item with wp:postmeta</title>
@@ -230,6 +235,7 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_type>postmetachanged</wp:post_type>
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
+            <category domain="category" nicename="blogging">Blogging</category>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
