@@ -13,6 +13,7 @@ from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress_defaults import (
+    category_name_min_length,
     debug_enabled,
     default_prefilters,
     get_category_model,
@@ -219,15 +220,17 @@ class WordpressImporter:
 
     def connect_page_categories(self, page, category_model, item):
         categories = item.get("category")
-        page_categories = []
-        for name in categories:
-            existing_category = None
-            try:
-                existing_category = category_model.objects.get(name=name)
-            except category_model.DoesNotExist:
-                existing_category = category_model.objects.create(name=name)
-            page_categories.append(existing_category)
-        page.categories = page_categories
+        if categories:
+            page_categories = []
+            for name in categories:
+                if len(name) > category_name_min_length():
+                    existing_category = None
+                    try:
+                        existing_category = category_model.objects.get(name=name)
+                    except category_model.DoesNotExist:
+                        existing_category = category_model.objects.create(name=name)
+                    page_categories.append(existing_category)
+            page.categories = page_categories
 
 
 class WordpressItem:

@@ -21,6 +21,14 @@ The plugin will also need to know which model in you app is used for the categor
 WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL = "pages.models.Category
 ```
 
+**Name field minimum length**: We implemented this because in testing we found that many categories of a single character in length. Name's that are only a single character aren't imported.
+
+You can alter the minimum length to suit your needs by adding the following to your settings file.
+
+```python
+WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MIN_NAME_LENGTH = [num] as an integer
+```
+
 The example here uses a Category model inside the pages app but you can use any name for the model.
 
 ## Example Category model
@@ -40,7 +48,7 @@ class Category(models.Model):
         verbose_name_plural = "categories"
 ```
 
-`@register_snippet` is used here but you could use the Wagtail Model Admin if you prefer.
+`@register_snippet` is used here but you could use the Wagtail Model Admin if you prefer. The `name` field is required.
 
 ## Example Page model
 
