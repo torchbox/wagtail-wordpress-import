@@ -143,8 +143,7 @@ def transform_html_tag_em(soup, tag):
 
 def conf_transform_html_tags_mapping():
     """
-    It's intended that a developer can override TRANSFORM_HTML_TAGS_MAPPING
-    and provide their own tag rules
+    It's intended that a developer can override this configuration and provide their own tag rules
 
     # example WAGTAIL_WORDPRESS_IMPORT_TRANSFORM_HTML_TAGS_MAPPING config in your own settings is below
 
