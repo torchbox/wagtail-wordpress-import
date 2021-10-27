@@ -12,9 +12,9 @@
 
 # Why use pre-filters
 
-Pre-filters provide transformations to be made on a page's content before it is used to build StreamField blocks. In the imported XML file, the page's content is available in each `<item><content:encoded />text content is here ...` element.
+Pre-filters provide transformations to be made on a page's content before it is used to build StreamField blocks. In the imported XML file, the page's content is available in each `<item><content:encoded>text content is here ...` element.
 
-*For example, WordPress renders a double line break as separate paragraphs. The import process requires valid HTML rather than the plain text of the source XML. We have included a pre-filter that uses a Python implementation of the PHP script that's used in WordPress to convert two line breaks into `</p><p>`.*
+*For example, WordPress renders a double line break as separate paragraphs. We have included a Python implementation of Wordpress's built-in double line break converter as a pre-filter.*
 
 ---
 
@@ -44,10 +44,10 @@ This filter reimplements the `wpautop` PHP script into Python, to convert the ra
 
 This filter converts any inline style rules to their corresponding HTML tags where possible (e.g. bold and italic text). Otherwise it converts alignment style rules to CSS classes.
 
-*e.g:*
+For Example:
 
 ```html
-<span style="font-weight: bold;>some text</span>
+<span style="font-weight: bold;">some text</span>
 ```
 is converted to 
 ```html
@@ -55,7 +55,7 @@ is converted to
 ```
 and 
 ```html
-<p style="text-align: left;>some text</p>
+<p style="text-align: left;">some text</p>
 ```
 is converted to
 ```html
@@ -90,7 +90,7 @@ The output of the last pre-filter is used to build the stream field blocks in a 
 ## Running order: 
 It's possible to change the pre-filter running order by changing the order of the defaults provided.
 
-Add the below settings to your  own settings file and change the order of the list items
+Add the below settings to your own settings file and change the order of the list items:
 
 ```python
 WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
