@@ -21,11 +21,14 @@ The yoast plugin feature can be enabled by adding the following configuration to
 
 ```python
 WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED = True
-
 ```
 ## Change the imported fields
 
-The package has a default mapping for Wordpress search descriptions. There is no need to add this configuration to your settings. If you do need to change the field names because your Wordpress site is setup differently, include the configuration below in your settings and adjust the right side of each parameter.
+The package has a default mapping for Wordpress search descriptions. There is no need to add this configuration to your settings.
+
+If you do need to change the field names because your Wordpress site is setup differently, include the configuration below in your settings and adjust the right side of each parameter.
+
+The configuration below is the default included in the package.
 
 ```python
 WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING = {
