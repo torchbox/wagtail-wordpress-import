@@ -1,9 +1,9 @@
 import os
+
 from django.test import TestCase, override_settings
 from wagtail.core.models import Page
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
-from django.conf import settings
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -149,11 +149,11 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
 @override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True)
 class WordpressImporterTestsYoastEnabled(TestCase):
     """
-    We check here that if the Yoast plugin is enabled then use the search description
+    We check here that if the Yoast plugin is enabled import the search description
     from there.
-    If the search description is blank or not available then we use the
-    <item><description>...</description></item> field
-    If thats blank then search_description is set as a blank value
+    If the search description is blank or not available then we import the
+    <item><description>...</description></item> field.
+    If the field is empty then search_description is set as a blank value.
     """
 
     fixtures = [
@@ -199,7 +199,7 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2 = {
 class WordpressImporterTestsYoastEnabledMissingTag(TestCase):
     """
     This tests when the expected config for Yoast is different from the
-    package default it defaults to use the
+    package default which defaults to use the
     <item><description>...</description></item> field.
     """
 
@@ -253,11 +253,11 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3 = {
 )
 class WordpressImporterTestsYoastEnabledChangedKey(TestCase):
     """
-    This tests when the developer changes the config for Yoast in that the key for the
-    search description is not the same as the package default.
-    If the search description is blank or not available then we use the
-    <item><description>...</description></item> field
-    If thats blank then search_description is set as a blank value
+    This tests a different configuration for Yoast.
+    The key for the search description is not the same as the package default.
+    If the search description is blank or not available then we import the
+    <item><description>...</description></item> field.
+    If the field is empty then search_description is set as a blank value.
     """
 
     fixtures = [
