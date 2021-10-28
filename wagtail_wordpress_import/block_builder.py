@@ -1,24 +1,27 @@
+from django.conf import settings
+from django.utils.module_loading import import_string
 import requests
 from bs4 import BeautifulSoup
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from wagtail.images.models import Image as ImportedImage
 
-TAGS_TO_BLOCKS = [
-    "table",
-    "iframe",
-    "form",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "img",
-    "blockquote",
-]
+from wagtail_wordpress_import.block_builder_defaults import (
+    conf_html_tags_to_blocks,
+    conf_fallback_block,
+)
 
-IRELLEVANT_PARENTS = ["p", "div", "span"]
+
+def conf_promote_child_tags():
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS",
+        {
+            "TAGS_TO_PROMOTE": ["iframe", "form", "blockquote"],
+            "PARENTS_TO_REMOVE": ["p", "div", "span"],
+        },
+    )
+
 
 # this is not what i'd expect to see but some images return text/html CDN maybe?
 VALID_IMAGE_CONTENT_TYPES = [
@@ -34,125 +37,71 @@ IMAGE_SRC_DOMAIN = "https://www.budgetsaresexy.com"  # note no trailing /
 
 class BlockBuilder:
     def __init__(self, value, node, logger):
-        self.soup = BeautifulSoup(value, "lxml", exclude_encodings=True)
+        self.soup = BeautifulSoup(value, "lxml")
         self.blocks = []
         self.logged_items = {"processed": 0, "imported": 0, "skipped": 0, "items": []}
         self.node = node
         self.logger = logger
-        self.set_up()
 
-    def set_up(self):
+    def promote_child_tags(self):
         """
-        iframes, forms can get put inside a p tag, pull them out
-        extend this to add further tags
+        pull out these HTML tags and make sure they are placed at the top
+        level as they don't need to be in enclosing tags for our purposes.
         """
-        for iframe in self.soup.find_all("iframe"):
-            parent = iframe.previous_element
-            if parent.name in IRELLEVANT_PARENTS:
-                parent.replaceWith(iframe)
+        config_promote_child_tags = conf_promote_child_tags()
+        promotee_tags = config_promote_child_tags["TAGS_TO_PROMOTE"]
+        removee_tags = config_promote_child_tags["PARENTS_TO_REMOVE"]
 
-        for form in self.soup.find_all("form"):
-            parent = form.previous_element
-            if parent.name in IRELLEVANT_PARENTS:
-                parent.replaceWith(form)
+        for promotee in promotee_tags:
+            promotees = self.soup.findAll(promotee)
+            for promotee in promotees:
+                if promotee.parent.name in removee_tags:
+                    promotee.parent.replace_with(promotee)
 
-        for blockquote in self.soup.find_all("blockquote"):
-            parent = blockquote.previous_element
-            if parent.name in IRELLEVANT_PARENTS:
-                parent.replaceWith(blockquote)
+    def get_builder_function(self, element):
+        function = [
+            import_string(builder[1]["FUNCTION"])
+            for builder in conf_html_tags_to_blocks()
+            if element.name == builder[0]
+        ]
+        if function:
+            return function[0]
 
     def build(self):
+        """
+        Not Recursive when findChildren:
+        At this point the value passed in to this class should have
+        top level elements should represent the HTML we are need to build a
+        sequence of StreamField blocks.
+        Where there may be child elements in a tag that should be dealt with inside the
+        build_block_* method
+        """
         soup = self.soup.find("body").findChildren(recursive=False)
-        block_value = str("")
+        cached_fallback_value = ""
+        cached_fallback_function = import_string(
+            conf_fallback_block()
+        )  # default is a rich text block
         counter = 0
-
-        for tag in soup:
+        for element in soup:  # each single top level tag
             counter += 1
-            """
-            the process here loops though each soup tag to discover
-            the block type to use
-            """
+            # the builder function for the element tag from config
+            builder_function = self.get_builder_function(element)
 
-            # RICHTEXT
-            if tag.name not in TAGS_TO_BLOCKS:
-                block_value += str(self.image_linker(str(tag)))
+            if builder_function:
+                if cached_fallback_value:
+                    cached_fallback_value = cached_fallback_function(
+                        cached_fallback_value, self.blocks
+                    )
+                self.blocks.append(builder_function(element))
+            else:
+                if element.text.strip():  # just in case it's a tag without content
+                    cached_fallback_value += str(element)
 
-            # TABLE
-            if tag.name == "table":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append({"type": "raw_html", "value": str(tag)})
-
-            # IFRAME/EMBED
-            if tag.name == "iframe":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(
-                    {
-                        "type": "raw_html",
-                        "value": '<div class="core-custom"><div class="responsive-iframe">{}</div></div>'.format(
-                            str(tag)
-                        ),
-                    }
+            if cached_fallback_value and counter == len(soup):
+                cached_fallback_value = cached_fallback_function(
+                    cached_fallback_value, self.blocks
                 )
 
-            # FORM
-            if tag.name == "form":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append({"type": "raw_html", "value": str(tag)})
-
-            # HEADING
-            if (
-                tag.name == "h1"
-                or tag.name == "h2"
-                or tag.name == "h3"
-                or tag.name == "h4"
-                or tag.name == "h5"
-                or tag.name == "h6"
-            ):
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append(
-                    {
-                        "type": "heading",
-                        "value": {"importance": tag.name, "text": str(tag.text)},
-                    }
-                )
-
-            # IMAGE
-            if tag.name == "img":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                self.blocks.append({"type": "raw_html", "value": str(tag)})
-
-            # BLOCKQUOTE
-            if tag.name == "blockquote":
-                if len(block_value) > 0:
-                    self.blocks.append({"type": "rich_text", "value": block_value})
-                    block_value = str("")
-                cite = ""
-                if tag.attrs and tag.attrs.get("cite"):
-                    cite = str(tag.attrs["cite"])
-                self.blocks.append(
-                    {
-                        "type": "block_quote",
-                        "value": {"quote": str(tag.text), "attribution": cite},
-                    }
-                )
-
-            if counter == len(soup) and len(block_value) > 0:
-                # when we reach the end and something is in the
-                # block_value just output and clear
-                self.blocks.append({"type": "rich_text", "value": block_value})
-                block_value = str("")
-
-        # print(self.logged_items)
         return self.blocks
 
     def image_linker(self, tag):
