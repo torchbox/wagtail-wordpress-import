@@ -290,7 +290,7 @@ class WordpressItem:
 
     def body_stream_field(self, content):
         builder = BlockBuilder(content, self.node, self.logger)
-        builder.remove_parent_tags()
+        builder.promote_child_tags()
         blocks_dict = builder.build()
         if debug_enabled():
             self.debug_content["block_json"] = blocks_dict
