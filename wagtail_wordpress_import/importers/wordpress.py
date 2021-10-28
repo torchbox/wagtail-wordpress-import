@@ -220,9 +220,6 @@ class WordpressItem:
         FILTERS ARE CUMULATIVE
         cache the result of each filter which is run on the output from the previous filter
         """
-        # filter_config = getattr(
-        #     settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
-        # )
 
         cached_result = content
 
