@@ -209,8 +209,6 @@ class TestRichTextImageLinking(TestCase):
             if block["type"] == "rich_text" and 'embedtype="image"' in block["value"]
         ]
 
-        # self.assertEqual(len(blocks), 1) how to test images
-
     def test_get_image_alt(self):
         input = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" />', "html.parser"

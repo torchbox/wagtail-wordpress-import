@@ -67,7 +67,7 @@ class BlockBuilder:
         returns:
             a list of block dicts
 
-        The value to be processed her should have only top level HTML tags.
+        The value to be processed here should have only top level HTML tags.
         The HTML is parsed to a sequence of StreamField blocks.
         If a HTML tag does have child blocks we should parse then inside the
         build_block_* method

@@ -169,12 +169,10 @@ def conf_valid_image_content_types():
 def conf_domain_prefix():
 
     if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
-        return getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL")
-
-    elif not hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL") and hasattr(
+        return settings.WAGTAIL_WORDPRESS_IMPORTER_BASE_URL
+    elif hasattr(settings, "BASE_URL"):
         settings, "BASE_URL"
-    ):
-        return getattr(settings, "BASE_URL")
+        return settings.BASE_URL
 
 
 def image_linker(html):
@@ -272,7 +270,7 @@ def fetch_url(src, r=None, status=False, content_type=None):
 
 
 def get_abolute_src(src, domain_prefix=None):
-    src = re.sub("^\/+", "", src)
+    src = src.lstrip("/")
     if not src.startswith("http") and domain_prefix:
         return domain_prefix + "/" + src
     return src

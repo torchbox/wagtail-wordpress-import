@@ -241,7 +241,7 @@ class WordpressItem:
         Clean up the slugs from the XML import file
         Some pages have no slug and some have unexpected characters.
         If a slug is not provided create one from page title.
-        If a slug is changed its recorded in the logger
+        If a slug is changed it's recorded in the logger
         """
         if not self.node["wp:post_name"]:
             slug = slugify(self.cleaned_title())
