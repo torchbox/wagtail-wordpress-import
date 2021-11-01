@@ -141,15 +141,16 @@ def conf_fallback_block():
     )
 
 
-def build_none_block_content(cache, blocks):
+def build_none_block_content(html, blocks):
     """
     image_linker is called to link up and retrive the remote image
+    document_linker is called to link up and retrive the remote documents
     """
-    cache = image_linker(cache)
-    cache = document_linker(cache)
-    blocks.append({"type": "rich_text", "value": cache})
-    cache = ""
-    return cache
+    html = image_linker(html)
+    html = document_linker(html)
+    blocks.append({"type": "rich_text", "value": html})
+    html = ""
+    return html
 
 
 """Rich Text Functions"""
@@ -213,14 +214,14 @@ def image_linker(html):
         string: the html with img tags modified
 
     BS4 performs a find and replace on all img tags found in the HTML.
-    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    If the image can be retrieved from the remote site and saved into a Wagtail ImageModel
     the soup is modified.
     """
     soup = BeautifulSoup(html, "html.parser")
     images = soup.find_all("img")
     for image in images:
         if image.attrs and image.attrs.get("src"):
-            image_src = get_abolute_src(image.attrs["src"], conf_domain_prefix())
+            image_src = get_absolute_src(image.attrs["src"], conf_domain_prefix())
             saved_image = get_or_save_image(image_src)
             if saved_image:
                 image_embed = soup.new_tag("embed")
@@ -309,7 +310,7 @@ def fetch_url(src, r=None, status=False, content_type=None):
     return r, status, content_type
 
 
-def get_abolute_src(src, domain_prefix=None):
+def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
     if not src.startswith("http") and domain_prefix:
         return domain_prefix + "/" + src
@@ -346,7 +347,7 @@ def document_linker(html):
     anchors = soup.find_all("a")
     for anchor in anchors:
         if anchor.attrs and anchor.attrs.get("href"):
-            anchor_href = get_abolute_src(anchor.attrs["href"], conf_domain_prefix())
+            anchor_href = get_absolute_src(anchor.attrs["href"], conf_domain_prefix())
             anchor_inner_content = anchor.text
             saved_document = get_or_save_document(anchor_href)
             if saved_document:
