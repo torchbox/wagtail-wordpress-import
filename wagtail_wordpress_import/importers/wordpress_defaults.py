@@ -7,6 +7,9 @@ def default_prefilters():
             "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
         },
         {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
+        },
+        {
             "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
         },
         {
