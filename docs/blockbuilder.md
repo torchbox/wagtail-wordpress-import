@@ -2,12 +2,12 @@
 
 - [Block Builder](#block-builder)
   - [Included Blocks](#included-blocks)
-      - [Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>`](#heading-block-h1-h2-h3-h4-h5-h6)
-      - [Table Block `<table>`](#table-block-table)
-      - [Iframe Block `<iframe>`](#iframe-block-iframe)
-      - [Form Block `<form>`](#form-block-form)
-      - [Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`](#image-block-img--todo-not-yet-complete-likely-to-come-from-shortcode-parsing)
-      - [Blockquote Block `<blockquote>`](#blockquote-block-blockquote)
+    - [Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>`](#heading-block-h1-h2-h3-h4-h5-h6)
+    - [Table Block `<table>`](#table-block-table)
+    - [Iframe Block `<iframe>`](#iframe-block-iframe)
+    - [Form Block `<form>`](#form-block-form)
+    - [Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`](#image-block-img--todo-not-yet-complete-likely-to-come-from-shortcode-parsing)
+    - [Blockquote Block `<blockquote>`](#blockquote-block-blockquote)
   - [Included Fallback/Catch-all Block](#included-fallbackcatch-all-block)
   - [Configuration](#configuration)
 
@@ -20,7 +20,7 @@ The parsing process uses Beautiful Soup to analyze each top level HTML tag in th
 
 ## Included Blocks
 
-#### Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>` 
+### Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>`
 
 Builder:
 
@@ -55,20 +55,26 @@ class HeadingBlock(blocks.StructBlock):
         template = "wagtail_wordpress_import/heading_block.html"
 ```
 
-#### Table Block `<table>`
-Filter: 
+### Table Block `<table>`
+
+Filter:
+
 ```python
 def build_table_block(tag):
     block_dict = {"type": "raw_html", "value": str(tag)}
     return block_dict
 ```
+
 Wagtail Block:
-```
+
+```python
 blocks.RawHTMLBlock()
 ```
 
-#### Iframe Block `<iframe>`
-Filter: 
+### Iframe Block `<iframe>`
+
+Filter:
+
 ```python
 def build_iframe_block(tag):
     block_dict = {
@@ -79,26 +85,33 @@ def build_iframe_block(tag):
     }
     return block_dict
 ```
+
 Wagtail Block:
+
 ```python
 blocks.RawHTMLBlock()
 ```
 
-#### Form Block `<form>`
-Filter: 
+### Form Block `<form>`
+
+Filter:
+
 ```python
 def build_form_block(tag):
     block_dict = {"type": "raw_html", "value": str(tag)}
     return block_dict
 ```
+
 Wagtail Block:
+
 ```python
 blocks.RawHTMLBlock()
 ```
 
-#### Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`
+### Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`
 
 Filter: `TODO not yet complete
+
 ```python
 def build_image_block(tag):
     def get_image_id(src):
@@ -107,7 +120,9 @@ def build_image_block(tag):
     block_dict = {"type": "image", "value": get_image_id(tag.src)}
     return block_dict
 ```
+
 Wagtail Block
+
 ```python
 class ImageBlock(blocks.StructBlock):
     image = ImageChooserBlock()
@@ -118,8 +133,10 @@ class ImageBlock(blocks.StructBlock):
         template = "wagtail_wordpress_import/image_block.html"
 ```
 
-#### Blockquote Block `<blockquote>`
+### Blockquote Block `<blockquote>`
+
 Filter:
+
 ```python
 def build_block_quote_block(tag):
     block_dict = {
@@ -128,7 +145,9 @@ def build_block_quote_block(tag):
     }
     return block_dict
 ```
+
 Wagtail Block:
+
 ```python
 class QuoteBlock(blocks.StructBlock):
     quote = blocks.CharBlock(form_classname="title")
@@ -143,7 +162,7 @@ class QuoteBlock(blocks.StructBlock):
 
 By default, the fallback block is a Wagtail `RichText` Block.
 
-Only content that has no specific block filter is added to the fall back block.
+Only content that has no specific block filter is added to the fallback block.
 
 Example: `<p> <ul> <a> <img /> ...`
 
@@ -167,6 +186,7 @@ def build_none_block_content(cache, blocks):
     cache = ""
     return cache
 ```
+
 Wagtail Block
 
 ```python
@@ -245,7 +265,8 @@ WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS =
                 "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_bloc",},),
     ]
 ```
+
 Examples:
 
-1. Include the `h1-h6` HTML tags in the fall back block and not have their own block types. Just remove the `h1-h6` filter configuration items in your own settings.
+1. Include the `h1 - h6` HTML tags in the fallback block and not have their own block types. Just remove the `h1 - h6` filter configuration items in your own settings.
 2. Add extra HTML tag processing: you would add a function somewhere in your own Wagtail app. Then add an item to the config above with the HTML tag key along with a `FUNCTION` which is the dotted path to the function you have created. You may also need to include the Wagtail Block in your own app or you could repurpose one of the provided Block types.
