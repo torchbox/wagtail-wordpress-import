@@ -3,3 +3,6 @@ from .transform_styles_filter import (
     filter_transform_inline_styles as transform_inline_styles,
 )  # NOQA
 from .linebreaks_wp_filter import filter_linebreaks_wp as linebreaks_wp  # NOQA
+from .handle_shortcodes import (
+    filter_transform_shortcodes as transform_shortcodes,
+)  # NOQA

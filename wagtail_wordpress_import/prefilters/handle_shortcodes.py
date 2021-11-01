@@ -152,3 +152,13 @@ class CaptionHandler(BlockShortcodeHandler):
                 "anchor_attrs": anchor_attrs,
             },
         }
+
+
+def filter_transform_shortcodes(html, options=None):
+    """
+    html: is the body content from one workpress item
+    options: not implemented
+    """
+    for handler in SHORTCODE_HANDLERS.values():
+        html = handler().pre_filter(html)
+    return html
