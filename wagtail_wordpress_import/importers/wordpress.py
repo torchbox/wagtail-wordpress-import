@@ -52,8 +52,10 @@ class WordpressImporter:
             exit()
 
         for event, node in xml_doc:
-            # each node represents a tag in the xml
-            # event is true for the start element
+            """
+            Each node represents a tag in the xml.
+            `event` is true for a start element.
+            """
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
@@ -144,8 +146,10 @@ class WordpressImporter:
         xml_doc = pulldom.parse(self.xml_file)
 
         for event, node in xml_doc:
-            # each node represents a tag in the xml
-            # event is true for the start element
+            """
+            Each node represents a tag in the xml.
+            `event` is true for a start element.
+            """
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
@@ -217,10 +221,8 @@ class WordpressItem:
 
     def prefilter_content(self, content):
         """
-        FILTERS ARE CUMULATIVE
-        cache the result of each filter which is run on the output from the previous filter
+        FILTERS ARE CUMULATIVE: Each filter receives the output from the previous filter.
         """
-
         cached_result = content
 
         for filter in default_prefilters():
@@ -236,11 +238,11 @@ class WordpressItem:
 
     def cleaned_slug(self):
         """
-        Oddly some page have no slug and some have illegal characters!
-        If None make one from title.
-        Also pass any slug through slugify to be sure and if it's changed make a note
+        Clean up the slugs from the XML import file
+        Some pages have no slug and some have unexpected characters.
+        If a slug is not provided create one from page title.
+        If a slug is changed its recorded in the logger
         """
-
         if not self.node["wp:post_name"]:
             slug = slugify(self.cleaned_title())
             self.slug_changed = "blank slug"  # logging
@@ -264,9 +266,9 @@ class WordpressItem:
 
     def clean_date(self, value):
         """
-        We need a nice date to be able to save the page later. Some dates are not suitable
-        date strings in the xml. If thats the case return a specific date so it can be saved
-        and return the failure for logging
+        We need a proper date format.
+        Some dates are not suitable date strings in the xml, if so return a
+        specific date so it can be saved in Wagtail and record it in the logger.
         """
 
         if value == "0000-00-00 00:00:00":
@@ -303,7 +305,7 @@ class WordpressItem:
 
         This parses the wp:postmeta field to check if a _yoast_wpseo_metadesc
         is available. If not it returns a blank string or the default description field
-        in the XML <item><description>...</description></item> .
+        from the XML import file <item><description>...</description></item>
         """
         meta_value = ""
 
@@ -337,8 +339,7 @@ class WordpressItem:
         which imports to a standard Wagtail field.
 
         This came out of dealing with the Yoast search_description field which we have
-        included and can be configured by a developer to accept different values as
-        the wp:postmeta keys
+        included and can be configured to accept different values that are in wp:postmeta keys
         """
         return {
             "title": self.cleaned_title(),
