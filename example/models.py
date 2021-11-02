@@ -40,7 +40,7 @@ class TestPage(WPImportedPageMixin, Page):
 
 @register_snippet
 class Category(models.Model):
-    name = models.CharField(max_length=255)
+    name = models.CharField(max_length=255, unique=True)
 
     panels = [FieldPanel("name")]
 
