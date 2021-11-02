@@ -21,7 +21,7 @@ The plugin will also need to know which model in you app is used for the categor
 WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL = "pages.models.Category"
 ```
 
-**Name field minimum length**: We implemented this because in testing we found that many categories of a single character in length. Name's that are only a single character aren't imported.
+**Name field minimum length**: Some WordPress sites can have categories just a single character in length. If these are not useful, they can be skipped using this setting.
 
 You can alter the minimum length to suit your needs by adding the following to your settings file.
 
