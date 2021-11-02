@@ -26,7 +26,7 @@ WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL = "pages.models.Category"
 You can alter the minimum length to suit your needs by adding the following to your settings file.
 
 ```python
-WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MIN_NAME_LENGTH = [num] as an integer
+WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MIN_NAME_LENGTH = 3  # for example
 ```
 
 The example here uses a Category model inside the pages app but you can use any name for the model.
