@@ -1,5 +1,6 @@
 import os
 import json
+from collections import Counter
 from django.test import TestCase, override_settings
 from datetime import datetime
 from example.models import Category
@@ -21,6 +22,7 @@ IMPORTER_RUN_PARAMS_TEST = {
     "page_types": ["post", "page"],
     "page_statuses": ["publish", "draft"],
 }
+
 
 class WordpressItemTests(TestCase):
     def setUp(self):
@@ -129,11 +131,67 @@ class WordpressItemImportTests(TestCase):
         snippets = Category.objects.all()
         self.assertEqual(len(snippets), 4)
 
-    def test_page_has_categories(self):
+    def test_page_one_has_categories(self):
         page_one = self.imported_pages.get(title="Item one title")
-        page_one_categories = page_one.specific.categories.all()
-        self.assertEqual(2, page_one_categories.count())
+        categories = page_one.specific.categories.all()
+        self.assertEqual(2, categories.count())
+        self.assertEqual(categories[0].name, "Blogging")
+        self.assertEqual(categories[1].name, "Life")
 
+    def test_page_two_has_categories(self):
         page_two = self.imported_pages.get(title="Item two title")
-        page_two_categories = page_two.specific.categories.all()
-        self.assertEqual(2, page_two_categories.count())
+        categories = page_two.specific.categories.all()
+        self.assertEqual(3, categories.count())
+        self.assertEqual(categories[0].name, "Blogging")
+        self.assertEqual(categories[1].name, "Cars")
+        self.assertEqual(categories[2].name, "Computing")
+
+    def test_short_category_is_not_imported(self):
+        page_one = self.imported_pages.get(title="Item one title")
+        categories = [category.name for category in page_one.specific.categories.all()]
+        self.assertNotIn("A", categories)
+
+    def test_categories_have_no_duplicate_entries(self):
+        categories = [category.name for category in Category.objects.all()]
+        duplicates = [
+            k for k, v in Counter(categories).items() if v > 1
+        ]  # duplicates will be empty if no duplicate category names exist
+        self.assertEqual(len(duplicates), 0)
+
+
+@override_settings(
+    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+)  # testing requires a live domain for requests to use, this is something I need to change before package release
+# mocking of somesort, using localhost:8000 for now
+class WordpressItemImportTestsNoCategories(TestCase):
+    from example.models import Category
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST["parent_id"],
+            page_types=["hasnocategories"],
+            page_statuses=["hasnocategories"],
+        )
+
+        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS_TEST["parent_id"])
+        self.imported_pages = self.parent_page.get_children().all()
+
+    def test_page_has_no_categories(self):
+        page = self.imported_pages.first()
+        categories = page.specific.categories.all()
+        self.assertEqual(0, categories.count())
+
+    def test_categories_count_is_zero(self):
+        count = Category.objects.count()
+        self.assertEqual(count, 0)

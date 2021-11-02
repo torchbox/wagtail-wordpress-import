@@ -97,6 +97,8 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:is_sticky>0</wp:is_sticky>
             <category domain="category" nicename="blogging">Blogging</category>
             <category domain="category" nicename="life">Life</category>
+            <category domain="category" nicename="a">A</category>
+            <category domain="" nicename="an-empty-category-should-not-be-imported-or-linked"></category>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
@@ -172,8 +174,9 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_type>page</wp:post_type>
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
-            <category domain="category" nicename="blogging">Cars</category>
-            <category domain="category" nicename="life">Computing</category>
+            <category domain="category" nicename="cars">Cars</category>
+            <category domain="category" nicename="computing">Computing</category>
+            <category domain="category" nicename="blogging">Blogging</category>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
@@ -236,6 +239,42 @@ Nihil hic munitissimus habendi senatus locus, nihil horum?.&lt;/blockquote&gt;</
             <wp:post_password/>
             <wp:is_sticky>0</wp:is_sticky>
             <category domain="category" nicename="blogging">Blogging</category>
+            <wp:postmeta>
+                <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
+                <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
+            </wp:postmeta>
+            <wp:postmeta>
+                <wp:meta_key>_thumbnail_id</wp:meta_key>
+                <wp:meta_value><![CDATA[43124]]></wp:meta_value>
+            </wp:postmeta>
+            <wp:postmeta>
+                <wp:meta_key>metadescription</wp:meta_key>
+                <wp:meta_value>a search description from yoast using a different key</wp:meta_value>
+            </wp:postmeta>
+        </item>
+        <item>
+            <title>Item with no categories</title>
+            <link>https://www.example.com/item-one-title/</link>
+            <pubDate>Tue, 13 Jul 2010 16:16:46 +0000</pubDate>
+            <dc:creator>author1</dc:creator>
+            <guid isPermaLink="false">https://www.example.com/wp-content/uploads/2010/07/haunted-house.jpg</guid>
+            <description>This page has a default description</description>
+            <content:encoded></content:encoded>
+            <excerpt:encoded>Lorem ipsum dolor sit amet</excerpt:encoded>
+            <wp:post_id>1</wp:post_id>
+            <wp:post_date>2010-07-13 12:16:46</wp:post_date>
+            <wp:post_date_gmt>2010-07-13 16:16:46</wp:post_date_gmt>
+            <wp:post_modified>2010-07-13 12:16:46</wp:post_modified>
+            <wp:post_modified_gmt>2010-07-13 16:16:46</wp:post_modified_gmt>
+            <wp:comment_status>open</wp:comment_status>
+            <wp:ping_status>open</wp:ping_status>
+            <wp:post_name>item-one-title</wp:post_name>
+            <wp:status>hasnocategories</wp:status>
+            <wp:post_parent>0</wp:post_parent>
+            <wp:menu_order>0</wp:menu_order>
+            <wp:post_type>hasnocategories</wp:post_type>
+            <wp:post_password/>
+            <wp:is_sticky>0</wp:is_sticky>
             <wp:postmeta>
                 <wp:meta_key>_wp_attachment_image_alt</wp:meta_key>
                 <wp:meta_value><![CDATA[haunted house]]></wp:meta_value>
