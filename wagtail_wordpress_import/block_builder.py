@@ -74,7 +74,7 @@ class BlockBuilder:
         """
         soup = self.soup.find("body").findChildren(recursive=False)
         cached_fallback_value = (
-            ""  # keep appending fall back content here, by default is Rich Text block
+            ""  # append fall back content here, by default it's a Rich Text block
         )
         cached_fallback_function = import_string(
             conf_fallback_block()

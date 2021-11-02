@@ -12,7 +12,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     build_image_block,
     build_table_block,
     conf_domain_prefix,
-    get_abolute_src,
+    get_absolute_src,
     get_alignment_class,
     get_image_alt,
     get_image_file_name,
@@ -95,6 +95,7 @@ class TestBlockBuilderBlockDefaults(TestCase):
         self.assertEqual(output["type"], "raw_html")
         self.assertTrue(output["value"].startswith("<div"))
 
+    # work in progress
     def test_build_image_block(self):
         input = """<img src="http://www.example.com/image.jpg" />"""
         soup = get_soup(input, "html.parser")
@@ -219,55 +220,56 @@ class TestRichTextImageLinking(TestCase):
         self.assertEqual(get_image_file_name("fakeimage.jpg"), "fakeimage.jpg")
         self.assertEqual(get_image_file_name("folder/fakeimage.jpg"), "fakeimage.jpg")
         self.assertEqual(
-            get_image_file_name(
-                "http://www.example.com/folder1/folder2//fakeimage.jpg"
-            ),
+            get_image_file_name("http://www.example.com/folder1/folder2/fakeimage.jpg"),
             "fakeimage.jpg",
         )
 
-    def test_get_abolute_src(self):
+    def test_get_absolute_src(self):
         self.assertEqual(
-            get_abolute_src("fakeimage.jpg", "http://www.example.com"),
+            get_absolute_src("fakeimage.jpg", "http://www.example.com"),
             "http://www.example.com/fakeimage.jpg",
         )
         self.assertEqual(
-            get_abolute_src("folder/fakeimage.jpg", "http://www.example.com"),
+            get_absolute_src("folder/fakeimage.jpg", "http://www.example.com"),
             "http://www.example.com/folder/fakeimage.jpg",
         )
+
+    def test_get_absolute_src_without_base_url(self):
         self.assertEqual(
-            get_abolute_src("folder/fakeimage.jpg"),
+            get_absolute_src("folder/fakeimage.jpg"),
             "folder/fakeimage.jpg",
-        )  # the test settings has no BASE_URL setting so try having no domain prefix
+        )
 
     def test_get_abolute_src_slashes_at_start(self):
         self.assertEqual(
-            get_abolute_src("//folder/fakeimage.jpg", "http://www.example.com"),
+            get_absolute_src("//folder/fakeimage.jpg", "http://www.example.com"),
             "http://www.example.com/folder/fakeimage.jpg",
         )
 
-    def test_get_alignment_class(self):
-        input = get_soup(
+    def test_get_alignment_class_align_left(self):
+        soup = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" class="align-left" />',
             "html.parser",
         ).find("img")
-        self.assertEqual(get_alignment_class(input), "left")
-        input = get_soup(
+        self.assertEqual(get_alignment_class(soup), "left")
+
+    def test_get_alignment_class_align_right(self):
+        soup = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" class="align-right" />',
             "html.parser",
         ).find("img")
-        self.assertEqual(get_alignment_class(input), "right")
-        input = get_soup(
+        self.assertEqual(get_alignment_class(soup), "right")
+
+    def test_get_alignment_class_not_present(self):
+        soup = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" />',
             "html.parser",
         ).find("img")
-        self.assertEqual(get_alignment_class(input), "fullwidth")
+        self.assertEqual(get_alignment_class(soup), "fullwidth")
 
-    def test_with_real_image(self):
-        # but we need to test with mocked images if we can.
-        raw_html_file = """
-        <p>Lorem <img src="https://dummyimage.com/600x400/000/fff" alt=""></p>
-        """
-        self.builder = BlockBuilder(raw_html_file, None, None)
-        self.builder.promote_child_tags()
-        self.blocks = self.builder.build()
-        self.assertTrue("<embed" in self.blocks[0]["value"])
+    """
+    TODO: Add some more tests
+    I need to include tests here for images and documents.
+    I'm not sure how this could be done at the moment.
+    Also applies to: test_images_linked_rich_text() above
+    """

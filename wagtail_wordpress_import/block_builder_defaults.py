@@ -6,6 +6,7 @@ from django.conf import settings
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from wagtail.images.models import Image as ImportedImage
+from wagtail.documents.models import Document as ImportedDocument
 
 """StreamField blocks"""
 
@@ -140,13 +141,16 @@ def conf_fallback_block():
     )
 
 
-def build_none_block_content(cache, blocks):
+def build_none_block_content(html, blocks):
     """
     image_linker is called to link up and retrive the remote image
+    document_linker is called to link up and retrive the remote documents
     """
-    blocks.append({"type": "rich_text", "value": image_linker(cache)})
-    cache = ""
-    return cache
+    html = image_linker(html)
+    html = document_linker(html)
+    blocks.append({"type": "rich_text", "value": html})
+    html = ""
+    return html
 
 
 """Rich Text Functions"""
@@ -162,6 +166,30 @@ def conf_valid_image_content_types():
             "image/png",
             "image/webp",
             "text/html",
+        ],
+    )
+
+
+def conf_valid_document_file_types():
+    return getattr(
+        settings,
+        "",
+        [
+            "pdf",
+            "ppt",
+            "docx",
+        ],
+    )
+
+
+def conf_valid_document_content_types():
+    return getattr(
+        settings,
+        "",
+        [
+            "application/pdf",
+            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         ],
     )
 
@@ -186,14 +214,14 @@ def image_linker(html):
         string: the html with img tags modified
 
     BS4 performs a find and replace on all img tags found in the HTML.
-    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    If the image can be retrieved from the remote site and saved into a Wagtail ImageModel
     the soup is modified.
     """
     soup = BeautifulSoup(html, "html.parser")
     images = soup.find_all("img")
     for image in images:
-        if image.attrs and image.attrs["src"]:
-            image_src = get_abolute_src(image.attrs["src"], conf_domain_prefix())
+        if image.attrs and image.attrs.get("src"):
+            image_src = get_absolute_src(image.attrs["src"], conf_domain_prefix())
             saved_image = get_or_save_image(image_src)
             if saved_image:
                 image_embed = soup.new_tag("embed")
@@ -216,10 +244,21 @@ def get_image_file_name(src):
     return src.split("/")[-1] if src else None  # need the last part
 
 
+def get_document_file_name(src):
+    return src.split("/")[-1] if src else None  # need the last part
+
+
 def image_exists(name):
     try:
         return ImportedImage.objects.get(title=name)
     except ImportedImage.DoesNotExist:
+        pass
+
+
+def document_exists(name):
+    try:
+        return ImportedDocument.objects.get(title=name)
+    except ImportedDocument.DoesNotExist:
         pass
 
 
@@ -229,7 +268,7 @@ def conf_get_requests_settings():
         "WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS",
         {
             "headers": {"User-Agent": "WagtailWordpressImporter"},
-            "timeout": 1,
+            "timeout": 5,
             "stream": False,
         },
     )
@@ -252,7 +291,7 @@ def get_or_save_image(src):
             temp_image.close()
             return retrieved_image
         else:
-            print(f"RECEIVED INVALID RESPONSE: {src}")
+            print(f"RECEIVED INVALID IMAGE RESPONSE: {src}")
     return existing_image
 
 
@@ -265,11 +304,13 @@ def fetch_url(src, r=None, status=False, content_type=None):
             r.headers["content-type"].lower() if r.headers.get("content-type") else ""
         )
     except requests.ConnectTimeout:
-        print(f"THERE WAS A PROBLEM WITH REQUESTS FETCHING: {src}")
+        print(f"CONNECTION TIMEOUT: {src}")
+    except requests.ConnectionError:
+        print(f"CONNECTION ERROR: {src}")
     return r, status, content_type
 
 
-def get_abolute_src(src, domain_prefix=None):
+def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
     if not src.startswith("http") and domain_prefix:
         return domain_prefix + "/" + src
@@ -286,3 +327,61 @@ def get_alignment_class(image):
             alignment = "right"
 
     return alignment
+
+
+def document_linker(html):
+    """
+    params
+    ======
+        html: html from a single rich_text block
+
+    returns
+    =======
+        string: the html with anchor links modified
+
+    BS4 performs a find and replace on all img tags found in the HTML.
+    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    the soup is modified.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    anchors = soup.find_all("a")
+    for anchor in anchors:
+        if anchor.attrs and anchor.attrs.get("href"):
+            anchor_href = get_absolute_src(anchor.attrs["href"], conf_domain_prefix())
+            anchor_inner_content = anchor.text
+            saved_document = get_or_save_document(anchor_href)
+            if saved_document:
+                document_embed = soup.new_tag("a")
+                document_embed.attrs["linktype"] = "document"
+                document_embed.attrs["id"] = saved_document.id
+                document_embed.string = anchor_inner_content
+                # image_embed.attrs["alt"] = get_image_alt(image)
+                # image_embed.attrs["format"] = get_alignment_class(image)
+                anchor.replace_with(document_embed)
+        else:
+            print(f"DOCUMENT HAS NO HREF: {anchor}")
+
+    return str(soup)
+
+
+def get_or_save_document(href):
+    file_type = href.split(".")[-1]
+    if file_type in conf_valid_document_file_types():
+        document_file_name = get_document_file_name(href)
+        existing_document = document_exists(document_file_name)
+        if not existing_document:
+            response, valid, type = fetch_url(href)
+            if valid and (type in conf_valid_document_content_types()):
+                temp_document = NamedTemporaryFile(delete=True)
+                temp_document.name = document_file_name
+                temp_document.write(response.content)
+                temp_document.flush()
+                retrieved_document = ImportedDocument(
+                    file=File(file=temp_document), title=document_file_name
+                )
+                retrieved_document.save()
+                temp_document.close()
+                return retrieved_document
+            else:
+                print(f"RECEIVED INVALID DOCUMENT RESPONSE: {href}")
+        return existing_document
