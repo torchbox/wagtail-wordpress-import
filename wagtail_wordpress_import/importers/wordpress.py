@@ -219,17 +219,19 @@ class WordpressImporter:
             pass
 
     def connect_page_categories(self, page, category_model, item):
-        categories = item.get("category")
-        if categories:
+        if "category" in item.keys():
+            categories = [
+                category
+                for category in item["category"]
+                if category and len(category) > category_name_min_length()
+            ]
+
             page_categories = []
+
             for name in categories:
-                if len(name) > category_name_min_length():
-                    existing_category = None
-                    try:
-                        existing_category = category_model.objects.get(name=name)
-                    except category_model.DoesNotExist:
-                        existing_category = category_model.objects.create(name=name)
-                    page_categories.append(existing_category)
+                category, created = category_model.objects.get_or_create(name=name)
+                page_categories.append(category)
+
             page.categories = page_categories
 
 
