@@ -13,7 +13,6 @@ class TestPage(WPImportedPageMixin, Page):
     body = StreamField(WPImportStreamBlocks)
     categories = ParentalManyToManyField("example.Category", blank=True)
     content_panels = Page.content_panels + [
-        # FieldPanel("categories", widget=forms.CheckboxSelectMultiple),
         StreamFieldPanel("body"),
     ]
 
