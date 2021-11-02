@@ -18,7 +18,7 @@ WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED = True
 The plugin will also need to know which model in you app is used for the categories so add the following to your settings file.
 
 ```python
-WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL = "pages.models.Category
+WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL = "pages.models.Category"
 ```
 
 **Name field minimum length**: We implemented this because in testing we found that many categories of a single character in length. Name's that are only a single character aren't imported.
