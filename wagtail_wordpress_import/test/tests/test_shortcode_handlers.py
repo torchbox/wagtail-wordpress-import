@@ -14,6 +14,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_shortcode_is_found(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "foo[foo]baz[/foo]quux"
@@ -27,6 +28,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_multiple_shortcodes_are_found(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = 'foo[foo]baz[/foo]quux[foo width="12"]spam[/foo]eggs'
@@ -45,6 +47,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_content_can_contain_square_brackets(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "embalmed ones[foo][stray dogs][/foo]"
@@ -64,6 +67,7 @@ class TestBlockShortcodeRegex(TestCase):
 
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "Metasyntactic variables [foo and the like] are common placeholders"
@@ -134,6 +138,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_basic(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "ham[foo]eggs[/foo]spam"
         handler = FooHandler()
@@ -143,6 +148,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_shortcode_at_the_start_of_a_string(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "[foo]radiators[/foo]jam"
         handler = FooHandler()
@@ -152,6 +158,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_beautifulsoup_can_parse(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "ham[foo]eggs[/foo]spam"
         handler = FooHandler()
@@ -164,6 +171,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_beautifulsoup_can_parse_attrs(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = 'ham[foo quantity=3 state="over easy" garnish="more spam"]eggs[/foo]spam'
         handler = FooHandler()
@@ -178,6 +186,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_caption(self):
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = 'Some pretext[caption width="100"]The content of the tag[/caption]'
         handler = CaptionHandler()
@@ -192,6 +201,7 @@ class TestShortcodesSubstitution(TestCase):
 
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         original = "Some pretext [caption this however you want] "
         handler = CaptionHandler()
@@ -201,6 +211,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_known_content(self):
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = (
             "This is a block of text preceding the caption.\n\n"
@@ -237,6 +248,7 @@ class TestAbsentShortcodeHandlers(TestCase):
         # note this class has not been registered
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         registered_handlers = SHORTCODE_HANDLERS.keys()
         self.assertIn("caption", registered_handlers)
@@ -250,6 +262,7 @@ class TestIncludedShortcodeHandlers(TestCase):
         @register("foo")
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         registered_handlers = SHORTCODE_HANDLERS.keys()
         self.assertIn("foo", registered_handlers)
