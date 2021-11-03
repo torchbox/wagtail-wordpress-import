@@ -13,6 +13,8 @@
     </a>
 </p>
 
+<p><wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption></p>
+<wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption>
 
 <ul>
 <li style="font-weight: 400;" onmouseover="alert('Boo!')"><span style="font-weight: 400;">Lorem 1</span></li>

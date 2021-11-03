@@ -18,6 +18,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     get_image_alt,
     get_image_file_name,
 )
+from wagtail_wordpress_import.prefilters.handle_shortcodes import BlockShortcodeHandler
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -62,6 +63,32 @@ class TestBlockBuilderRemoveParents(TestCase):
 
         blockquote = output.find("blockquote", attrs={"data-testing": "hasparent"})
         self.assertTrue(blockquote.parent.name == self.expected_parent_name)
+
+    def test_remove_parent_tags_wagtail_block_caption(self):
+        self.builder.promote_child_tags()
+        output = self.output_remove_parent_tags
+
+        wagtail_block_captions = output.find_all("wagtail_block_caption")
+        for idx, wagtail_block_caption in enumerate(wagtail_block_captions):
+            with self.subTest(
+                f"Checking that both wagtail_block_caption tags are top level elements fixture:{idx}"
+            ):
+                self.assertTrue(
+                    wagtail_block_caption.parent.name == self.expected_parent_name
+                )
+
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS={
+            "TAGS_TO_PROMOTE": ["iframe", "form", "blockquote"],
+            "PARENTS_TO_REMOVE": ["p", "div", "span"],
+        }
+    )
+    def test_promote_child_tags_has_registered_included_shortcodes(self):
+        tags_to_promote = settings.WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS[
+            "TAGS_TO_PROMOTE"
+        ]
+        self.builder.promote_child_tags()
+        self.assertIn("wagtail_block_caption", tags_to_promote)
 
 
 class TestBlockBuilderBlockDefaults(TestCase):
