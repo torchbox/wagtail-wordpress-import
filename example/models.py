@@ -1,15 +1,17 @@
+from django import forms
 from django.db import models
-from wagtail.core.models import Page
-
-from wagtail_wordpress_import.models import WPImportedPageMixin
+from modelcluster.fields import ParentalManyToManyField
+from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
 from wagtail.core.fields import StreamField
-from wagtail.admin.edit_handlers import StreamFieldPanel
+from wagtail.core.models import Page
+from wagtail.snippets.models import register_snippet
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
+from wagtail_wordpress_import.models import WPImportedPageMixin
 
 
 class TestPage(WPImportedPageMixin, Page):
     body = StreamField(WPImportStreamBlocks)
-
+    categories = ParentalManyToManyField("example.Category", blank=True)
     content_panels = Page.content_panels + [
         StreamFieldPanel("body"),
     ]
@@ -34,3 +36,17 @@ class TestPage(WPImportedPageMixin, Page):
 
         # own model fields
         self.body = data["body"]
+
+
+@register_snippet
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    panels = [FieldPanel("name")]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "category"
+        verbose_name_plural = "categories"
