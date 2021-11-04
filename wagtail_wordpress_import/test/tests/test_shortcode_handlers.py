@@ -71,6 +71,52 @@ class TestBlockShortcodeRegex(TestCase):
         self.assertFalse(match)
 
 
+class TestShortcodeAttrubuteValidation(TestCase):
+    def test_shortcode_name_not_set(self):
+        class FooHandler(BlockShortcodeHandler):
+            pass
+
+        with self.assertRaises(NotImplementedError) as ctx:
+            handler = FooHandler()
+        self.assertEqual(
+            "Create a subclass of BlockShortcodeHandler with a shortcode_name attribute",
+            str(ctx.exception),
+        )
+
+    def test_shortcode_cannot_start_with_space(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = " foo"
+
+        with self.assertRaises(ValueError) as ctx:
+            handler = FooHandler()
+        self.assertEqual(
+            "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
+            str(ctx.exception),
+        )
+
+    def test_shortcode_cannot_end_with_space(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo "
+
+        with self.assertRaises(ValueError) as ctx:
+            handler = FooHandler()
+        self.assertEqual(
+            "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
+            str(ctx.exception),
+        )
+
+    def test_shortcode_cannot_contain_spaces(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "fo o"
+
+        with self.assertRaises(ValueError) as ctx:
+            handler = FooHandler()
+        self.assertEqual(
+            "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
+            str(ctx.exception),
+        )
+
+
 class TestShortcodesSubstitution(TestCase):
     fodder = (
         "This is a block of text preceding the caption.\n\n"
