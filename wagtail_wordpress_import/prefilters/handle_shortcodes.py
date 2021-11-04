@@ -156,7 +156,7 @@ class CaptionHandler(BlockShortcodeHandler):
 
 def filter_transform_shortcodes(html, options=None):
     """
-    html: is the body content from one workpress item
+    html: is the body content from one Wordpress item
     options: not implemented
     """
     for handler in SHORTCODE_HANDLERS.values():
