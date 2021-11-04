@@ -6,6 +6,17 @@ SHORTCODE_HANDLERS = {}
 
 
 def register(shortcode_name):
+    """Register the decorated class as a shortcode handler.
+
+    Usage:
+
+        from wagtail_wordpress_import.prefilters.handle_shortcodes import BlockShortcodeHandler, register
+
+        @register("foo")
+        class MyShortcodeHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+    """
+
     def _wrapper(cls):
         SHORTCODE_HANDLERS[shortcode_name] = cls
         return cls
@@ -16,6 +27,19 @@ def register(shortcode_name):
 class BlockShortcodeHandler:
 
     shortcode_name: str
+
+    def __init__(self):
+        # Subclasses should declare a shortcode_name
+        if not hasattr(self, "shortcode_name"):
+            raise NotImplementedError(
+                "Create a subclass of BlockShortcodeHandler with a shortcode_name attribute"
+            )
+        pattern = re.compile(r"^\S[a-zA-Z0-9_\S]+\S$")
+        # shortcode_name must use upper or lower case letters or digits and cannot contain spaces
+        if not re.match(pattern, self.shortcode_name):
+            raise ValueError(
+                "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces"
+            )
 
     @property
     def _pattern(self):
@@ -29,10 +53,6 @@ class BlockShortcodeHandler:
         capture group "attrs" will match " bar=1", and capture group "content" will
         match "some text".
         """
-        if not hasattr(self, "shortcode_name"):
-            raise NotImplementedError(
-                "Create a subclass of BlockShortcodeHandler with a shortcode_name attribute"
-            )
 
         return re.compile(
             r"\["  # matches the opening [
@@ -77,21 +97,27 @@ class BlockShortcodeHandler:
 # converting their prefiltered HTML to Wagtail StreamField block JSON.
 @register("caption")
 class CaptionHandler(BlockShortcodeHandler):
-
     """
+    The Wordpress caption tag is replaced by the custom HTML tag. The caption content and caption attrubutes
+    are preserved and included in the custom HTML tag.
+
     Sample wordpress caption tag:
+
     [caption id="attachment_46162" align="aligncenter" width="600"]
+    <a href="http://www.example.com/">
     <img class="wp-image-46162 size-full" src="https://www.example.com/images/foo.jpg" alt="This describes the image" width="600" height="338" />
+    </a>
     This is a caption about the image[/caption]
 
     is replaced by:
 
     <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+    <a href="http://www.example.com/">
     <img class="wp-image-46162 size-full" src="https://www.example.com/images/foo.jpg" alt="This describes the image" width="600" height="338" />
+    </a>
     This is a caption about the image</wagtail_block_caption>
 
-    in the parent pre-filter method on the parent BlockShortcodeHandler class.
-
+    in the pre-filter method on the parent BlockShortcodeHandler class.
     """
 
     shortcode_name = "caption"
