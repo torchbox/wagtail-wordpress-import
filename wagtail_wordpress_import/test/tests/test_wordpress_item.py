@@ -27,13 +27,13 @@ IMPORTER_RUN_PARAMS_TEST = {
 class WordpressItemTests(TestCase):
     def setUp(self):
         self.logger = Logger("fakedir")
-        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r").read()
+        body_html = """<p>Dummmy text</p><p>Dummmy text</p><p>Dummmy text</p>"""
         self.good_node = {
             "title": "Page Title",
             "wp:post_name": "page-title",
             "wp:post_date_gmt": "2017-03-12 17:53:57",
             "wp:post_modified_gmt": "2018-12-04 11:49:24",
-            "content:encoded": raw_html_file,
+            "content:encoded": body_html,
             "wp:post_id": "1000",
             "wp:post_type": "post",
             "link": "http://www.example.com",
@@ -43,7 +43,7 @@ class WordpressItemTests(TestCase):
             "wp:post_name": "",
             "wp:post_date_gmt": "0000-00-00 00:00:00",
             "wp:post_modified_gmt": "0000-00-00 00:00:00",
-            "content:encoded": raw_html_file,
+            "content:encoded": body_html,
             "wp:post_id": "1000",
             "wp:post_type": "post",
             "link": "",
@@ -58,8 +58,6 @@ class WordpressItemTests(TestCase):
         latest_revision_created_at = wordpress_item.cleaned_data[
             "latest_revision_created_at"
         ]
-        # the body content here will have all attrs, classes etc stripped
-        # by the bleach filter
         body = wordpress_item.cleaned_data["body"]
         wp_post_id = wordpress_item.cleaned_data["wp_post_id"]
         wp_post_type = wordpress_item.cleaned_data["wp_post_type"]
@@ -82,6 +80,9 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(wp_raw_content, str)
         self.assertIsInstance(wp_processed_content, str)
         self.assertIsInstance(wp_block_json, list)
+        self.assertTrue(
+            len(wp_block_json), 1
+        )  # we are only parsing consecutive paragraphs so the will only be one block (rich_text)
 
     def test_cleaned_fields(self):
         wordpress_item = WordpressItem(self.bad_node, self.logger)

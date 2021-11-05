@@ -272,40 +272,29 @@ class TestIncludedShortcodeHandlers(TestCase):
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
     def test_construct_block_method_output(self):
         handler = CaptionHandler()
-        wagtail_custom_html = (
-            '<wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">'
-            '<img class="wp-image-46162 size-full" '
-            'src="https://www.example.com/images/foo.jpg" '
+        wagtail_custom_html = BeautifulSoup(
+            '<wagtail_block_caption id="46162" align="aligncenter" width="600">'
+            '<img class="size-full" '
+            'src="https://www.budgetsaresexy.com/images/j-money-family-portrait.jpg" '
             'alt="This describes the image" width="600" height="338" /> '
             "<em>[This is a caption about the image (the one above) in "
             '<a href="https//www.example.com/bar/" target="_blank" '
             'rel="noopener noreferrer">Glorious Rich Text</a>!]</em>'
-            "</wagtail_block_caption>"
+            "</wagtail_block_caption>",
+            "html.parser",
         )
-        json = handler.construct_block(wagtail_custom_html)
+        json = handler.construct_block(
+            wagtail_custom_html.find("wagtail_block_caption")
+        )
         self.assertDictEqual(
             json,
             {
-                "type": "image_block",
+                "type": "image",
                 "value": {
-                    "image_file": 1,
-                    "tag_attrs": {
-                        "id": "attachment_46162",
-                        "align": "aligncenter",
-                        "width": "600",
-                    },
-                    "image_attrs": {
-                        "class": ["wp-image-46162", "size-full"],
-                        "src": "https://www.example.com/images/foo.jpg",
-                        "alt": "This describes the image",
-                        "width": "600",
-                        "height": "338",
-                    },
-                    "anchor_attrs": {
-                        "href": "https//www.example.com/bar/",
-                        "target": "_blank",
-                        "rel": ["noopener", "noreferrer"],
-                    },
+                    "image": 1,
+                    "caption": "[This is a caption about the image (the one above) in Glorious Rich Text!]",
+                    "alignment": "center",
+                    "link": "https//www.example.com/bar/",
                 },
             },
         )
