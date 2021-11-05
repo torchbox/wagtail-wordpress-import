@@ -250,23 +250,28 @@ class TestAbsentShortcodeHandlers(TestCase):
             shortcode_name = "foo"
             custom_html_tag_prefix = "wagtail_block_"
 
-        registered_handlers = SHORTCODE_HANDLERS.keys()
-        self.assertIn("caption", registered_handlers)
-        self.assertNotIn("foo", registered_handlers)
+        caption_handler_instance = SHORTCODE_HANDLERS[0]()
+
+        self.assertIsInstance(caption_handler_instance, CaptionHandler)
+        self.assertNotIsInstance(caption_handler_instance, FooHandler)
+        self.assertEqual(len(SHORTCODE_HANDLERS), 1)
 
 
 class TestIncludedShortcodeHandlers(TestCase):
     def test_included_shortcodes(self):
         # prime the SHORTCODE_HANDLERS
         # note this class has been registered
-        @register("foo")
+        @register()
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
             custom_html_tag_prefix = "wagtail_block_"
 
-        registered_handlers = SHORTCODE_HANDLERS.keys()
-        self.assertIn("foo", registered_handlers)
-        self.assertIn("caption", registered_handlers)
+        caption_handler_instance = SHORTCODE_HANDLERS[0]()
+        foo_handler_instance = SHORTCODE_HANDLERS[1]()
+
+        self.assertIsInstance(caption_handler_instance, CaptionHandler)
+        self.assertIsInstance(foo_handler_instance, FooHandler)
+        self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):

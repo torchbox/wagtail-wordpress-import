@@ -42,7 +42,7 @@ class BlockBuilder:
 
         # for each registered shortcode handler add the element_name property
         # to the promotee_tags
-        for handler in SHORTCODE_HANDLERS.values():
+        for handler in SHORTCODE_HANDLERS:
             if handler.is_top_level_html_tag:
                 promotee_tags.append(handler().element_name)
 
@@ -62,7 +62,7 @@ class BlockBuilder:
 
         # registered shortcode custom tags
         conf_custom_tags = {}
-        for shortcode, handler in SHORTCODE_HANDLERS.items():
+        for handler in SHORTCODE_HANDLERS:
             cls = handler()
             conf_custom_tags[cls.element_name] = handler
 

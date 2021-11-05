@@ -15,7 +15,7 @@ def filter_bleach_clean(html, options=None):
     # Registered shortcode handlers generate custom tags
     # so they need to be added too ALLOWED_TAGS
 
-    for handler in SHORTCODE_HANDLERS.values():
+    for handler in SHORTCODE_HANDLERS:
         if handler.is_top_level_html_tag:
             CONF_ALLOWED_TAGS.append(handler().element_name)
 

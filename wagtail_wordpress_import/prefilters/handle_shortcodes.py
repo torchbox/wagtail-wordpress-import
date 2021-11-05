@@ -2,10 +2,10 @@ import re
 
 from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
 
-SHORTCODE_HANDLERS = {}
+SHORTCODE_HANDLERS = []
 
 
-def register(shortcode_name):
+def register():
     """Register the decorated class as a shortcode handler.
 
     Usage:
@@ -18,7 +18,7 @@ def register(shortcode_name):
     """
 
     def _wrapper(cls):
-        SHORTCODE_HANDLERS[shortcode_name] = cls
+        SHORTCODE_HANDLERS.append(cls)
         return cls
 
     return _wrapper
@@ -102,7 +102,7 @@ class BlockShortcodeHandler:
 # Subclasses should declare a shortcode_name, custom_html_tag_prefix and provide
 # a construct_block method for converting the prefiltered HTML to a
 # Wagtail StreamField block dict.
-@register("caption")
+@register()
 class CaptionHandler(BlockShortcodeHandler):
     """
     The Wordpress caption tag is replaced by the custom HTML tag. The caption content and caption attrubutes
@@ -177,6 +177,6 @@ def filter_transform_shortcodes(html, options=None):
     html: is the body content from one Wordpress item
     options: not implemented
     """
-    for handler in SHORTCODE_HANDLERS.values():
+    for handler in SHORTCODE_HANDLERS:
         html = handler().pre_filter(html)
     return html
