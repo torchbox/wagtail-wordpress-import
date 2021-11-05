@@ -230,8 +230,8 @@ class TestShortcodesSubstitution(TestCase):
         )
 
 
-class TestShortcodeHandlerRegistration(TestCase):
-    def test_included_shortcode_handlers_are_registered(self):
+class TestAbsentShortcodeHandlers(TestCase):
+    def test_included_shortcodes(self):
         # prime the SHORTCODE_HANDLERS
         # note this class has not been registered
         class FooHandler(BlockShortcodeHandler):
@@ -239,14 +239,20 @@ class TestShortcodeHandlerRegistration(TestCase):
 
         registered_handlers = SHORTCODE_HANDLERS.keys()
         self.assertIn("caption", registered_handlers)
+        self.assertNotIn("foo", registered_handlers)
 
-    def test_developer_provided_shortcode_handlers_are_registered(self):
+
+class TestIncludedShortcodeHandlers(TestCase):
+    def test_included_shortcodes(self):
+        # prime the SHORTCODE_HANDLERS
+        # note this class has been registered
         @register("foo")
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
 
         registered_handlers = SHORTCODE_HANDLERS.keys()
         self.assertIn("foo", registered_handlers)
+        self.assertIn("caption", registered_handlers)
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
