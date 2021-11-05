@@ -10,6 +10,9 @@ from wagtail_wordpress_import.importers.wordpress import (
     WordpressItem,
 )
 from wagtail_wordpress_import.logger import Logger
+from wagtail.core.fields import StreamField
+from wagtail.core.blocks import RichTextBlock
+from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
