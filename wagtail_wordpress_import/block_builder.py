@@ -6,6 +6,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     conf_fallback_block,
     conf_html_tags_to_blocks,
 )
+from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HANDLERS
 
 
 def conf_promote_child_tags():
@@ -39,6 +40,12 @@ class BlockBuilder:
         promotee_tags = config_promote_child_tags["TAGS_TO_PROMOTE"]
         removee_tags = config_promote_child_tags["PARENTS_TO_REMOVE"]
 
+        # for each registered shortcode handler add the element_name property
+        # to the promotee_tags
+        for handler in SHORTCODE_HANDLERS.values():
+            if handler.is_top_level_html_tag:
+                promotee_tags.append(handler().element_name)
+
         for promotee in promotee_tags:
             promotees = self.soup.findAll(promotee)
             for promotee in promotees:
@@ -52,13 +59,21 @@ class BlockBuilder:
         returns:
             a function to parse the block from configuration
         """
-        function = [
-            import_string(builder[1]["FUNCTION"])
-            for builder in conf_html_tags_to_blocks()
-            if element.name == builder[0]
-        ]
-        if function:
-            return function[0]
+
+        # registered shortcode custom tags
+        conf_custom_tags = {}
+        for shortcode, handler in SHORTCODE_HANDLERS.items():
+            cls = handler()
+            conf_custom_tags[cls.element_name] = handler
+
+        if element.name in conf_custom_tags:
+            handler = conf_custom_tags[element.name]
+            return "custom", handler
+
+        # Detecting regular blocks to tags
+        for tag, builder in conf_html_tags_to_blocks().items():
+            if element.name == tag:
+                return "html", import_string(builder)
 
     def build(self):
         """
@@ -84,14 +99,16 @@ class BlockBuilder:
             counter += 1
             # the builder function for the element tag from config
             builder_function = self.get_builder_function(element)
-
             if builder_function:  # build a block
                 if cached_fallback_value:
                     cached_fallback_value = cached_fallback_function(
                         cached_fallback_value,
                         self.blocks,
                     )  # before building a block write fall back cache to a block
-                self.blocks.append(builder_function(element))  # write the new block
+                if builder_function[0] == "html":
+                    self.blocks.append(builder_function[1](element))
+                elif builder_function[0] == "custom":
+                    self.blocks.append(builder_function[1]().construct_block(element))
             else:
                 if element.text.strip():  # exclude a tag that is empty
                     cached_fallback_value += str(element)
