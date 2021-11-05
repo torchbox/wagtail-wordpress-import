@@ -1,6 +1,6 @@
 import re
 
-from bs4 import BeautifulSoup
+from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
 
 SHORTCODE_HANDLERS = {}
 
@@ -130,32 +130,44 @@ class CaptionHandler(BlockShortcodeHandler):
     shortcode_name = "caption"
     custom_html_tag_prefix = "wagtail_block_"
 
-    def fake_image_getter(self, src):
-        # we have an image fetcher for the rich text field we can implement.
-        # it can be done in ticket #70
-        return {"id": 1, "title": "Image title"}
-
     def construct_block(self, soup):
-        tag_attrs = soup.attrs
+        """Construct a StreamBlock dict that's passed back to the block builder
 
-        img = soup.find("img")
-        img_attrs = img.attrs
+        soup: <class 'bs4.element.Tag'>
+        """
+        try:
+            alignment = soup.attrs["align"] if "align" in soup.attrs else "alignleft"
+            alignment = alignment.replace("align", "")
+        except (KeyError, AttributeError, TypeError):
+            alignment = ""
 
-        anchor_attrs = None
-        anchor = soup.find("a")
-        if anchor:
-            anchor_attrs = anchor.attrs
+        # parse the image
+        try:
+            image = soup.find("img")
+            image_file = get_or_save_image(image.attrs["src"])
+            image_id = image_file.id
+        except (KeyError, AttributeError, TypeError):
+            image_id = None
 
-        image = self.fake_image_getter(img_attrs["src"])
+        # parse the caption
+        try:
+            caption = soup.text.replace("\n", "").strip()
+        except (KeyError, AttributeError, TypeError):
+            caption = ""
+
+        try:
+            anchor = soup.find("a")
+            link = anchor.get("href")
+        except (KeyError, AttributeError, TypeError):
+            link = ""
 
         return {
             "type": "image",
             "value": {
-                "image_file": 2439,
-                "caption": "a caption",
-                "tag_attrs": tag_attrs,
-                "image_attrs": img_attrs,
-                "anchor_attrs": anchor_attrs,
+                "image": image_id,
+                "caption": caption,
+                "alignment": alignment,
+                "link": link,
             },
         }
 
