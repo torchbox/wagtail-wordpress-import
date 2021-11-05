@@ -174,7 +174,7 @@ class TestBlockBuilderBuild(TestCase):
         blocks = [
             block["type"] for block in self.blocks if block["type"] == "rich_text"
         ]
-        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks), 3)
 
     def test_blockquote_blocks_count(self):
         blocks = [
@@ -240,16 +240,20 @@ class TestRichTextImageLinking(TestCase):
         In the fixture file is the only one that will be converted.
         The other img tags will become image blocks
         """
-        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
+        raw_html_file = """<p>Absolute image url.
+            <a href="#">
+                <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+            </a>
+        </p>"""
         self.builder = BlockBuilder(raw_html_file, None, None)
         self.builder.promote_child_tags()
         self.blocks = self.builder.build()
 
-        blocks = [
-            block["type"]
-            for block in self.blocks
-            if block["type"] == "rich_text" and 'embedtype="image"' in block["value"]
-        ]
+        self.assertEqual(self.blocks[0]["type"], "rich_text")
+
+        value_soup = BeautifulSoup(self.blocks[0]["value"], "html.parser")
+        embed_id = value_soup.find("embed").attrs["id"]
+        self.assertEqual(embed_id, "1")
 
     def test_get_image_alt(self):
         input = get_soup(
