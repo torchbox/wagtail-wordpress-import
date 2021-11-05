@@ -27,6 +27,8 @@ def register(shortcode_name):
 class BlockShortcodeHandler:
 
     shortcode_name: str
+    custom_html_tag_prefix: str
+    is_top_level_html_tag: True
 
     def __init__(self):
         # Subclasses should declare a shortcode_name
@@ -90,11 +92,16 @@ class BlockShortcodeHandler:
 
     @property
     def element_name(self):
-        return f"wagtail_block_{self.shortcode_name}"
+        return f"{self.custom_html_tag_prefix}{self.shortcode_name}"
+
+    @property
+    def is_top_level_html_tag(self):
+        return self.is_top_level_html_tag
 
 
-# Subclasses should declare a shortcode_name, and provide a construct_block method for
-# converting their prefiltered HTML to Wagtail StreamField block JSON.
+# Subclasses should declare a shortcode_name, custom_html_tag_prefix and provide
+# a construct_block method for converting the prefiltered HTML to a
+# Wagtail StreamField block dict.
 @register("caption")
 class CaptionHandler(BlockShortcodeHandler):
     """
@@ -121,32 +128,31 @@ class CaptionHandler(BlockShortcodeHandler):
     """
 
     shortcode_name = "caption"
+    custom_html_tag_prefix = "wagtail_block_"
 
     def fake_image_getter(self, src):
         # we have an image fetcher for the rich text field we can implement.
         # it can be done in ticket #70
         return {"id": 1, "title": "Image title"}
 
-    def construct_block(self, wagtail_custom_html):
-        soup = BeautifulSoup(wagtail_custom_html, "html.parser")
+    def construct_block(self, soup):
+        tag_attrs = soup.attrs
 
-        custom_html = soup.find("wagtail_block_caption")
-        tag_attrs = custom_html.attrs
-
-        img = custom_html.find("img")
+        img = soup.find("img")
         img_attrs = img.attrs
 
         anchor_attrs = None
-        anchor = custom_html.find("a")
+        anchor = soup.find("a")
         if anchor:
             anchor_attrs = anchor.attrs
 
         image = self.fake_image_getter(img_attrs["src"])
 
         return {
-            "type": "image_block",
+            "type": "image",
             "value": {
-                "image_file": image["id"],
+                "image_file": 2439,
+                "caption": "a caption",
                 "tag_attrs": tag_attrs,
                 "image_attrs": img_attrs,
                 "anchor_attrs": anchor_attrs,
