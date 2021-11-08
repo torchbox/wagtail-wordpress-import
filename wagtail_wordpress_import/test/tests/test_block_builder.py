@@ -160,7 +160,7 @@ class TestBlockBuilderBuild(TestCase):
 
     def test_heading_blocks_count(self):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
-        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks), 1)
 
 
 class TestBlockBuilderDefaultsBaseUrl(TestCase):

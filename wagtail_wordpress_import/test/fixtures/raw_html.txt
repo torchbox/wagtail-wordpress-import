@@ -4,7 +4,7 @@
 
 <a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
 <a href="https://www.budgetsaresexy.com/files/personal-finance-culminating-assignment.pdf">Read this</a>
-<h2><strong>Lorem ipsum dolor sit amet?</strong></h2>
+<h1><strong>Lorem ipsum dolor sit amet?</strong></h1>
 
 <p>Absolute image url.
     <a href="#">
