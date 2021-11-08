@@ -67,36 +67,6 @@ def conf_html_tags_to_blocks():
                 },
             ),
             (
-                "h2",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
-                "h3",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
-                "h4",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
-                "h5",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
-                "h6",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
                 "table",
                 {
                     "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
