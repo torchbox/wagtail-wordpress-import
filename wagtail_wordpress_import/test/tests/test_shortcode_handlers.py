@@ -291,15 +291,16 @@ class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
         json = handler.construct_block(
             wagtail_custom_html.find("wagtail_block_caption")
         )
-        self.assertDictEqual(
-            json,
-            {
-                "type": "image",
-                "value": {
-                    "image": 1,
-                    "caption": "[This is a caption about the image (the one above) in Glorious Rich Text!]",
-                    "alignment": "center",
-                    "link": "https//www.example.com/bar/",
-                },
-            },
+        self.assertIsInstance(json, dict)
+        self.assertEqual(json["type"], "image")
+        # ["value"]["image"] is an image id. it should be returned as an integer but we cannot
+        # reply on the value returned here so check if it is an integer.
+        # there is a ticket to improve testing when fetching remote images:
+        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
+        self.assertIsInstance(int(json["value"]["image"]), int)
+        self.assertEqual(
+            json["value"]["caption"],
+            "[This is a caption about the image (the one above) in Glorious Rich Text!]",
         )
+        self.assertEqual(json["value"]["alignment"], "center")
+        self.assertEqual(json["value"]["link"], "https//www.example.com/bar/")
