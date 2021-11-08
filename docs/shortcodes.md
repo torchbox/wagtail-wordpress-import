@@ -63,8 +63,6 @@ A complete shortcode example:
 
 **PART 1** Create a class that inherits from BlockShortcodeHandler()
 
-For example: lets say we need to create a shortcode handler to transform a `card`  Wordpress shortcode.
-
 Import the BlockShortcodeHandler.
 
 ```python
@@ -82,7 +80,7 @@ class CardShortcodeHandler(BlockShortcodeHandler):
 The card custom HTML tag:
 
 ```html
-<wagtail_block_card><img class="wp-image-46162 size-full" src="https://www.example.com/images/foo.jpg" />Card title</wagtail_block_caption>
+<wagtail_block_card><img class="wp-image-46162 size-full" src="https://www.example.com/images/foo.jpg" />Card title</wagtail_block_card>
 ```
 
 Your class should declare a class attribute of `shortcode_name` (str) with a value of the Wordpress shortcode name you need to transform. It should also declare a class attribute of `custom_html_tag_prefix` (str). In the example class above the class attributes will result in a custom HTML tag name of `wagtail_block_card`.
@@ -97,7 +95,7 @@ Import the register decorator:
 from wagtail_wordpress_import.prefilters.handle_shortcodes import register
 ```
 
-Decorate you class:
+Decorate your class:
 
 ```python
 @register()
@@ -117,7 +115,7 @@ A basic example:
 ```python
 def construct_block(self, soup):
   """Assuming the card has a `title` and `image` for its HTML content
-  As the `soup` parameter is a BeautifulSoup tag object you can use it's methods to extract the data you need.
+  As the `soup` parameter is a BeautifulSoup tag object you can use its methods to extract the data you need.
   """
 
   # parse the title

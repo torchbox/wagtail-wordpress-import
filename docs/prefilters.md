@@ -74,7 +74,7 @@ is converted to
 
 -- **filter_transform_shortcodes()** [source](wagtail-wordpress-import/wagtail_wordpress_import/prefilters/handle_shortcodes.py)
 
-This filter will parse the body content for Wordpress shortcodes and convert them to a custom HTML tag which is later converted to a `complex` StreamField block type. [See shortcode documentation](wagtail-wordpress-import/docs/shortcodes.md)
+This filter will parse the body content for Wordpress shortcodes and convert them to a custom HTML tag which is later converted to a StreamField block type. [See shortcode documentation](wagtail-wordpress-import/docs/shortcodes.md)
 
 -- **filter_bleach_clean()** [source](wagtail_wordpress_import/prefilters/bleach_filter.py)
 
@@ -127,7 +127,7 @@ WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
         "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
     },
     {
-        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
     },
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
