@@ -164,7 +164,7 @@ class WordpressImporter:
     @staticmethod
     def check_stream_field_block_types(page, body):
         """Body JSON is validated to check it is using only StreamField blocks declared in the model StreamField
-        An excpetion will stop the import process and display the ValueError
+        An exception will stop the import process and display the ValueError
         """
         body = json.loads(body)
         item_block_types = [item["type"] for item in body]

@@ -13,7 +13,7 @@ def filter_bleach_clean(html, options=None):
         CONF_ALLOWED_TAGS += options["ADDITIONAL_ALLOWED_TAGS"]
 
     # Registered shortcode handlers generate custom tags
-    # so they need to be added too ALLOWED_TAGS
+    # so they need to be added to ALLOWED_TAGS
 
     for handler in SHORTCODE_HANDLERS:
         if handler.is_top_level_html_tag:
