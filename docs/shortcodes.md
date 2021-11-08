@@ -74,7 +74,6 @@ Create you shortcode handler class.
 ```python
 class CardShortcodeHandler(BlockShortcodeHandler):
   shortcode_name = "card"
-  custom_html_tag_prefix = "wagtail_block_"
 ```
 
 The card custom HTML tag:
@@ -83,9 +82,9 @@ The card custom HTML tag:
 <wagtail_block_card><img class="wp-image-46162 size-full" src="https://www.example.com/images/foo.jpg" />Card title</wagtail_block_card>
 ```
 
-Your class should declare a class attribute of `shortcode_name` (str) with a value of the Wordpress shortcode name you need to transform. It should also declare a class attribute of `custom_html_tag_prefix` (str). In the example class above the class attributes will result in a custom HTML tag name of `wagtail_block_card`.
+Your class should declare a class attribute of `shortcode_name` (str) with a value of the Wordpress shortcode name you need to transform. In the example class above the custom HTML tag name will be `wagtail_block_card`.
 
-*While the shortcode_name will need to match the Wordpress shortcode you can use any name for the custom_html_tag_prefix, but it cannot contain spaces or special characters. The tag is never displayed in a browser directly.*
+*The shortcode_name will need to match the Wordpress shortcode, but it cannot contain spaces or special characters. The tag is never displayed in a browser directly.*
 
 You will need to use a `@register` method provided to decorate your class so it will be added to the list of shortcode handlers to be run during the import process.
 
@@ -101,7 +100,6 @@ Decorate your class:
 @register()
 class CardShortcodeHandler(BlockShortcodeHandler):
   shortcode_name = "card"
-  custom_html_tag_prefix = "wagtail_block_"
 ```
 
 In this card example your class will then transform the Wordpress shortcode to a custom HTML tag with the name `wagtail_block_card` during the import process.

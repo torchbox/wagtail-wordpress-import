@@ -27,7 +27,7 @@ def register():
 class BlockShortcodeHandler:
 
     shortcode_name: str
-    custom_html_tag_prefix: str
+
     is_top_level_html_tag: True
 
     def __init__(self):
@@ -92,15 +92,15 @@ class BlockShortcodeHandler:
 
     @property
     def element_name(self):
-        return f"{self.custom_html_tag_prefix}{self.shortcode_name}"
+        return f"wagtail_block_{self.shortcode_name}"
 
     @property
     def is_top_level_html_tag(self):
         return self.is_top_level_html_tag
 
 
-# Subclasses should declare a shortcode_name, custom_html_tag_prefix and provide
-# a construct_block method for converting the prefiltered HTML to a
+# Subclasses should declare a shortcode_name and provide
+# a construct_block method for converting the pre-filtered HTML to a
 # Wagtail StreamField block dict.
 @register()
 class CaptionHandler(BlockShortcodeHandler):
@@ -128,7 +128,6 @@ class CaptionHandler(BlockShortcodeHandler):
     """
 
     shortcode_name = "caption"
-    custom_html_tag_prefix = "wagtail_block_"
 
     def construct_block(self, soup):
         """Construct a StreamBlock dict that's passed back to the block builder
