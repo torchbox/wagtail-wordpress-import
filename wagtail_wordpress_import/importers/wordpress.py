@@ -335,13 +335,19 @@ class WordpressItem:
         from the XML import file <item><description>...</description></item>
         """
         meta_value = ""
+        node_keys = self.node.keys()
+        xml_item_key = yoast_plugin_config()["xml_item_key"]
 
-        if yoast_plugin_config()["xml_item_key"] in self.node.keys():
-            for item in self.node.get(yoast_plugin_config()["xml_item_key"]):
-                meta_key_values = list(item.values())
+        if xml_item_key in node_keys:
+            for item in self.node.get(xml_item_key):
+                if type(item) == dict:
+                    meta_key_values = list(item.values())
 
-                if meta_key_values[0] == yoast_plugin_config()["description_key_value"]:
-                    meta_value = meta_key_values[1] or ""
+                    if (
+                        meta_key_values[0]
+                        == yoast_plugin_config()["description_key_value"]
+                    ):
+                        meta_value = meta_key_values[1] or ""
 
         if not meta_value:
             meta_value = self.node.get("description") or ""
