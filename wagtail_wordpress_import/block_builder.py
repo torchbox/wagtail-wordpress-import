@@ -10,11 +10,18 @@ from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HAND
 
 
 def conf_promote_child_tags():
+    TAGS_TO_PROMOTE = ["iframe", "form", "blockquote"]
+
+    # for each registered shortcode handler add the element_name property
+    # to TAGS_TO_PROMOTE
+    for handler in SHORTCODE_HANDLERS:
+        if handler.is_top_level_html_tag:
+            TAGS_TO_PROMOTE.append(handler().element_name)
     return getattr(
         settings,
         "WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS",
         {
-            "TAGS_TO_PROMOTE": ["iframe", "form", "blockquote"],
+            "TAGS_TO_PROMOTE": TAGS_TO_PROMOTE,
             "PARENTS_TO_REMOVE": ["p", "div", "span"],
         },
     )
@@ -40,12 +47,6 @@ class BlockBuilder:
         promotee_tags = config_promote_child_tags["TAGS_TO_PROMOTE"]
         removee_tags = config_promote_child_tags["PARENTS_TO_REMOVE"]
 
-        # for each registered shortcode handler add the element_name property
-        # to the promotee_tags
-        for handler in SHORTCODE_HANDLERS:
-            if handler.is_top_level_html_tag:
-                promotee_tags.append(handler().element_name)
-
         for promotee in promotee_tags:
             promotees = self.soup.findAll(promotee)
             for promotee in promotees:
@@ -60,7 +61,14 @@ class BlockBuilder:
             a function to parse the block from configuration
         """
 
-        # registered shortcode custom tags
+        # Detecting standard blocks to tags
+        try:
+            builder = conf_html_tags_to_blocks()[element.name]
+            return import_string(builder)
+        except KeyError:
+            pass
+
+        # registered shortcode handlers custom HTML tags
         conf_custom_tags = {}
         for handler in SHORTCODE_HANDLERS:
             cls = handler()
@@ -68,12 +76,9 @@ class BlockBuilder:
 
         if element.name in conf_custom_tags:
             handler = conf_custom_tags[element.name]
-            return "custom", handler
-
-        # Detecting regular blocks to tags
-        for tag, builder in conf_html_tags_to_blocks().items():
-            if element.name == tag:
-                return "html", import_string(builder)
+            # Return the method, so we can call it later like a function that takes a
+            # single argument.
+            return handler().construct_block
 
     def build(self):
         """
@@ -97,18 +102,17 @@ class BlockBuilder:
         counter = 0
         for element in soup:  # each single top level tag
             counter += 1
+
             # the builder function for the element tag from config
             builder_function = self.get_builder_function(element)
+
             if builder_function:  # build a block
                 if cached_fallback_value:
                     cached_fallback_value = cached_fallback_function(
                         cached_fallback_value,
                         self.blocks,
                     )  # before building a block write fall back cache to a block
-                if builder_function[0] == "html":
-                    self.blocks.append(builder_function[1](element))
-                elif builder_function[0] == "custom":
-                    self.blocks.append(builder_function[1]().construct_block(element))
+                self.blocks.append(builder_function(element))
             else:
                 if element.text.strip():  # exclude a tag that is empty
                     cached_fallback_value += str(element)
