@@ -1,6 +1,7 @@
 import os
 
 from bs4 import BeautifulSoup
+import bs4
 from django.conf import settings
 from django.test import TestCase, override_settings, modify_settings
 from wagtail_wordpress_import.block_builder import BlockBuilder
@@ -161,6 +162,19 @@ class TestBlockBuilderBuild(TestCase):
     def test_heading_blocks_count(self):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
         self.assertEqual(len(blocks), 1)
+
+    def test_richtext_block_3_content(self):
+        """The expected content here should be lines 9 - 24 of raw_html.txt"""
+        rich_text_content = BeautifulSoup(self.blocks[3]["value"], "html.parser")
+
+        paragraph = rich_text_content.find("p")
+        self.assertIsInstance(paragraph, bs4.element.Tag)
+
+        list = rich_text_content.find("ul")
+        self.assertIsInstance(list, bs4.element.Tag)
+
+        heading_2 = rich_text_content.find("h2")
+        self.assertIsInstance(heading_2, bs4.element.Tag)
 
 
 class TestBlockBuilderDefaultsBaseUrl(TestCase):
