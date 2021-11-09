@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 import bs4
 from django.conf import settings
 from django.test import TestCase, override_settings, modify_settings
-from wagtail_wordpress_import.block_builder import BlockBuilder
+from wagtail_wordpress_import.block_builder import BlockBuilder, conf_promote_child_tags
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
     build_form_block,
@@ -186,9 +186,9 @@ class TestBlockBuilderBuild(TestCase):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
         self.assertEqual(len(blocks), 1)
 
-    def test_richtext_block_3_content(self):
-        """The expected content here should be lines 9 - 24 of raw_html.txt"""
-        rich_text_content = BeautifulSoup(self.blocks[3]["value"], "html.parser")
+    def test_richtext_block_6_content(self):
+        """The expected content here should be lines 18 - 31 of raw_html.txt"""
+        rich_text_content = BeautifulSoup(self.blocks[6]["value"], "html.parser")
 
         paragraph = rich_text_content.find("p")
         self.assertIsInstance(paragraph, bs4.element.Tag)
