@@ -59,44 +59,19 @@ def conf_html_tags_to_blocks():
     return getattr(
         settings,
         "WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS",
-        [
-            (
-                "h1",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-                },
-            ),
-            (
-                "table",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
-                },
-            ),
-            (
-                "iframe",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
-                },
-            ),
-            (
-                "form",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
-                },
-            ),
-            (
-                "img",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
-                },
-            ),
-            (
-                "blockquote",
-                {
-                    "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
-                },
-            ),
-        ],
+        {
+            "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "h2": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "h3": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "h4": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "h5": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "h6": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+            "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+            "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+            "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+            "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
+        },
     )
 
 
