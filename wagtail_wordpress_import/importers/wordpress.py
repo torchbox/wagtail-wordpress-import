@@ -340,7 +340,7 @@ class WordpressItem:
 
         if xml_item_key in node_keys:
             for item in self.node.get(xml_item_key):
-                if type(item) == dict:
+                if isinstance(item, dict):
                     meta_key_values = list(item.values())
 
                     if (
