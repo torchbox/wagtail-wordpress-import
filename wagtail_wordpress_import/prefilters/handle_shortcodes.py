@@ -1,11 +1,11 @@
 import re
 
-from bs4 import BeautifulSoup
+from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
 
-SHORTCODE_HANDLERS = {}
+SHORTCODE_HANDLERS = []
 
 
-def register(shortcode_name):
+def register():
     """Register the decorated class as a shortcode handler.
 
     Usage:
@@ -18,7 +18,7 @@ def register(shortcode_name):
     """
 
     def _wrapper(cls):
-        SHORTCODE_HANDLERS[shortcode_name] = cls
+        SHORTCODE_HANDLERS.append(cls)
         return cls
 
     return _wrapper
@@ -27,6 +27,8 @@ def register(shortcode_name):
 class BlockShortcodeHandler:
 
     shortcode_name: str
+
+    is_top_level_html_tag: True
 
     def __init__(self):
         # Subclasses should declare a shortcode_name
@@ -92,10 +94,15 @@ class BlockShortcodeHandler:
     def element_name(self):
         return f"wagtail_block_{self.shortcode_name}"
 
+    @property
+    def is_top_level_html_tag(self):
+        return self.is_top_level_html_tag
 
-# Subclasses should declare a shortcode_name, and provide a construct_block method for
-# converting their prefiltered HTML to Wagtail StreamField block JSON.
-@register("caption")
+
+# Subclasses should declare a shortcode_name and provide
+# a construct_block method for converting the pre-filtered HTML to a
+# Wagtail StreamField block dict.
+@register()
 class CaptionHandler(BlockShortcodeHandler):
     """
     The Wordpress caption tag is replaced by the custom HTML tag. The caption content and caption attrubutes
@@ -122,34 +129,44 @@ class CaptionHandler(BlockShortcodeHandler):
 
     shortcode_name = "caption"
 
-    def fake_image_getter(self, src):
-        # we have an image fetcher for the rich text field we can implement.
-        # it can be done in ticket #70
-        return {"id": 1, "title": "Image title"}
+    def construct_block(self, soup):
+        """Construct a StreamBlock dict that's passed back to the block builder
 
-    def construct_block(self, wagtail_custom_html):
-        soup = BeautifulSoup(wagtail_custom_html, "html.parser")
+        soup: <class 'bs4.element.Tag'>
+        """
+        try:
+            alignment = soup.attrs["align"] if "align" in soup.attrs else "alignleft"
+            alignment = alignment.replace("align", "")
+        except (KeyError, AttributeError, TypeError):
+            alignment = ""
 
-        custom_html = soup.find("wagtail_block_caption")
-        tag_attrs = custom_html.attrs
+        # parse the image
+        try:
+            image = soup.find("img")
+            image_file = get_or_save_image(image.attrs["src"])
+            image_id = image_file.id
+        except (KeyError, AttributeError, TypeError):
+            image_id = None
 
-        img = custom_html.find("img")
-        img_attrs = img.attrs
+        # parse the caption
+        try:
+            caption = soup.text.replace("\n", "").strip()
+        except (KeyError, AttributeError, TypeError):
+            caption = ""
 
-        anchor_attrs = None
-        anchor = custom_html.find("a")
-        if anchor:
-            anchor_attrs = anchor.attrs
-
-        image = self.fake_image_getter(img_attrs["src"])
+        try:
+            anchor = soup.find("a")
+            link = anchor.get("href")
+        except (KeyError, AttributeError, TypeError):
+            link = ""
 
         return {
-            "type": "image_block",
+            "type": "image",
             "value": {
-                "image_file": image["id"],
-                "tag_attrs": tag_attrs,
-                "image_attrs": img_attrs,
-                "anchor_attrs": anchor_attrs,
+                "image": image_id,
+                "caption": caption,
+                "alignment": alignment,
+                "link": link,
             },
         }
 
@@ -159,6 +176,6 @@ def filter_transform_shortcodes(html, options=None):
     html: is the body content from one Wordpress item
     options: not implemented
     """
-    for handler in SHORTCODE_HANDLERS.values():
+    for handler in SHORTCODE_HANDLERS:
         html = handler().pre_filter(html)
     return html

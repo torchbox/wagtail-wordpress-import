@@ -24,6 +24,15 @@ class HeadingBlock(blocks.StructBlock):
 class ImageBlock(blocks.StructBlock):
     image = ImageChooserBlock()
     caption = blocks.CharBlock(required=False)
+    link = blocks.URLBlock(required=False)
+    alignment = blocks.ChoiceBlock(
+        choices=(
+            ("left", "Left"),
+            ("right", "Right"),
+            ("center", "Center"),
+        ),
+        default="left",
+    )
 
     class Meta:
         icon = "image"

@@ -1,5 +1,6 @@
 from bleach.sanitizer import Cleaner
 from django.utils.module_loading import import_string
+from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HANDLERS
 
 
 def filter_bleach_clean(html, options=None):
@@ -10,6 +11,13 @@ def filter_bleach_clean(html, options=None):
     CONF_ALLOWED_TAGS = ALLOWED_TAGS
     if options and options.get("ADDITIONAL_ALLOWED_TAGS"):
         CONF_ALLOWED_TAGS += options["ADDITIONAL_ALLOWED_TAGS"]
+
+    # Registered shortcode handlers generate custom tags
+    # so they need to be added to ALLOWED_TAGS
+
+    for handler in SHORTCODE_HANDLERS:
+        if handler.is_top_level_html_tag:
+            CONF_ALLOWED_TAGS.append(handler().element_name)
 
     CONF_ALLOWED_ATTRIBUTES = ALLOWED_ATTRIBUTES
     if options and options.get("ADDITIONAL_ALLOWED_ATTRIBUTES"):
