@@ -1,3 +1,4 @@
+<!-- BE CAREFUL WHEN ALTERING THIS FIXTURE AS THE ORDER OF TAG MATTERS -->
 <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
 
 <span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
