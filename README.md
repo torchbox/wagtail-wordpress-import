@@ -23,7 +23,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 ## Initial app and package setup
 
 1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
-2. Download the repo for this package [Wagtaill Wordpress Import](https://github.com/torchbox/wagtail-wordpress-import/tree/integration/sprint-6) to a location on your hard-drive. (This is the latest development branch)
+2. Download the repo for this package [Wagtaill Wordpress Import](https://github.com/torchbox/wagtail-wordpress-import) to a location on your hard-drive. (This is the latest development branch)
 3. Install this package with pip install -e path/to/wagtail-wordpress-import or using any method you prefer.
 4. Place your XML files somewhere on your disk. The file can have any name you choose.
 
@@ -41,7 +41,7 @@ class PostPage(WPImportedPageMixin, Page):
 
 You will need to run `python manage.py makemigrations` and `python manage.py migrate` to add the fields to your page model.
 
-*It's intended that this initial setup can be removed once the content has been imported. [view source](wagtail-wordpress-import/wagtail_wordpress_import/models.py)*
+*It's intended that this initial setup can be removed once the content has been imported. [view source](wagtail_wordpress_import/models.py)*
 
 A full example of the suggested page model class
 
@@ -118,11 +118,11 @@ Running this command will import all Wordpress 'post' and 'page' types to the 'P
 
 ## Module documentation
 
-- [Block Builder](wagtail-wordpress-import/docs/blockbuilder.md)
-- [Categories Import](wagtail-wordpress-import/docs/categories.md)
-- [Prefilters](wagtail-wordpress-import/docs/prefilters.md)
-- [Wordpress Shortcodes](wagtail-wordpress-import/docs/shortcodes.md)
-- [Yoast Import](wagtail-wordpress-import/docs/yoast.md)
+- [Block Builder](docs/blockbuilder.md)
+- [Categories Import](docs/categories.md)
+- [Prefilters](docs/prefilters.md)
+- [Wordpress Shortcodes](docs/shortcodes.md)
+- [Yoast Import](docs/yoast.md)
 
 ## Developer Tooling
 
