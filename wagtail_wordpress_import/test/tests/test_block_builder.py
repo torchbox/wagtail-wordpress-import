@@ -18,7 +18,6 @@ from wagtail_wordpress_import.block_builder_defaults import (
     get_image_alt,
     get_image_file_name,
 )
-from wagtail_wordpress_import.prefilters.handle_shortcodes import BlockShortcodeHandler
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -77,18 +76,15 @@ class TestBlockBuilderRemoveParents(TestCase):
                     wagtail_block_caption.parent.name == self.expected_parent_name
                 )
 
-    @override_settings(
-        WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS={
-            "TAGS_TO_PROMOTE": ["iframe", "form", "blockquote"],
-            "PARENTS_TO_REMOVE": ["p", "div", "span"],
-        }
-    )
-    def test_promote_child_tags_has_registered_included_shortcodes(self):
-        tags_to_promote = settings.WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS[
-            "TAGS_TO_PROMOTE"
-        ]
-        self.builder.promote_child_tags()
-        self.assertIn("wagtail_block_caption", tags_to_promote)
+    def test_conf_promote_child_tags(self):
+        conf = conf_promote_child_tags()
+        self.assertIn("iframe", conf["TAGS_TO_PROMOTE"])
+        self.assertIn("form", conf["TAGS_TO_PROMOTE"])
+        self.assertIn("blockquote", conf["TAGS_TO_PROMOTE"])
+
+    def test_conf_promote_child_tags_includes_shortcodes_html_tags(self):
+        conf = conf_promote_child_tags()
+        self.assertIn("wagtail_block_caption", conf["TAGS_TO_PROMOTE"])
 
 
 class TestBlockBuilderBlockDefaults(TestCase):
@@ -252,12 +248,11 @@ class TestRichTextImageLinking(TestCase):
         self.assertEqual(self.blocks[0]["type"], "rich_text")
 
         value_soup = BeautifulSoup(self.blocks[0]["value"], "html.parser")
-        # embed_id is an image id. it should be returned as an integer but we cannot
-        # rely on the value returned here so check if it is an integer.
+        # attr["id"] should be returned as an integer but we cannot
+        # rely on the value returned here so it's not None.
         # there is a ticket to improve testing when fetching remote images:
         # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
-        embed_id = int(value_soup.find("embed").attrs["id"])
-        self.assertIsInstance(embed_id, int)
+        self.assertIsNotNone(value_soup.find("embed").attrs["id"])
 
     def test_get_image_alt(self):
         input = get_soup(
