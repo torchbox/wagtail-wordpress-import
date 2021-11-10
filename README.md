@@ -2,7 +2,7 @@
 
 A package for Wagtail CMS to import WordPress blog content from an XML file into Wagtail.
 
-- [Wagtail WordPess Import](#wagtail-wordpess-import)
+- [Wagtail WordPress Import](#wagtail-wordpress-import)
   - [Requirements](#requirements)
   - [Initial app and package setup](#initial-app-and-package-setup)
     - [First steps to configure your wagtail app](#first-steps-to-configure-your-wagtail-app)
