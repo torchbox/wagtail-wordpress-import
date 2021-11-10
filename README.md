@@ -1,4 +1,4 @@
-# Wagtail WordPess Import
+# Wagtail WordPress Import
 
 A package for Wagtail CMS to import WordPress blog content from an XML file into Wagtail.
 
