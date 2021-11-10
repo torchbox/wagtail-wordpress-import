@@ -1,8 +1,8 @@
-# Wagtail Wordpess Import
+# Wagtail WordPess Import
 
 A package for Wagtail CMS to import WordPress blog content from an XML file into Wagtail.
 
-- [Wagtail Wordpess Import](#wagtail-wordpess-import)
+- [Wagtail WordPess Import](#wagtail-wordpess-import)
   - [Requirements](#requirements)
   - [Initial app and package setup](#initial-app-and-package-setup)
     - [First steps to configure your wagtail app](#first-steps-to-configure-your-wagtail-app)
@@ -17,17 +17,17 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 ## Requirements
 
 1. Wagtail CMS Installed with initial setup
-2. Wordpress XML export of all content in a single file
-3. The Wordpress website will need to be live and available for importing of assets such as images and documents.
+2. WordPress XML export of all content in a single file
+3. The WordPress website will need to be live and available for importing of assets such as images and documents.
 
 ## Initial app and package setup
 
 1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
-2. Download the repo for this package [Wagtaill Wordpress Import](https://github.com/torchbox/wagtail-wordpress-import/tree/integration/sprint-6) to a location on your hard-drive. (This is the latest development branch)
+2. Download the repo for this package [Wagtail WordPress Import](https://github.com/torchbox/wagtail-wordpress-import/tree/integration/sprint-6) to a location on your hard-drive. (This is the latest development branch)
 3. Install this package with pip install -e path/to/wagtail-wordpress-import or using any method you prefer.
 4. Place your XML files somewhere on your disk. The file can have any name you choose.
 
-### First steps to configure your wagtail app
+### First steps to configure your Wagtail app
 
 The import can be run on an existing or new site but you will need to perform some setup on your page models.
 
@@ -74,7 +74,7 @@ class PostPage(WPImportedPageMixin, Page):
     )
 
     def import_wordpress_data(self, data):
-        # wagtail page model fields
+        # Wagtail page model fields
         self.title = data["title"]
         self.slug = data["slug"]
         self.first_published_at = data["first_published_at"]
@@ -103,16 +103,16 @@ The most basic command would be:
 `python manage.py import_xml path/to/xml/file.xml parent_page_id`
 ```
 
-[parent_page_id] is the id of the page in your wagtail site where pages will be created as child pages. If you don't know what that is then choose to edit the page in wagtail admin and look at the url in your browser e.g. `http://www.domain.com/admin/pages/3/edit/` the number after /admin/pages/`3` is the id to use.
+`parent_page_id` is the ID of the page in your Wagtail site where WordPress pages will be imported as children. You can find this in the Wagtail admin URL when editing the page e.g. for `http://www.domain.com/admin/pages/3/edit/` the ID is 3.
 
-Running this command will import all Wordpress 'post' and 'page' types to the 'PostPage' model in and app called 'pages'
+Running this command will import all WordPress 'post' and 'page' types to the 'PostPage' model in an app called 'pages'
 
 ### Optional command arguments
 
 - `-m` can be used to specify the Wagtail Page model to use for all imported pages. The default is `PostPage` when it's not specified.
 - `-a` can be used to specify the Wagtail App where you have created your Wagtail Page model. The default is `pages` when it's not specified.
-- `-t` can be used to limit the Wordpress page types to be imported. You can pass in a comma separated string of page types or just a single page type. The default is `page,post` if not specified.
-- `-s` can be used to specify the status of pages you want to import. You can pass in a comma separated string of statuses or just a single status. The default is `publish,draft` if not specified.
+- `-t` can be used to limit the WordPress page types to be imported. You can pass in a comma-separated string of page types or just a single page type. The default is `page,post` if not specified.
+- `-s` can be used to specify the status of pages you want to import. You can pass in a comma-separated string of statuses or just a single status. The default is `publish,draft` if not specified.
 
 [View the import command source](wagtail_wordpress_import/management/commands/import_xml.py) to if you need to extend the command.
 
@@ -121,7 +121,7 @@ Running this command will import all Wordpress 'post' and 'page' types to the 'P
 - [Block Builder](wagtail-wordpress-import/docs/blockbuilder.md)
 - [Categories Import](wagtail-wordpress-import/docs/categories.md)
 - [Prefilters](wagtail-wordpress-import/docs/prefilters.md)
-- [Wordpress Shortcodes](wagtail-wordpress-import/docs/shortcodes.md)
+- [WordPress Shortcodes](wagtail-wordpress-import/docs/shortcodes.md)
 - [Yoast Import](wagtail-wordpress-import/docs/yoast.md)
 
 ## Developer Tooling
@@ -136,7 +136,7 @@ python manage.py reduce_xml path/to/your/xmlfile.xml
 
 ---
 
-To understand more about the type of HTML content formatting used in your Wordpress site we provide a reporting tool that will generate a table output in the console to show inline styles, html tags and shortcodes.
+To understand more about the type of HTML content formatting used in your WordPress site we provide a reporting tool that will generate a table output in the console to show inline styles, HTML tags and shortcodes.
 
 ```bash
 python manage.py analyze_html_content path/to/your/xmlfile.xml
