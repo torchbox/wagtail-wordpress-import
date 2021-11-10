@@ -17,8 +17,7 @@ class Command(BaseCommand):
     help = """Utils to reduce xml file size by removing unwanted tags."""
 
     """
-    Tags to be removed item > wp:comment 
-    TODO: this would be better made felxible
+    Tags to be removed item > wp:comment
     """
 
     def add_arguments(self, parser):

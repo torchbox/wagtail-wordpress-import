@@ -3,6 +3,7 @@ import os
 from django.core.management.base import BaseCommand
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
+from wagtail_wordpress_import.block_builder_defaults import conf_domain_prefix
 
 LOG_DIR = "log"
 
@@ -12,7 +13,7 @@ class Command(BaseCommand):
     them child pages of a specific page."""
 
     """
-    ./manage.py import_xml parent_page_id [--app] [--model] [--type] [--status]
+    ./manage.py import_xml path/to/xml/file.xml parent_page_id [--app] [--model] [--type] [--status]
 
     The default is:
     Import all `post` and `page` types of status `draft` and `publish` as children
@@ -56,6 +57,13 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
+        if not conf_domain_prefix():
+            self.stdout.write(
+                self.style.ERROR(
+                    "BASE_URL or WAGTAIL_WORDPRESS_IMPORTER_BASE_URL: needs to be added to your settings"
+                )
+            )
+            exit()
         xml_file_path = self.get_xml_file(f"{options['xml_file']}")
         logger = Logger(LOG_DIR)
         importer = WordpressImporter(xml_file_path)
@@ -70,6 +78,7 @@ class Command(BaseCommand):
         logger.output_import_summary()
         logger.save_csv_import_report()
         logger.save_csv_images_report()
+        logger.save_csv_pagelink_errors_report()
 
     def get_xml_file(self, xml_file):
         if os.path.exists(xml_file):

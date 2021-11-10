@@ -1,98 +1,128 @@
-# Wagtail xmlimport
+# Wagtail WordPress Import
 
-An extension for importing model data from a xml file into a Wagail project.
+A package for Wagtail CMS to import WordPress blog content from an XML file into Wagtail.
 
-It's intended that the data can be used to create page models, image models, document models and more.
+- [Wagtail WordPress Import](#wagtail-wordpress-import)
+  - [Requirements](#requirements)
+  - [Initial app and package setup](#initial-app-and-package-setup)
+    - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
+  - [Running the import command](#running-the-import-command)
+    - [Optional command arguments](#optional-command-arguments)
+  - [Module documentation](#module-documentation)
+  - [Developer Tooling](#developer-tooling)
 
-`Inital work is to import from a Wordpress xml export but it should be possible to use it for other xml data sources.`
+## Requirements
 
+1. Wagtail CMS Installed with initial setup
+2. WordPress XML export of all content in a single file
+3. The WordPress website will need to be live and available for importing of assets such as images and documents.
 
+## Initial app and package setup
 
+1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
+2. Install this package with pip install -e "git+https://github.com/torchbox/wagtail-wordpress-import.git#egg=wagtail-wordpress-import"
+ or using any method you prefer.
+3. Place your XML files somewhere on your disk. The file can have any name you choose.
+4. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
+5. Add `"wagtail_wordpress_import"` to your INSTALLED_APPS config in your settings.py file.
 
+### First steps to configure your Wagtail app
 
-## Installation
+The import can be run on an existing or new site but you will need to perform some setup on your page models.
 
-* Install the package with `pip install wagtail-wordpress-import` (not yet available) but can be installed with pip install -e wagtail-wordpress-import for development.
+We recommend your page model inherits from the provided WPImportedPageMixin
 
-* Add `wagtail_wordpress_import` to INSTALLED_APPS in your project
+```python
+from wagtail_wordpress_import.models import WPImportedPageMixin
+class PostPage(WPImportedPageMixin, Page):
+    ...
+```
 
+You will need to run `python manage.py makemigrations` and `python manage.py migrate` to add the fields to your page model.
 
+*It's intended that these fields are temporary for while importing, and can be removed once the content has been imported. [view source](wagtail_wordpress_import/models.py)*
 
+A full example of the suggested page model class
 
-
-# Inital setup
-
-Place your xml files inside a folder called `xml` at the root of your project. The file can have any name you choose.
-
-### It's a good idead to include these folders to your .gitignore to avoid exposing potentially private data to the world.
-
-
-
-
-
-# Import XML
-
-## To start an import: 
-        
-`python manage.py import_xml [parent_page_id]` 
-
-- [parent_page_id] is the id of the page in your wagtail site where pages will be created as child pages. If you don't know what that is then choose to edit the page in wagtail admin and look at the url in your browser e.g. `http://www.domain.com/admin/pages/3/edit/` the number after /admin/pages/`3` is the id to use.
-
-### Default command arguments:
-
-- `--model or -m` can be used to specify the Wagtail Page model to use for all imported pages. The default is `PostPage` when it's not specified.
-
-- `--app or -a` can be used to specify the Wagtail App where you have created your Wagtail Page model. The default is `pages` when it's not specified.
-
-### Default import command
-
-The package comes with a default command: 
-
-- [import_xml.py](wagtail_wordpress_import/management/commands/import_xml.py)
-
-The configuration is set to import all items in the xml file that have a `<wp:post_type>` = `post` or `page`. Also the command only imports an item that has `<wp:status>` = `draft` or `publish`
-
-### You can create you own command to import the xml file.
-[View Documentation](docs/commands.md)
-
-
-
+```python
+from wagtail.admin.edit_handlers import (
+    FieldPanel,
+    ObjectList,
+    StreamFieldPanel,
+    TabbedInterface,
+)
+from wagtail.core.fields import StreamField
+from wagtail.core.models import Page
+from wagtail_wordpress_import.blocks import WPImportStreamBlocks
+from wagtail_wordpress_import.models import WPImportedPageMixin
 
 
-# XML item fields -> Wagtail model field mapping
+class PostPage(WPImportedPageMixin, Page):
+    body = StreamField(WPImportStreamBlocks)
+    content_panels = Page.content_panels + [
+        StreamFieldPanel("body"),
+    ]
 
-There is a built in wordpress -> wagtail mapping file in the package. You can choose to extend the mapping and add your own methods to process each item.
+    edit_handler = TabbedInterface(
+        [
+            ObjectList(content_panels, heading="Content"),
+            ObjectList(Page.promote_panels, heading="Promote"),
+            ObjectList(Page.settings_panels, heading="Settings", classname="settings"),
+            ObjectList(WPImportedPageMixin.wordpress_panels, heading="Debug"),
+        ]
+    )
 
-[View Documentation](docs/mapping.md)
+    def import_wordpress_data(self, data):
+        # Wagtail page model fields
+        self.title = data["title"]
+        self.slug = data["slug"]
+        self.first_published_at = data["first_published_at"]
+        self.last_published_at = data["last_published_at"]
+        self.latest_revision_created_at = data["latest_revision_created_at"]
+        self.search_description = data["search_description"]
 
+        # debug fields
+        self.wp_post_id = data["wp_post_id"]
+        self.wp_post_type = data["wp_post_type"]
+        self.wp_link = data["wp_link"]
+        self.wp_raw_content = data["wp_raw_content"]
+        self.wp_block_json = data["wp_block_json"]
+        self.wp_processed_content = data["wp_processed_content"]
+        self.wp_normalized_styles = data["wp_normalized_styles"]
 
+        # own model fields
+        self.body = data["body"]
+```
 
+## Running the import command
 
-# Creating page models
+The most basic command would be:
 
-There is a model mixin in the package which you should use in you own model, at least while running any imports.
+```bash
+python manage.py import_xml path/to/xml/file.xml parent_page_id
+```
 
-[View Documentation](docs/models.md)
+`parent_page_id` is the ID of the page in your Wagtail site where WordPress pages will be imported as children. You can find this in the Wagtail admin URL when editing the page e.g. for `http://www.domain.com/admin/pages/3/edit/` the ID is 3.
 
+Running this command will import all WordPress 'post' and 'page' types to the 'PostPage' model in an app called 'pages'
 
+### Optional command arguments
 
-# Utility commands
+- `-m` can be used to specify the Wagtail Page model to use for all imported pages. The default is `PostPage` when it's not specified.
+- `-a` can be used to specify the Wagtail App where you have created your Wagtail Page model. The default is `pages` when it's not specified.
+- `-t` can be used to limit the WordPress page types to be imported. You can pass in a comma-separated string of page types or just a single page type. The default is `page,post` if not specified.
+- `-s` can be used to specify the status of pages you want to import. You can pass in a comma-separated string of statuses or just a single status. The default is `publish,draft` if not specified.
 
-## XML Tag Discovery
+## Module documentation
 
-`python manage.py extract_xml_mapping` [and add the path to your xml file]
+- [Block Builder](docs/blockbuilder.md)
+- [Categories Import](docs/categories.md)
+- [Prefilters](docs/prefilters.md)
+- [WordPress Shortcodes](docs/shortcodes.md)
+- [Yoast Import](docs/yoast.md)
 
-[extract_xml_mapping.py](wagtail_wordpress_import/management/commands/extract_xml_mapping.py)
+## Developer Tooling
 
-This command will output a json file inside the json folder at the root of your project. The output can help you decide whcih fields should be included in your import as well as providing a nice short listing of all tags in the xml for reference.
+We have included some developer commands to help you with importing large datasets and analyzing the data.
 
-## XML File Size Reduction
-
-`python manage.py reduce_xml` [and add the path to your xml file]
-
-[reduce_xml.py](wagtail_wordpress_import/management/commands/reduce_xml.py)
-
-This command will output a new xml file with `-reduced` appended to the xml file name and save it in the root `xml` folder.
-
-- It's default behaviour is to remove all comments and comment data.
-- It will also output some stats to explain the difference in lines in the xml file.
+[View Developer Tooling](docs/tooling.md)

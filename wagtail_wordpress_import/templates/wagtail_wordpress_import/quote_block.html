@@ -1,4 +1,3 @@
-<blockquote>
-    <p>{{ value.quote }}</p>
-    {% if value.attribution %}{{ value.attribution }}{% endif %}
+<blockquote {% if value.attribution %}cite="{{ value.attribution }}" {% endif %}>
+    {{ value.quote }}
 </blockquote>

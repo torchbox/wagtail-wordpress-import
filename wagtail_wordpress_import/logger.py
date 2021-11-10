@@ -12,6 +12,7 @@ class Logger:
         self.items = []
         self.images = []
         self.urls = []
+        self.page_link_errors = []
 
     def log_progress(self):
         item = self.items[-1]
@@ -118,6 +119,30 @@ class Logger:
                     }
                 )
 
-    # will need implementing later
-    # def save_csv_urls_report(self):
-    #     pass
+    def save_csv_pagelink_errors_report(self):
+        file_name = f"{self.logdir}/pagelink_errors-report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.csv"
+
+        with open(file_name, "w", newline="") as csvfile:
+            writer = csv.DictWriter(
+                csvfile,
+                fieldnames=[
+                    "id",
+                    "title",
+                    "link",
+                ],
+            )
+            writer.writerow(
+                {
+                    "id": "Page ID",
+                    "title": "Page Title",
+                    "link": "Wordpress Link",
+                }
+            )
+            for row in self.images:
+                writer.writerow(
+                    {
+                        "id": row["id"],
+                        "title": row["title"],
+                        "link": row["link"],
+                    }
+                )

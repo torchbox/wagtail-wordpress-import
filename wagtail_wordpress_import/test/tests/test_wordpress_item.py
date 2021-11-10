@@ -1,24 +1,42 @@
 import os
 import json
-from django.test import TestCase
+from collections import Counter
+from django.test import TestCase, override_settings
 from datetime import datetime
-from wagtail_wordpress_import.importers.wordpress import WordpressItem
+from example.models import Category
+from wagtail.core.models import Page
+from wagtail_wordpress_import.importers.wordpress import (
+    WordpressImporter,
+    WordpressItem,
+)
 from wagtail_wordpress_import.logger import Logger
+from wagtail.core.fields import StreamField
+from wagtail.core.blocks import RichTextBlock
+from wagtail_wordpress_import.importers.wordpress import WordpressImporter
+
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
+LOG_DIR = "fakedir"
+IMPORTER_RUN_PARAMS_TEST = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["post", "page"],
+    "page_statuses": ["publish", "draft"],
+}
 
 
 class WordpressItemTests(TestCase):
     def setUp(self):
         self.logger = Logger("fakedir")
-        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r").read()
+        body_html = """<p>Dummmy text</p><p>Dummmy text</p><p>Dummmy text</p>"""
         self.good_node = {
             "title": "Page Title",
             "wp:post_name": "page-title",
             "wp:post_date_gmt": "2017-03-12 17:53:57",
             "wp:post_modified_gmt": "2018-12-04 11:49:24",
-            "content:encoded": raw_html_file,
+            "content:encoded": body_html,
             "wp:post_id": "1000",
             "wp:post_type": "post",
             "link": "http://www.example.com",
@@ -28,7 +46,7 @@ class WordpressItemTests(TestCase):
             "wp:post_name": "",
             "wp:post_date_gmt": "0000-00-00 00:00:00",
             "wp:post_modified_gmt": "0000-00-00 00:00:00",
-            "content:encoded": raw_html_file,
+            "content:encoded": body_html,
             "wp:post_id": "1000",
             "wp:post_type": "post",
             "link": "",
@@ -48,7 +66,9 @@ class WordpressItemTests(TestCase):
         wp_post_type = wordpress_item.cleaned_data["wp_post_type"]
         wp_link = wordpress_item.cleaned_data["wp_link"]
         wp_raw_content = wordpress_item.debug_content["filter_linebreaks_wp"]
-        wp_processed_content = wordpress_item.debug_content["filter_fix_styles"]
+        wp_processed_content = wordpress_item.debug_content[
+            "filter_transform_inline_styles"
+        ]
         wp_block_json = wordpress_item.debug_content["block_json"]
 
         self.assertEqual(title, "Page Title")
@@ -63,6 +83,9 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(wp_raw_content, str)
         self.assertIsInstance(wp_processed_content, str)
         self.assertIsInstance(wp_block_json, list)
+        self.assertTrue(
+            len(wp_block_json), 1
+        )  # we are only parsing consecutive paragraphs so the will only be one block (rich_text)
 
     def test_cleaned_fields(self):
         wordpress_item = WordpressItem(self.bad_node, self.logger)
@@ -78,3 +101,101 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(last_published_at, datetime)
         self.assertIsInstance(latest_revision_created_at, datetime)
         self.assertEqual(wp_link, "")
+
+
+@override_settings(
+    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+)  # testing requires a live domain for requests to use, this is something I need to change before package release
+# mocking of somesort, using localhost:8000 for now
+class WordpressItemImportTests(TestCase):
+    from example.models import Category
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST["parent_id"],
+            page_types=IMPORTER_RUN_PARAMS_TEST["page_types"],
+            page_statuses=IMPORTER_RUN_PARAMS_TEST["page_statuses"],
+        )
+
+        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS_TEST["parent_id"])
+        self.imported_pages = self.parent_page.get_children().all()
+
+    def test_category_snippets_are_saved(self):
+        snippets = Category.objects.all()
+        self.assertEqual(len(snippets), 4)
+
+    def test_page_one_has_categories(self):
+        page_one = self.imported_pages.get(title="Item one title")
+        categories = page_one.specific.categories.all()
+        self.assertEqual(2, categories.count())
+        self.assertEqual(categories[0].name, "Blogging")
+        self.assertEqual(categories[1].name, "Life")
+
+    def test_page_two_has_categories(self):
+        page_two = self.imported_pages.get(title="Item two title")
+        categories = page_two.specific.categories.all()
+        self.assertEqual(3, categories.count())
+        self.assertEqual(categories[0].name, "Blogging")
+        self.assertEqual(categories[1].name, "Cars")
+        self.assertEqual(categories[2].name, "Computing")
+
+    def test_short_category_is_not_imported(self):
+        page_one = self.imported_pages.get(title="Item one title")
+        categories = [category.name for category in page_one.specific.categories.all()]
+        self.assertNotIn("A", categories)
+
+    def test_categories_have_no_duplicate_entries(self):
+        categories = [category.name for category in Category.objects.all()]
+        duplicates = [
+            k for k, v in Counter(categories).items() if v > 1
+        ]  # duplicates will be empty if no duplicate category names exist
+        self.assertEqual(len(duplicates), 0)
+
+
+@override_settings(
+    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+)  # testing requires a live domain for requests to use, this is something I need to change before package release
+# mocking of somesort, using localhost:8000 for now
+class WordpressItemImportTestsNoCategories(TestCase):
+    from example.models import Category
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
+        self.logger = Logger(LOG_DIR)
+        self.importer.run(
+            logger=self.logger,
+            app_for_pages=IMPORTER_RUN_PARAMS_TEST["app_for_pages"],
+            model_for_pages=IMPORTER_RUN_PARAMS_TEST["model_for_pages"],
+            parent_id=IMPORTER_RUN_PARAMS_TEST["parent_id"],
+            page_types=["hasnocategories"],
+            page_statuses=["hasnocategories"],
+        )
+
+        self.parent_page = Page.objects.get(id=IMPORTER_RUN_PARAMS_TEST["parent_id"])
+        self.imported_pages = self.parent_page.get_children().all()
+
+    def test_page_has_no_categories(self):
+        page = self.imported_pages.first()
+        categories = page.specific.categories.all()
+        self.assertEqual(0, categories.count())
+
+    def test_categories_count_is_zero(self):
+        count = Category.objects.count()
+        self.assertEqual(count, 0)
