@@ -24,12 +24,11 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 ## Initial app and package setup
 
 1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
-2. Download the repo for this package [Wagtail Wordpress Import](https://github.com/torchbox/wagtail-wordpress-import) to a location on your hard-drive. (This is the latest development branch)
-3. Install this package with pip install -e "git+https://github.com/torchbox/wagtail-wordpress-import.git#egg=wagtail-wordpress-import"
+2. Install this package with pip install -e "git+https://github.com/torchbox/wagtail-wordpress-import.git#egg=wagtail-wordpress-import"
  or using any method you prefer.
-4. Place your XML files somewhere on your disk. The file can have any name you choose.
-5. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
-6. Add `"wagtail_wordpress_import"` to your INSTALLED_APPS config in your settings.py file.
+3. Place your XML files somewhere on your disk. The file can have any name you choose.
+4. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
+5. Add `"wagtail_wordpress_import"` to your INSTALLED_APPS config in your settings.py file.
 
 ### First steps to configure your wagtail app
 
