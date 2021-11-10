@@ -5,8 +5,11 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
-from wagtail.images.models import Image as ImportedImage
-from wagtail.documents.models import Document as ImportedDocument
+from wagtail.images import get_image_model
+from wagtail.documents import get_document_model
+
+ImportedImage = get_image_model()
+ImportedDocument = get_document_model()
 
 """StreamField blocks"""
 
