@@ -1,3 +1,4 @@
+import unittest
 from bs4 import BeautifulSoup
 from django.test import TestCase
 
@@ -13,6 +14,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_shortcode_is_found(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "foo[foo]baz[/foo]quux"
@@ -26,6 +28,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_multiple_shortcodes_are_found(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = 'foo[foo]baz[/foo]quux[foo width="12"]spam[/foo]eggs'
@@ -44,6 +47,7 @@ class TestBlockShortcodeRegex(TestCase):
     def test_content_can_contain_square_brackets(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "embalmed ones[foo][stray dogs][/foo]"
@@ -63,6 +67,7 @@ class TestBlockShortcodeRegex(TestCase):
 
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         handler = FooHandler()
         html = "Metasyntactic variables [foo and the like] are common placeholders"
@@ -133,6 +138,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_basic(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "ham[foo]eggs[/foo]spam"
         handler = FooHandler()
@@ -142,6 +148,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_shortcode_at_the_start_of_a_string(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "[foo]radiators[/foo]jam"
         handler = FooHandler()
@@ -151,6 +158,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_beautifulsoup_can_parse(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = "ham[foo]eggs[/foo]spam"
         handler = FooHandler()
@@ -163,6 +171,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_beautifulsoup_can_parse_attrs(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = 'ham[foo quantity=3 state="over easy" garnish="more spam"]eggs[/foo]spam'
         handler = FooHandler()
@@ -177,6 +186,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_caption(self):
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = 'Some pretext[caption width="100"]The content of the tag[/caption]'
         handler = CaptionHandler()
@@ -191,6 +201,7 @@ class TestShortcodesSubstitution(TestCase):
 
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         original = "Some pretext [caption this however you want] "
         handler = CaptionHandler()
@@ -200,6 +211,7 @@ class TestShortcodesSubstitution(TestCase):
     def test_known_content(self):
         class CaptionHandler(BlockShortcodeHandler):
             shortcode_name = "caption"
+            custom_html_tag_prefix = "wagtail_block_"
 
         html = (
             "This is a block of text preceding the caption.\n\n"
@@ -236,62 +248,59 @@ class TestAbsentShortcodeHandlers(TestCase):
         # note this class has not been registered
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
-        registered_handlers = SHORTCODE_HANDLERS.keys()
-        self.assertIn("caption", registered_handlers)
-        self.assertNotIn("foo", registered_handlers)
+        caption_handler_instance = SHORTCODE_HANDLERS[0]()
+
+        self.assertIsInstance(caption_handler_instance, CaptionHandler)
+        self.assertNotIsInstance(caption_handler_instance, FooHandler)
+        self.assertEqual(len(SHORTCODE_HANDLERS), 1)
 
 
 class TestIncludedShortcodeHandlers(TestCase):
     def test_included_shortcodes(self):
         # prime the SHORTCODE_HANDLERS
         # note this class has been registered
-        @register("foo")
+        @register()
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
 
-        registered_handlers = SHORTCODE_HANDLERS.keys()
-        self.assertIn("foo", registered_handlers)
-        self.assertIn("caption", registered_handlers)
+        caption_handler_instance = SHORTCODE_HANDLERS[0]()
+        foo_handler_instance = SHORTCODE_HANDLERS[1]()
+
+        self.assertIsInstance(caption_handler_instance, CaptionHandler)
+        self.assertIsInstance(foo_handler_instance, FooHandler)
+        self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
     def test_construct_block_method_output(self):
         handler = CaptionHandler()
-        wagtail_custom_html = (
-            '<wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">'
-            '<img class="wp-image-46162 size-full" '
-            'src="https://www.example.com/images/foo.jpg" '
+        wagtail_custom_html = BeautifulSoup(
+            '<wagtail_block_caption id="46162" align="aligncenter" width="600">'
+            '<img class="size-full" '
+            'src="https://www.budgetsaresexy.com/images/j-money-family-portrait.jpg" '
             'alt="This describes the image" width="600" height="338" /> '
             "<em>[This is a caption about the image (the one above) in "
             '<a href="https//www.example.com/bar/" target="_blank" '
             'rel="noopener noreferrer">Glorious Rich Text</a>!]</em>'
-            "</wagtail_block_caption>"
+            "</wagtail_block_caption>",
+            "html.parser",
         )
-        json = handler.construct_block(wagtail_custom_html)
-        self.assertDictEqual(
-            json,
-            {
-                "type": "image_block",
-                "value": {
-                    "image_file": 1,
-                    "tag_attrs": {
-                        "id": "attachment_46162",
-                        "align": "aligncenter",
-                        "width": "600",
-                    },
-                    "image_attrs": {
-                        "class": ["wp-image-46162", "size-full"],
-                        "src": "https://www.example.com/images/foo.jpg",
-                        "alt": "This describes the image",
-                        "width": "600",
-                        "height": "338",
-                    },
-                    "anchor_attrs": {
-                        "href": "https//www.example.com/bar/",
-                        "target": "_blank",
-                        "rel": ["noopener", "noreferrer"],
-                    },
-                },
-            },
+        json = handler.construct_block(
+            wagtail_custom_html.find("wagtail_block_caption")
         )
+        self.assertIsInstance(json, dict)
+        self.assertEqual(json["type"], "image")
+        # ["value"]["image"] is an image id. it should be returned as an integer but we cannot
+        # reply on the value returned here so check if it is an integer.
+        # there is a ticket to improve testing when fetching remote images:
+        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
+        self.assertIsInstance(int(json["value"]["image"]), int)
+        self.assertEqual(
+            json["value"]["caption"],
+            "[This is a caption about the image (the one above) in Glorious Rich Text!]",
+        )
+        self.assertEqual(json["value"]["alignment"], "center")
+        self.assertEqual(json["value"]["link"], "https//www.example.com/bar/")

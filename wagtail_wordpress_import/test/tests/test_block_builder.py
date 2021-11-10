@@ -1,9 +1,10 @@
 import os
 
 from bs4 import BeautifulSoup
+import bs4
 from django.conf import settings
 from django.test import TestCase, override_settings, modify_settings
-from wagtail_wordpress_import.block_builder import BlockBuilder
+from wagtail_wordpress_import.block_builder import BlockBuilder, conf_promote_child_tags
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
     build_form_block,
@@ -61,6 +62,29 @@ class TestBlockBuilderRemoveParents(TestCase):
 
         blockquote = output.find("blockquote", attrs={"data-testing": "hasparent"})
         self.assertTrue(blockquote.parent.name == self.expected_parent_name)
+
+    def test_remove_parent_tags_wagtail_block_caption(self):
+        self.builder.promote_child_tags()
+        output = self.output_remove_parent_tags
+
+        wagtail_block_captions = output.find_all("wagtail_block_caption")
+        for idx, wagtail_block_caption in enumerate(wagtail_block_captions):
+            with self.subTest(
+                f"Checking that both wagtail_block_caption tags are top level elements fixture:{idx}"
+            ):
+                self.assertTrue(
+                    wagtail_block_caption.parent.name == self.expected_parent_name
+                )
+
+    def test_conf_promote_child_tags(self):
+        conf = conf_promote_child_tags()
+        self.assertIn("iframe", conf["TAGS_TO_PROMOTE"])
+        self.assertIn("form", conf["TAGS_TO_PROMOTE"])
+        self.assertIn("blockquote", conf["TAGS_TO_PROMOTE"])
+
+    def test_conf_promote_child_tags_includes_shortcodes_html_tags(self):
+        conf = conf_promote_child_tags()
+        self.assertIn("wagtail_block_caption", conf["TAGS_TO_PROMOTE"])
 
 
 class TestBlockBuilderBlockDefaults(TestCase):
@@ -146,7 +170,7 @@ class TestBlockBuilderBuild(TestCase):
         blocks = [
             block["type"] for block in self.blocks if block["type"] == "rich_text"
         ]
-        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks), 3)
 
     def test_blockquote_blocks_count(self):
         blocks = [
@@ -160,7 +184,20 @@ class TestBlockBuilderBuild(TestCase):
 
     def test_heading_blocks_count(self):
         blocks = [block["type"] for block in self.blocks if block["type"] == "heading"]
-        self.assertEqual(len(blocks), 2)
+        self.assertEqual(len(blocks), 1)
+
+    def test_richtext_block_6_content(self):
+        """The expected content here should be lines 18 - 31 of raw_html.txt"""
+        rich_text_content = BeautifulSoup(self.blocks[6]["value"], "html.parser")
+
+        paragraph = rich_text_content.find("p")
+        self.assertIsInstance(paragraph, bs4.element.Tag)
+
+        list = rich_text_content.find("ul")
+        self.assertIsInstance(list, bs4.element.Tag)
+
+        heading_2 = rich_text_content.find("h2")
+        self.assertIsInstance(heading_2, bs4.element.Tag)
 
 
 class TestBlockBuilderDefaultsBaseUrl(TestCase):
@@ -199,16 +236,23 @@ class TestRichTextImageLinking(TestCase):
         In the fixture file is the only one that will be converted.
         The other img tags will become image blocks
         """
-        raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
+        raw_html_file = """<p>Absolute image url.
+            <a href="#">
+                <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+            </a>
+        </p>"""
         self.builder = BlockBuilder(raw_html_file, None, None)
         self.builder.promote_child_tags()
         self.blocks = self.builder.build()
 
-        blocks = [
-            block["type"]
-            for block in self.blocks
-            if block["type"] == "rich_text" and 'embedtype="image"' in block["value"]
-        ]
+        self.assertEqual(self.blocks[0]["type"], "rich_text")
+
+        value_soup = BeautifulSoup(self.blocks[0]["value"], "html.parser")
+        # attr["id"] should be returned as an integer but we cannot
+        # rely on the value returned here so it's not None.
+        # there is a ticket to improve testing when fetching remote images:
+        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
+        self.assertIsNotNone(value_soup.find("embed").attrs["id"])
 
     def test_get_image_alt(self):
         input = get_soup(

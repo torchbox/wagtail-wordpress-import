@@ -6,14 +6,22 @@ from wagtail_wordpress_import.block_builder_defaults import (
     conf_fallback_block,
     conf_html_tags_to_blocks,
 )
+from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HANDLERS
 
 
 def conf_promote_child_tags():
+    TAGS_TO_PROMOTE = ["iframe", "form", "blockquote"]
+
+    # for each registered shortcode handler add the element_name property
+    # to TAGS_TO_PROMOTE
+    for handler in SHORTCODE_HANDLERS:
+        if handler.is_top_level_html_tag:
+            TAGS_TO_PROMOTE.append(handler().element_name)
     return getattr(
         settings,
         "WAGTAIL_WORDPRESS_IMPORTER_PROMOTE_CHILD_TAGS",
         {
-            "TAGS_TO_PROMOTE": ["iframe", "form", "blockquote"],
+            "TAGS_TO_PROMOTE": TAGS_TO_PROMOTE,
             "PARENTS_TO_REMOVE": ["p", "div", "span"],
         },
     )
@@ -52,13 +60,25 @@ class BlockBuilder:
         returns:
             a function to parse the block from configuration
         """
-        function = [
-            import_string(builder[1]["FUNCTION"])
-            for builder in conf_html_tags_to_blocks()
-            if element.name == builder[0]
-        ]
-        if function:
-            return function[0]
+
+        # Detecting standard blocks to tags
+        try:
+            builder = conf_html_tags_to_blocks()[element.name]
+            return import_string(builder)
+        except KeyError:
+            pass
+
+        # registered shortcode handlers custom HTML tags
+        conf_custom_tags = {}
+        for handler in SHORTCODE_HANDLERS:
+            cls = handler()
+            conf_custom_tags[cls.element_name] = handler
+
+        if element.name in conf_custom_tags:
+            handler = conf_custom_tags[element.name]
+            # Return the method, so we can call it later like a function that takes a
+            # single argument.
+            return handler().construct_block
 
     def build(self):
         """
@@ -82,6 +102,7 @@ class BlockBuilder:
         counter = 0
         for element in soup:  # each single top level tag
             counter += 1
+
             # the builder function for the element tag from config
             builder_function = self.get_builder_function(element)
 
@@ -91,7 +112,7 @@ class BlockBuilder:
                         cached_fallback_value,
                         self.blocks,
                     )  # before building a block write fall back cache to a block
-                self.blocks.append(builder_function(element))  # write the new block
+                self.blocks.append(builder_function(element))
             else:
                 if element.text.strip():  # exclude a tag that is empty
                     cached_fallback_value += str(element)

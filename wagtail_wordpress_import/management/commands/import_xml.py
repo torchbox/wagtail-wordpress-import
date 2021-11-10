@@ -13,7 +13,7 @@ class Command(BaseCommand):
     them child pages of a specific page."""
 
     """
-    ./manage.py import_xml parent_page_id [--app] [--model] [--type] [--status]
+    ./manage.py import_xml path/to/xml/file.xml parent_page_id [--app] [--model] [--type] [--status]
 
     The default is:
     Import all `post` and `page` types of status `draft` and `publish` as children

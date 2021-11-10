@@ -10,9 +10,10 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
     - [Optional command arguments](#optional-command-arguments)
   - [Module documentation](#module-documentation)
   - [Developer Tooling](#developer-tooling)
-    - [Useful Shell Commands](#useful-shell-commands)
-      - [Delete all imported images](#delete-all-imported-images)
-      - [Delete all imported documents](#delete-all-imported-documents)
+  - [Delete imported pages command](#delete-imported-pages-command)
+  - [Useful django shell commands](#useful-django-shell-commands)
+    - [Delete all images](#delete-all-images)
+    - [Delete all documents](#delete-all-documents)
 
 ## Requirements
 
@@ -23,9 +24,11 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 ## Initial app and package setup
 
 1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
-2. Download the repo for this package [Wagtail WordPress Import](https://github.com/torchbox/wagtail-wordpress-import/tree/integration/sprint-6) to a location on your hard-drive. (This is the latest development branch)
-3. Install this package with pip install -e path/to/wagtail-wordpress-import or using any method you prefer.
-4. Place your XML files somewhere on your disk. The file can have any name you choose.
+2. Install this package with pip install -e "git+https://github.com/torchbox/wagtail-wordpress-import.git#egg=wagtail-wordpress-import"
+ or using any method you prefer.
+3. Place your XML files somewhere on your disk. The file can have any name you choose.
+4. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
+5. Add `"wagtail_wordpress_import"` to your INSTALLED_APPS config in your settings.py file.
 
 ### First steps to configure your Wagtail app
 
@@ -41,7 +44,7 @@ class PostPage(WPImportedPageMixin, Page):
 
 You will need to run `python manage.py makemigrations` and `python manage.py migrate` to add the fields to your page model.
 
-*It's intended that this initial setup can be removed once the content has been imported. [view source](wagtail-wordpress-import/wagtail_wordpress_import/models.py)*
+*It's intended that these fields are temporary for while importing, and can be removed once the content has been imported. [view source](wagtail_wordpress_import/models.py)*
 
 A full example of the suggested page model class
 
@@ -100,7 +103,7 @@ class PostPage(WPImportedPageMixin, Page):
 The most basic command would be:
 
 ```bash
-`python manage.py import_xml path/to/xml/file.xml parent_page_id`
+python manage.py import_xml path/to/xml/file.xml parent_page_id
 ```
 
 `parent_page_id` is the ID of the page in your Wagtail site where WordPress pages will be imported as children. You can find this in the Wagtail admin URL when editing the page e.g. for `http://www.domain.com/admin/pages/3/edit/` the ID is 3.
@@ -114,15 +117,13 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 - `-t` can be used to limit the WordPress page types to be imported. You can pass in a comma-separated string of page types or just a single page type. The default is `page,post` if not specified.
 - `-s` can be used to specify the status of pages you want to import. You can pass in a comma-separated string of statuses or just a single status. The default is `publish,draft` if not specified.
 
-[View the import command source](wagtail_wordpress_import/management/commands/import_xml.py) to if you need to extend the command.
-
 ## Module documentation
 
-- [Block Builder](wagtail-wordpress-import/docs/blockbuilder.md)
-- [Categories Import](wagtail-wordpress-import/docs/categories.md)
-- [Prefilters](wagtail-wordpress-import/docs/prefilters.md)
-- [WordPress Shortcodes](wagtail-wordpress-import/docs/shortcodes.md)
-- [Yoast Import](wagtail-wordpress-import/docs/yoast.md)
+- [Block Builder](docs/blockbuilder.md)
+- [Categories Import](docs/categories.md)
+- [Prefilters](docs/prefilters.md)
+- [WordPress Shortcodes](docs/shortcodes.md)
+- [Yoast Import](docs/yoast.md)
 
 ## Developer Tooling
 
@@ -144,29 +145,44 @@ python manage.py analyze_html_content path/to/your/xmlfile.xml
 
 ---
 
-When testing imports you may need to remove all the imported pages and run it again. This script will run until all pages have been deleted and display progress in the console.
+## Delete imported pages command
+
+When testing imports you may need to delete the imported pages and run the import again.
 
 ```bash
 python manage.py delete_imported_pages [app] [page_model]
 # app and page_model are required arguments
 ```
 
-### Useful Shell Commands
+This script will run until all pages have been deleted and displays the  progress in the console.
 
-Start a shell with `python manage.py shell`
+## Useful django shell commands
 
-#### Delete all imported images
+To start the django shell run
 
-```shell
+```bash
+python manage.py shell
+```
+
+The commands below are destructive, there's no going back!
+
+### Delete all images
+
+```python
 from wagtail.images.models import Image
-+
+```
+
+```python
 Image.objects.all().delete()
 ```
 
-#### Delete all imported documents
+### Delete all documents
 
-```shell
+```python
 from wagtail.documents.models import Document
-+
+```
+
+```python
 Document.objects.all().delete()
 ```
+

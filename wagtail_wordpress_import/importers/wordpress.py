@@ -85,7 +85,15 @@ class WordpressImporter:
                             page, import_string(get_category_model()), item
                         )
 
-                    page.import_wordpress_data(wordpress_item.cleaned_data)
+                    cleaned_data = wordpress_item.cleaned_data
+
+                    body = cleaned_data.get("body")
+
+                    self.check_stream_field_block_types(
+                        page, body
+                    )  # if the body streamfield is invalid, exit with a ValueError
+
+                    page.import_wordpress_data(cleaned_data)
 
                     if item.get("wp:status") == "draft":
                         setattr(page, "live", False)
@@ -152,6 +160,21 @@ class WordpressImporter:
             self.logger.log_progress()
 
         self.connect_richtext_page_links(self.imported_pages)
+
+    @staticmethod
+    def check_stream_field_block_types(page, body):
+        """Body JSON is validated to check it is using only StreamField blocks declared in the model StreamField
+        An exception will stop the import process and display the ValueError
+        """
+        body = json.loads(body)
+        item_block_types = [item["type"] for item in body]
+        page_stream_types = " ".join(
+            [stream_block for stream_block in page.body.stream_block.child_blocks]
+        )
+
+        for item_block in item_block_types:
+            if item_block not in page_stream_types:
+                raise ValueError(f"Invalid page streamfield block types: {item_block}")
 
     def analyze_html(self, html_analyzer, *, page_types, page_statuses):
         xml_doc = pulldom.parse(self.xml_file)
