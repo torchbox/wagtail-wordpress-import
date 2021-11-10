@@ -5,15 +5,11 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 - [Wagtail WordPress Import](#wagtail-wordpress-import)
   - [Requirements](#requirements)
   - [Initial app and package setup](#initial-app-and-package-setup)
-    - [First steps to configure your wagtail app](#first-steps-to-configure-your-wagtail-app)
+    - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
   - [Running the import command](#running-the-import-command)
     - [Optional command arguments](#optional-command-arguments)
   - [Module documentation](#module-documentation)
   - [Developer Tooling](#developer-tooling)
-  - [Delete imported pages command](#delete-imported-pages-command)
-  - [Useful django shell commands](#useful-django-shell-commands)
-    - [Delete all images](#delete-all-images)
-    - [Delete all documents](#delete-all-documents)
 
 ## Requirements
 
@@ -127,62 +123,6 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 
 ## Developer Tooling
 
-The XML file you are importing can be a large file. Some of the items in the XML file can be removed before you run the import script. This will reduce the time it takes to complete the import process.
+We have included some developer commands to help you with importing large datasets and analyzing the data.
 
-```bash
-python manage.py reduce_xml path/to/your/xmlfile.xml
-```
-
- will remove all items of `<wp:comment>`
-
----
-
-To understand more about the type of HTML content formatting used in your WordPress site we provide a reporting tool that will generate a table output in the console to show inline styles, HTML tags and shortcodes.
-
-```bash
-python manage.py analyze_html_content path/to/your/xmlfile.xml
-```
-
----
-
-## Delete imported pages command
-
-When testing imports you may need to delete the imported pages and run the import again.
-
-```bash
-python manage.py delete_imported_pages [app] [page_model]
-# app and page_model are required arguments
-```
-
-This script will run until all pages have been deleted and displays the  progress in the console.
-
-## Useful django shell commands
-
-To start the django shell run
-
-```bash
-python manage.py shell
-```
-
-The commands below are destructive, there's no going back!
-
-### Delete all images
-
-```python
-from wagtail.images.models import Image
-```
-
-```python
-Image.objects.all().delete()
-```
-
-### Delete all documents
-
-```python
-from wagtail.documents.models import Document
-```
-
-```python
-Document.objects.all().delete()
-```
-
+[View Developer Tooling](docs/tooling.md)
