@@ -4,9 +4,9 @@
   - [Reduce XML command](#reduce-xml-command)
   - [Analyse XML command](#analyse-xml-command)
   - [Delete imported page command](#delete-imported-page-command)
-  - [Useful django shell commands](#useful-django-shell-commands)
-    - [Delete all imported images](#delete-all-imported-images)
-    - [Delete all imported documents](#delete-all-imported-documents)
+  - [Useful Django shell commands](#useful-django-shell-commands)
+    - [Delete all images](#delete-all-images)
+    - [Delete all documents](#delete-all-documents)
   - [Errors while running an import](#errors-while-running-an-import)
   - [Databases](#databases)
 
@@ -47,19 +47,21 @@ python manage.py delete_imported_pages [app] [page_model]
 # app and page_model are required arguments
 ```
 
-This script will run until all pages have been deleted and displays the  progress in the console.
+This script will run until all pages of [app].[model] have been deleted and displays the progress in the console.
 
-## Useful django shell commands
+**WARNING:** It will also delete any pages you have created in the Wagtail admin.
 
-To start the django shell run
+## Useful Django shell commands
+
+To start the Django shell run
 
 ```bash
 python manage.py shell
 ```
 
-The commands below are destructive, there's no going back!
+### Delete all images
 
-### Delete all imported images
+**WARNING:** This command is destructive and will delete all images, there's no going back!
 
 ```python
 from wagtail.images.models import Image
@@ -69,7 +71,9 @@ from wagtail.images.models import Image
 Image.objects.all().delete()
 ```
 
-### Delete all imported documents
+### Delete all documents
+
+**WARNING:** This command is destructive and will delete all documents, there's no going back!
 
 ```python
 from wagtail.documents.models import Document
@@ -97,10 +101,10 @@ This command scans for errors in your database and attempts to fix any issues it
 
 SQLITE3
 
-If you are testing your import with an sqlite3 database, try to avoid making any changes in the Wagtail admin while a import is running. 
+If you are testing your import with an sqlite3 database, try to avoid making any changes in the Wagtail admin while a import is running.
 
 The import process executes many save actions as it runs and you will likely create a lock on the database if you try to save updates in the Wagtail admin.
 
 This will prevent the import process from completing a save or update.
 
-Using a postgres or mysql database avoids this situation.
+Using a postgres or MySQL database avoids this situation.
