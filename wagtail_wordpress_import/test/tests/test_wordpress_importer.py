@@ -91,13 +91,13 @@ class WordpressImporterTests(TestCase):
 
     def test_logger_totals(self):
         processed = self.logger.processed
-        self.assertEqual(processed, 6)
+        self.assertEqual(processed, 5)
 
         imported = self.logger.imported
         self.assertEqual(imported, 2)
 
         skipped = self.logger.skipped
-        self.assertEqual(skipped, 4)
+        self.assertEqual(skipped, 3)
 
     def test_logger_lists(self):
         logger = Logger(LOG_DIR)
@@ -287,61 +287,4 @@ class WordpressImporterTestsYoastEnabledChangedKey(TestCase):
         self.assertEqual(
             self.published_pages.first().search_description,
             "a search description from yoast using a different key",
-        )
-
-
-IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4 = {
-    "app_for_pages": "example",
-    "model_for_pages": "TestPage",
-    "parent_id": "2",
-    "page_types": ["postmetasingle"],
-    "page_statuses": ["publish", "draft"],
-}
-
-
-@override_settings(
-    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
-    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING={
-        "xml_item_key": "wp:postmeta",
-        "description_key": "wp:meta_key",
-        "description_value": "wp:meta_value",
-        "description_key_value": "metadescription",
-    },
-)
-class WordpressImporterTestsYoastEnabledSingleKey(TestCase):
-    """
-    This tests when a wp:postmeta key only appears once in the XML file.
-    self.node.get(xml_item_key) returns a list if only one key is available.
-    We're not testing the content of the yoast meta key here but where
-    _thumbnail_id is the only meta key.
-    As the meta key is not a yoast key the <description></description> content is used
-    """
-
-    fixtures = [
-        f"{FIXTURES_PATH}/dump.json",
-    ]
-
-    def setUp(self):
-        self.importer = WordpressImporter(f"{FIXTURES_PATH}/raw_xml.xml")
-        self.logger = Logger(LOG_DIR)
-        self.importer.run(
-            logger=self.logger,
-            app_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["app_for_pages"],
-            model_for_pages=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["model_for_pages"],
-            parent_id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["parent_id"],
-            page_types=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["page_types"],
-            page_statuses=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["page_statuses"],
-        )
-
-        self.parent_page = Page.objects.get(
-            id=IMPORTER_RUN_PARAMS_TEST_OVERRIDE_4["parent_id"]
-        )
-        self.imported_pages = self.parent_page.get_children().all()
-        self.published_pages = self.parent_page.get_children().live()
-        self.draft_pages = self.parent_page.get_children().filter(live=False)
-
-    def test_page_field_values_with_yoast_plugin_enabled(self):
-        self.assertEqual(
-            self.published_pages.first().search_description,
-            "This page has a default description",
         )
