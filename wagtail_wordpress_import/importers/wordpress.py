@@ -267,7 +267,7 @@ class WordpressItem:
 
         self.debug_content = {}
         self.logger = logger
-        self.post_meta_items = []
+        self.post_meta_items = None
 
     def prefilter_content(self, content):
         """
@@ -386,13 +386,17 @@ class WordpressItem:
             return ""
 
     def get_wp_post_meta(self):
-        # xml items that have no wp:post_meta are ignored
-        if self.node.get("wp:postmeta"):
-            post_meta = self.node.get("wp:postmeta")
-            self.post_meta_items = [
-                {meta.get("wp:meta_key"): meta.get("wp:meta_value")}
-                for meta in post_meta
-            ]
+        post_meta = self.node.get("wp:postmeta")
+        if isinstance(post_meta, dict):
+            self.post_meta_items = {
+                post_meta["wp:meta_key"]: post_meta["wp:meta_value"]
+            }
+        elif isinstance(post_meta, list):
+            self.post_meta_items = {
+                item["wp:meta_key"]: item["wp:meta_value"] for item in post_meta
+            }
+
+        return self.post_meta_items
 
     @cached_property
     def cleaned_data(self):
