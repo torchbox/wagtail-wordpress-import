@@ -210,20 +210,11 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
 
 @override_settings(
     WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
-    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING={
-        "xml_item_key": "wp:postmeta",
-        "description_key": "wp:meta_key",
-        "description_value": "wp:meta_value",
-        "description_key_value": "metadescription",
-    },
 )
 class WordpressImporterTestsYoastEnabledSingleKey(TestCase):
     """
-    This tests when a wp:postmeta key only appears once in the XML file.
-    self.node.get(xml_item_key) returns a list if only one key is available.
-    We're not testing the content of the yoast meta key here but where
-    _thumbnail_id is the only meta key.
-    As the meta key is not a yoast key the <description></description> content is used
+    This tests when a wp:postmeta for none single or multiple keys in the XML file.
+    If the meta key for yoast is not present the <description></description> content is returned.
     """
 
     fixtures = [
@@ -241,14 +232,40 @@ class WordpressImporterTestsYoastEnabledSingleKey(TestCase):
                 self.items_dict.append(node_to_dict(node))
 
     def test_items_dict_0(self):
-        # self.items_dict[0] = the single item wp:post_meta
+        # self.items_dict[0] = the single item wp:post_meta without yoast
         wordpress_item = WordpressItem(self.items_dict[0], self.logger)
-        with self.assertRaises(AttributeError):
-            wordpress_item.get_yoast_description_value()
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
 
     def test_items_dict_1(self):
         # self.items_dict[1] = the multiple item wp:post_meta
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
+
+    def test_items_dict_2(self):
+        # self.items_dict[2] = the single item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[2], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This is a yoast metadesc!",
+        )
+
+    def test_items_dict_3(self):
+        # self.items_dict[3] = the multiple item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[3], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This is a yoast metadesc!",
+        )
+
+    def test_items_dict_4(self):
+        # self.items_dict[3] = the multiple item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[4], self.logger)
         self.assertEqual(
             wordpress_item.get_yoast_description_value(),
             "This page has a default description",
