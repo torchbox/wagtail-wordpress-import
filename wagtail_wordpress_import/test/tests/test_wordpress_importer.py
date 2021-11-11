@@ -1,8 +1,13 @@
 import os
+from io import StringIO
+from xml.dom import pulldom
 
 from django.test import TestCase, override_settings
+
 from wagtail.core.models import Page
-from wagtail_wordpress_import.importers.wordpress import WordpressImporter
+from wagtail_wordpress_import.functions import node_to_dict
+from wagtail_wordpress_import.importers.wordpress import (WordpressImporter,
+                                                          WordpressItem)
 from wagtail_wordpress_import.logger import Logger
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -288,3 +293,256 @@ class WordpressImporterTestsYoastEnabledChangedKey(TestCase):
             self.published_pages.first().search_description,
             "a search description from yoast using a different key",
         )
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING={
+        "xml_item_key": "wp:postmeta",
+        "description_key": "wp:meta_key",
+        "description_value": "wp:meta_value",
+        "description_key_value": "_yoast_wpseo_metadesc",
+    },
+)
+class TestYoastMetaTags(TestCase):
+    # @patch("wagtail_wordpress_import.importers.wordpress.pulldom")
+    def setUp(self):
+        self.logger = Logger("foo")
+
+    def process_item(self, xml_stream):
+        """Turn an XML stream into a node dict
+
+        We expect there to be only one node in the XML stream.
+
+        This is duplicating a bunch of code from WorpressImporter. To make this a better
+        unit test, we should instead make WordpressImporter more patchable, and less
+        reliant on detecting app, Page IDs and logging configuration within its run
+        method.
+        """
+        xml_doc = pulldom.parse(xml_stream)
+        for event, node in xml_doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                xml_doc.expandNode(node)
+                item = node_to_dict(node)
+                wordpress_item = WordpressItem(item, self.logger)
+        return wordpress_item
+
+    def test_parsing_with_one_matching_postmeta_tag(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <wp:postmeta>
+                    <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+                    <wp:meta_value>this is the expected description</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        self.assertEqual(description, "this is the expected description")
+
+    def test_parsing_with_one_matching_postmeta_tag_among_multiple(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <wp:postmeta>
+                    <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>
+                    <wp:meta_value>this is the expected description</wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                    <wp:meta_key>ham</wp:meta_key>
+                    <wp:meta_value>eggs</wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                    <wp:meta_key>sausages</wp:meta_key>
+                    <wp:meta_value>spam</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        self.assertEqual(description, "this is the expected description")
+
+    def test_parsing_with_one_unrelated_postmeta_tag(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <wp:postmeta>
+                    <wp:meta_key>_thumbnail_id</wp:meta_key>
+                    <wp:meta_value>43124</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        # Expect an empty string, as the tag is not the one we're looking for
+        self.assertEqual(description, "")
+
+    def test_parsing_with_multiple_unrelated_postmeta_tags(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <wp:postmeta>
+                    <wp:meta_key>ham</wp:meta_key>
+                    <wp:meta_value>eggs</wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                    <wp:meta_key>sausages</wp:meta_key>
+                    <wp:meta_value>spam</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        # Expect an empty string, as none of the tags is the one we're looking for
+        self.assertEqual(description, "")
+
+    def test_description_fallback_with_one_unrelated_postmeta_tag(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <description>Use this</description>
+                <wp:postmeta>
+                    <wp:meta_key>_thumbnail_id</wp:meta_key>
+                    <wp:meta_value>43124</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        self.assertEqual(description, "Use this")
+
+    def test_description_fallback_with_multiple_unrelated_postmeta_tags(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <description>Use this</description>
+                <wp:postmeta>
+                    <wp:meta_key>ham</wp:meta_key>
+                    <wp:meta_value>eggs</wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                    <wp:meta_key>sausages</wp:meta_key>
+                    <wp:meta_value>spam</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        self.assertEqual(description, "Use this")
+
+    def test_empty_description_fallback_with_one_unrelated_postmeta_tag(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <description />
+                <wp:postmeta>
+                    <wp:meta_key>_thumbnail_id</wp:meta_key>
+                    <wp:meta_value>43124</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        # Expect an empty string, as neither the tags nor description provided anything
+        self.assertEqual(description, "")
+
+    def test_empty_description_fallback_with_multiple_unrelated_postmeta_tags(self):
+        xml_stream = StringIO(
+            """
+        <rss xmlns:content="http://purl.org/rss/1.0/modules/content/" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:excerpt="http://wordpress.org/export/1.2/excerpt/" xmlns:wp="http://wordpress.org/export/1.2/" version="2.0">
+        <channel>
+            <title>Foo</title>
+            <link>https://www.example.com</link>
+            <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
+            <language>en-US</language>
+            <item>
+                <content:encoded />
+                <description />
+                <wp:postmeta>
+                    <wp:meta_key>ham</wp:meta_key>
+                    <wp:meta_value>eggs</wp:meta_value>
+                </wp:postmeta>
+                <wp:postmeta>
+                    <wp:meta_key>sausages</wp:meta_key>
+                    <wp:meta_value>spam</wp:meta_value>
+                </wp:postmeta>
+            </item>
+            </channel>
+            </rss>
+            """
+        )
+        wordpress_item = self.process_item(xml_stream)
+        description = wordpress_item.get_yoast_description_value()
+        # Expect an empty string, as none of the tags or description provided anything
+        self.assertEqual(description, "")
