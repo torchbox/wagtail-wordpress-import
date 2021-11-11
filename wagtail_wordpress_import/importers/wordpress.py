@@ -2,7 +2,6 @@ import json
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
-from django.utils.module_loading import import_string
 
 from bs4 import BeautifulSoup
 from django.apps import apps
@@ -14,12 +13,12 @@ from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress_defaults import (
     category_name_min_length,
+    category_plugin_enabled,
     debug_enabled,
     default_prefilters,
     get_category_model,
     yoast_plugin_config,
     yoast_plugin_enabled,
-    category_plugin_enabled,
 )
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
@@ -268,6 +267,7 @@ class WordpressItem:
 
         self.debug_content = {}
         self.logger = logger
+        self.post_meta_items = []
 
     def prefilter_content(self, content):
         """
@@ -385,6 +385,15 @@ class WordpressItem:
         else:
             return ""
 
+    def get_wp_post_meta(self):
+        # xml items that have no wp:post_meta are ignored
+        if self.node.get("wp:postmeta"):
+            post_meta = self.node.get("wp:postmeta")
+            self.post_meta_items = [
+                {meta.get("wp:meta_key"): meta.get("wp:meta_value")}
+                for meta in post_meta
+            ]
+
     @cached_property
     def cleaned_data(self):
         """
@@ -398,6 +407,7 @@ class WordpressItem:
         """
 
         return {
+            "wp_post_meta": self.get_wp_post_meta(),
             "title": self.cleaned_title(),
             "slug": self.cleaned_slug(),
             "first_published_at": self.cleaned_first_published_at(),
