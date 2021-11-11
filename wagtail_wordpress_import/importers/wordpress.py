@@ -334,19 +334,19 @@ class WordpressItem:
         is available. If not it returns a blank string or the default description field
         from the XML import file <item><description>...</description></item>
         """
-        meta_value = ""
+        meta_value = None
 
         if yoast_plugin_config()["xml_item_key"] in self.node.keys():
-            for item in self.node.get(yoast_plugin_config()["xml_item_key"]):
-
-                if isinstance(item, dict):
-                    meta_key_values = list(item.values())
-
-                    if (
-                        meta_key_values[0]
-                        == yoast_plugin_config()["description_key_value"]
-                    ):
-                        meta_value = meta_key_values[1] or ""
+            meta_items = (
+                self.node[yoast_plugin_config()["xml_item_key"]]
+                if isinstance(self.node[yoast_plugin_config()["xml_item_key"]], list)
+                else [self.node[yoast_plugin_config()["xml_item_key"]]]
+            )  # if there is only one wp:post_meta item, it's a dictionary
+            # we need a list of dictionaries
+            for item in meta_items:
+                meta_key_values = list(item.values())
+                if meta_key_values[0] == yoast_plugin_config()["description_key_value"]:
+                    meta_value = meta_key_values[1] or ""
 
         if not meta_value:
             meta_value = self.node.get("description") or ""
