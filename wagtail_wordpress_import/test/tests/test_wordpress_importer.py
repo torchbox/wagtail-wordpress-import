@@ -91,13 +91,13 @@ class WordpressImporterTests(TestCase):
 
     def test_logger_totals(self):
         processed = self.logger.processed
-        self.assertEqual(processed, 5)
+        self.assertEqual(processed, 6)
 
         imported = self.logger.imported
         self.assertEqual(imported, 2)
 
         skipped = self.logger.skipped
-        self.assertEqual(skipped, 3)
+        self.assertEqual(skipped, 4)
 
     def test_logger_lists(self):
         logger = Logger(LOG_DIR)
