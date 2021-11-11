@@ -1,16 +1,18 @@
-import os
 import json
+import os
 from collections import Counter
-from django.test import TestCase, override_settings
 from datetime import datetime
+from xml.dom import pulldom
+
+from django.test import TestCase, override_settings
 from example.models import Category
 from wagtail.core.models import Page
+from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
     WordpressImporter,
     WordpressItem,
 )
 from wagtail_wordpress_import.logger import Logger
-
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -195,3 +197,59 @@ class WordpressItemImportTestsNoCategories(TestCase):
     def test_categories_count_is_zero(self):
         count = Category.objects.count()
         self.assertEqual(count, 0)
+
+
+IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["post"],
+    "page_statuses": ["publish"],
+}
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING={
+        "xml_item_key": "wp:postmeta",
+        "description_key": "wp:meta_key",
+        "description_value": "wp:meta_value",
+        "description_key_value": "metadescription",
+    },
+)
+class WordpressImporterTestsYoastEnabledSingleKey(TestCase):
+    """
+    This tests when a wp:postmeta key only appears once in the XML file.
+    self.node.get(xml_item_key) returns a list if only one key is available.
+    We're not testing the content of the yoast meta key here but where
+    _thumbnail_id is the only meta key.
+    As the meta key is not a yoast key the <description></description> content is used
+    """
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.logger = Logger("fakedir")
+        xml_file = open(f"{FIXTURES_PATH}/post_meta.xml", "rb")
+        xml_doc = pulldom.parse(xml_file)
+        self.items_dict = []
+        for event, node in xml_doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                xml_doc.expandNode(node)
+                self.items_dict.append(node_to_dict(node))
+
+    def test_items_dict_0(self):
+        # self.items_dict[0] = the single item wp:post_meta
+        wordpress_item = WordpressItem(self.items_dict[0], self.logger)
+        with self.assertRaises(AttributeError):
+            wordpress_item.get_yoast_description_value()
+
+    def test_items_dict_1(self):
+        # self.items_dict[1] = the multiple item wp:post_meta
+        wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
