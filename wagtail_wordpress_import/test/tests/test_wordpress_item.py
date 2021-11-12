@@ -211,7 +211,7 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
 @override_settings(
     WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
 )
-class WordpressImporterTestsYoastEnabledSingleKey(TestCase):
+class WordpressImporterTestsYoastMetaDescriptions(TestCase):
     """
     This tests when a wp:postmeta for none single or multiple keys in the XML file.
     If the meta key for yoast is not present the <description></description> content is returned.
