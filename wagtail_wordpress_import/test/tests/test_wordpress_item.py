@@ -1,10 +1,13 @@
-import os
 import json
+import os
 from collections import Counter
-from django.test import TestCase, override_settings
 from datetime import datetime
+from xml.dom import pulldom
+
+from django.test import TestCase, override_settings
 from example.models import Category
 from wagtail.core.models import Page
+from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
     WordpressImporter,
     WordpressItem,
@@ -13,7 +16,6 @@ from wagtail_wordpress_import.logger import Logger
 from wagtail.core.fields import StreamField
 from wagtail.core.blocks import RichTextBlock
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
-
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -199,3 +201,76 @@ class WordpressItemImportTestsNoCategories(TestCase):
     def test_categories_count_is_zero(self):
         count = Category.objects.count()
         self.assertEqual(count, 0)
+
+
+IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
+    "app_for_pages": "example",
+    "model_for_pages": "TestPage",
+    "parent_id": "2",
+    "page_types": ["post"],
+    "page_statuses": ["publish"],
+}
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
+)
+class WordpressImporterTestsYoastMetaDescriptions(TestCase):
+    """
+    This tests when a wp:postmeta for none single or multiple keys in the XML file.
+    If the meta key for yoast is not present the <description></description> content is returned.
+    """
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.logger = Logger("fakedir")
+        xml_file = open(f"{FIXTURES_PATH}/post_meta.xml", "rb")
+        xml_doc = pulldom.parse(xml_file)
+        self.items_dict = []
+        for event, node in xml_doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                xml_doc.expandNode(node)
+                self.items_dict.append(node_to_dict(node))
+
+    def test_items_dict_0(self):
+        # self.items_dict[0] = the single item wp:post_meta without yoast
+        wordpress_item = WordpressItem(self.items_dict[0], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
+
+    def test_items_dict_1(self):
+        # self.items_dict[1] = the multiple item wp:post_meta
+        wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
+
+    def test_items_dict_2(self):
+        # self.items_dict[2] = the single item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[2], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This is a yoast metadesc!",
+        )
+
+    def test_items_dict_3(self):
+        # self.items_dict[3] = the multiple item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[3], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This is a yoast metadesc!",
+        )
+
+    def test_items_dict_4(self):
+        # self.items_dict[3] = the multiple item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[4], self.logger)
+        self.assertEqual(
+            wordpress_item.get_yoast_description_value(),
+            "This page has a default description",
+        )
