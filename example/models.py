@@ -37,6 +37,9 @@ class TestPage(WPImportedPageMixin, Page):
         # own model fields
         self.body = data["body"]
 
+        # wp_post_meta
+        self.wp_post_meta = data["wp_post_meta"]
+
 
 @register_snippet
 class Category(models.Model):
