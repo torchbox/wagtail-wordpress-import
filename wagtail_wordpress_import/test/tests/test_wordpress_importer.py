@@ -79,6 +79,14 @@ class WordpressImporterTests(TestCase):
             self.published_pages.first().specific.wp_link,
             "https://www.example.com/item-one-title/",
         )
+        wp_post_meta = self.published_pages.first().specific.wp_post_meta
+        self.assertIsInstance(wp_post_meta, dict)
+        self.assertEqual(wp_post_meta["_wp_attachment_image_alt"], "haunted house")
+        self.assertEqual(wp_post_meta["_thumbnail_id"], 43124)
+        self.assertEqual(
+            wp_post_meta["_yoast_wpseo_metadesc"],
+            "a search description from yoast for Item one",
+        )
 
         ## these fields are only checked for having some content.
         self.assertTrue(self.published_pages.first().specific.body)
