@@ -1,4 +1,5 @@
 from io import StringIO
+import tempfile
 
 xml_stream_header = StringIO(
     """
@@ -27,3 +28,13 @@ def build_xml_stream(xml_tags_fragment="", xml_items_fragment=""):
     return StringIO(
         xml_stream_header + xml_tags_fragment + xml_items_fragment + xml_stream_footer
     )
+
+
+def generate_temporay_file(xml_stream):
+
+    temp_file = tempfile.NamedTemporaryFile(delete=False)
+
+    with open(temp_file.name, "w") as f:
+        f.write(xml_stream)
+
+    return temp_file.name
