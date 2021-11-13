@@ -64,6 +64,10 @@ class WordpressImporter:
         for event, node in xml_doc:
             """Each node represents a tag in the xml. `event` is true for a start element."""
 
+            # check import hooks config for top level xml tags to cache
+            if import_hooks_xml_tags_to_cache():
+                self.cache_xml_tags(event, node, xml_doc)
+
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
