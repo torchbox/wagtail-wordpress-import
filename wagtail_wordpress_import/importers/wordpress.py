@@ -24,12 +24,19 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
 
+from wagtail_wordpress_import.importers.importer_hooks import (
+    import_hooks_xml_tags_to_cache,
+    get_hook_name,
+    TagsCache,
+)
+
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
         self.imported_pages = []
         self.page_link_errors = []
+        self.tags_cache = TagsCache()
 
     def run(self, *args, **kwargs):
         self.logger = kwargs["logger"]
@@ -55,10 +62,8 @@ class WordpressImporter:
             exit()
 
         for event, node in xml_doc:
-            """
-            Each node represents a tag in the xml.
-            `event` is true for a start element.
-            """
+            """Each node represents a tag in the xml. `event` is true for a start element."""
+
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
@@ -255,6 +260,22 @@ class WordpressImporter:
                 page_categories.append(category)
 
             page.categories = page_categories
+
+    def cache_xml_tags(self, event, node, xml_doc):
+        hooks_attr = None
+
+        for hook in import_hooks_xml_tags_to_cache():
+            hooks_attr = getattr(self.tags_cache, get_hook_name(hook))
+
+            if event == pulldom.START_ELEMENT and node.tagName == hook:
+                xml_doc.expandNode(node)
+                item = node_to_dict(node)
+
+                # we don't want to add duplicate dicts to the cache
+                if item not in hooks_attr:
+                    hooks_attr.append(item)
+
+        return self.tags_cache
 
 
 class WordpressItem:
