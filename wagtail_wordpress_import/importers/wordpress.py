@@ -72,6 +72,8 @@ class WordpressImporter:
                 self.logger.processed += 1
 
                 # check import hooks config for item level xml tags to cache
+                # an example would be that wp:post_type is attachment
+                # which is a XML item that is a media type
                 for hook in import_hooks_xml_items_to_cache():
                     if item.get("wp:post_type") == hook:
                         self.cache_item_tags(item, hook)
@@ -171,6 +173,7 @@ class WordpressImporter:
             self.logger.log_progress()
 
         self.connect_richtext_page_links(self.imported_pages)
+        self.items_cache.process(self.imported_pages, self.items_cache)
 
     @staticmethod
     def check_stream_field_block_types(page, body):
