@@ -25,12 +25,18 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
 
+from wagtail_wordpress_import.importers.import_hooks import (
+    ItemsCache,
+    import_hooks_xml_items_to_cache,
+)
+
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
         self.imported_pages = []
         self.page_link_errors = []
+        self.items_cache = ItemsCache()
 
     def run(self, *args, **kwargs):
         self.logger = kwargs["logger"]
@@ -64,6 +70,11 @@ class WordpressImporter:
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.logger.processed += 1
+
+                # check import hooks config for item level xml tags to cache
+                for hook in import_hooks_xml_items_to_cache():
+                    if item.get("wp:post_type") == hook:
+                        self.cache_item_tags(item, hook)
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
@@ -256,6 +267,14 @@ class WordpressImporter:
                 page_categories.append(category)
 
             page.categories = page_categories
+
+    def cache_item_tags(self, item, hook):
+        hooks_attr = getattr(self.items_cache, hook)
+
+        if item not in hooks_attr:
+            hooks_attr.append(item)
+
+        return self.items_cache
 
 
 class WordpressItem:
