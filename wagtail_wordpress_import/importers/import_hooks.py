@@ -3,7 +3,7 @@ from django.conf import settings
 
 def import_hooks_xml_items_to_cache():
     """the xml item tags to cache until the import process ends"""
-    return getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", [])
+    return getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {})
 
 
 class ItemsCache:

@@ -26,12 +26,28 @@ LOG_DIR = "fakedir"
 
 
 class TestImportHooksOverrideItemTagConfig(TestCase):
-    @override_settings(WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE=["foo", "bar"])
+    @override_settings(
+        WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE={
+            "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+            "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+        }
+    )
     def test_persist_tags_config(self):
-        self.assertEqual(import_hooks_xml_items_to_cache(), ["foo", "bar"])
+        self.assertEqual(
+            import_hooks_xml_items_to_cache(),
+            {
+                "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+                "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+            },
+        )
 
 
-@override_settings(WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE=["foo", "bar"])
+@override_settings(
+    WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE={
+        "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+        "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+    },
+)
 class TestImportHooksXmlItemPersisted(TestCase):
     def setUp(self):
         self.logger = Logger("foo")
@@ -224,7 +240,12 @@ class WordpressImporterTestsCheckXmlItemsNotCached(TestCase):
         self.assertEqual(len(self.importer.items_cache.__dict__.keys()), 0)
 
 
-@override_settings(WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE=["foo", "bar"])
+@override_settings(
+    WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE={
+        "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+        "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+    },
+)
 class WordpressImporterTestsCheckXmlItemsCached(TestCase):
     """
     This tests that the XML tags are cached during an import because
