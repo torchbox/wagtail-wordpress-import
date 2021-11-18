@@ -174,7 +174,8 @@ class WordpressImporter:
             self.logger.log_progress()
 
         self.connect_richtext_page_links(self.imported_pages)
-        self.items_cache.process(self.imported_pages)
+        if getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
+            self.items_cache.process(self.imported_pages)
 
     @staticmethod
     def check_stream_field_block_types(page, body):
