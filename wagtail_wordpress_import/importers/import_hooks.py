@@ -11,43 +11,11 @@ class ItemsCache:
     def __init__(self):
         """For each value in settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE
         create the class attribute.
-
-        For example:
-        If a config item has a key of "attachment" a class attribute
-        attachment: list would be created
-
-        XML fragment example:
-        <item>
-            <title>foo-item</title>
-            <link>https://www.example.com/foo-item/</link>
-            <pubDate>Tue, 13 Jul 2010 16:16:46 +0000</pubDate>
-            <guid>https://www.example.com/foo.jpg</guid>
-            <wp:post_id>100</wp:post_id>
-            <wp:post_date>2010-07-13 12:16:46</wp:post_date>
-            <wp:post_date_gmt>2010-07-13 16:16:46</wp:post_date_gmt>
-            <wp:post_modified>2010-07-13 16:16:46</wp:post_modified>
-            <wp:post_modified_gmt>2010-07-13 16:16:46</wp:post_modified_gmt>
-            <wp:post_name>foo-item</wp:post_name>
-            <wp:post_type>attachment</wp:post_type>
-        </item>
-        would be parsed as a dict
-        {
-            "title": "foo-item",
-            "link": "https://www.example.com/foo-item/",
-            "pubDate": "Tue, 13 Jul 2010 16:16:46 +0000",
-            "guid": "https://www.example.com/foo.jpg",
-            "wp:post_id": 100,
-            "wp:post_date": "2010-07-13 12:16:46",
-            "wp:post_date_gmt": "2010-07-13 16:16:46",
-            "wp:post_modified": "2010-07-13 12:16:46",
-            "wp:post_modified_gmt": "2010-07-13 16:16:46",
-            "wp:post_name": "foo-item",
-            "wp:post_type": "attachment",
-        }
-        and stored in the attachment attribute.
         """
 
-        for hook in getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
+        for hook in getattr(
+            settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+        ).keys():
             setattr(self, hook, [])
 
     def get_cached_items(self):
@@ -59,9 +27,17 @@ class ItemsCache:
         The function defined in the config key FUNCTION will be imported
         and run on each page"""
         for page in imported_pages:
-            for hook in getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
+            for hook in getattr(
+                settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+            ).keys():
                 func, data = self._get_hook_handler_data(items_cache)
                 import_string(func)(page, data, items_cache)
+
+    def add_item_to_cache(self, hook, item):
+        """Add an item dict to the cached hook if not already added"""
+        hook = getattr(self, hook)
+        if item not in hook:
+            hook.append(item)
 
     @staticmethod
     def _get_hook_handler_data(items_cache):
