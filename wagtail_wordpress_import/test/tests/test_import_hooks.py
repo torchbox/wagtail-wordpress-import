@@ -57,7 +57,6 @@ class TestImportHooksXmlItemPersisted(TestCase):
 
     def setUp(self):
         self.logger = Logger("foo")
-        self.items_cache = None
 
     def process_item(self, xml_stream):
         """Turn an XML stream into a node dict
@@ -70,13 +69,13 @@ class TestImportHooksXmlItemPersisted(TestCase):
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                for hook in getattr(
+                post_type = item.get("wp:post_type")
+                if post_type in getattr(
                     settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
                 ):
-                    if item.get("wp:post_type") == hook:
-                        self.items_cache = self.importer.cache_item_tags(item, hook)
+                    self.importer.items_cache.add_item_to_cache(post_type, item)
 
-        return self.items_cache
+        return self.importer.items_cache
 
     def test_xml_items_are_cached_without_duplicates(self):
         fragment = """

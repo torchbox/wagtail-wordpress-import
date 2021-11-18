@@ -73,11 +73,11 @@ class WordpressImporter:
                 # check import hooks config for item level xml tags to cache
                 # an example would be that wp:post_type is attachment
                 # which is a XML item that is a media type
-                for hook in getattr(
+                post_type = item.get("wp:post_type")
+                if post_type in getattr(
                     settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
                 ):
-                    if item.get("wp:post_type") == hook:
-                        self.cache_item_tags(item, hook)
+                    self.items_cache.add_item_to_cache(post_type, item)
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
@@ -273,14 +273,6 @@ class WordpressImporter:
                 page_categories.append(category)
 
             page.categories = page_categories
-
-    def cache_item_tags(self, item, hook):
-        hooks_attr = getattr(self.items_cache, hook)
-
-        if item not in hooks_attr:
-            hooks_attr.append(item)
-
-        return self.items_cache
 
 
 class WordpressItem:
