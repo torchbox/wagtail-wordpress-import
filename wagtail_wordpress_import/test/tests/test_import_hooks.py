@@ -4,13 +4,13 @@ from xml.dom import pulldom
 
 from django.test import TestCase, override_settings
 from django.utils.module_loading import import_string
+from django.conf import settings
 from unittest import mock
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import conf_promote_child_tags
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.import_hooks import (
     ItemsCache,
-    import_hooks_xml_items_to_cache,
 )
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
@@ -36,7 +36,7 @@ class TestImportHooksOverrideItemTagConfig(TestCase):
     )
     def test_persist_tags_config(self):
         self.assertEqual(
-            import_hooks_xml_items_to_cache(),
+            getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}),
             {
                 "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
                 "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
@@ -70,7 +70,9 @@ class TestImportHooksXmlItemPersisted(TestCase):
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
-                for hook in import_hooks_xml_items_to_cache():
+                for hook in getattr(
+                    settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+                ):
                     if item.get("wp:post_type") == hook:
                         self.items_cache = self.importer.cache_item_tags(item, hook)
 

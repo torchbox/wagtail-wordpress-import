@@ -2,20 +2,6 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 
 
-def import_hooks_xml_items_to_cache():
-    """the xml item tags to cache until the import process ends
-
-    For example:
-    WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE = {
-        "attachment": {
-            "DATA_TAG": "_thumbnail_id",
-            "FUNCTION": "pages.import_hooks.header_image",
-        }
-    }
-    """
-    return getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {})
-
-
 class ItemsCache:
     """Store the WordPress XML item tags.
     These are items tags that don't represent a page in the XML file.
@@ -61,7 +47,7 @@ class ItemsCache:
         and stored in the attachment attribute.
         """
 
-        for hook in import_hooks_xml_items_to_cache():
+        for hook in getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
             setattr(self, hook, [])
 
     def get_cached_items(self):
@@ -73,14 +59,16 @@ class ItemsCache:
         The function defined in the config key FUNCTION will be imported
         and run on each page"""
         for page in imported_pages:
-            for hook in import_hooks_xml_items_to_cache():
+            for hook in getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
                 func, data = self._get_hook_handler_data(items_cache)
                 import_string(func)(page, data, items_cache)
 
     @staticmethod
     def _get_hook_handler_data(items_cache):
         """Get the hook function and data to process"""
-        for hook, actions in import_hooks_xml_items_to_cache().items():
+        for hook, actions in getattr(
+            settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+        ).items():
             if hook in items_cache:
                 return actions["FUNCTION"], actions["DATA_TAG"]
         return None, None
