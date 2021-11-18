@@ -1,6 +1,6 @@
 from io import StringIO
 from django.test import TestCase
-from wagtail_wordpress_import.xml_boilerplate import (
+from wagtail_wordpress_import.test.tests.xml_boilerplate import (
     xml_stream_footer,
     xml_stream_header,
     build_xml_stream,

@@ -15,7 +15,7 @@ from wagtail_wordpress_import.importers.import_hooks import (
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 
-from wagtail_wordpress_import.xml_boilerplate import (
+from wagtail_wordpress_import.test.tests.xml_boilerplate import (
     build_xml_stream,
     generate_temporay_file,
 )
