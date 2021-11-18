@@ -264,8 +264,8 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
 
     # path.to.function is a mocked function to avoid errors while running tests
     @staticmethod
-    def process(imported_pages, items_cache):
-        return imported_pages, items_cache
+    def process(imported_pages):
+        return imported_pages
 
     @mock.patch.object(
         ItemsCache,
@@ -371,8 +371,8 @@ class TestImportHooksItemsCacheMethods(TestCase):
         self.items_cache_class = ItemsCache
 
     @staticmethod
-    def process(imported_pages, items_cache):
-        return imported_pages, items_cache
+    def process(imported_pages):
+        return imported_pages
 
     @mock.patch.object(
         ItemsCache,
