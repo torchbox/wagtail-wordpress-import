@@ -348,8 +348,8 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
         self.assertEqual(len(self.importer.items_cache.__dict__.keys()), 2)
 
 
-def foo_handler():
-    return "returned_from_foo_handler"
+def foo_handler(page, data, items_cache):
+    return page, data, items_cache
 
 
 @override_settings(
@@ -367,18 +367,6 @@ class TestImportHooksItemsCacheMethods(TestCase):
         f"{FIXTURES_PATH}/dump.json",
     ]
 
-    def setUp(self):
-        self.items_cache_class = ItemsCache
-
-    @staticmethod
-    def process(imported_pages):
-        return imported_pages
-
-    @mock.patch.object(
-        ItemsCache,
-        "process",
-        process,
-    )
     def process_import(self, xml_stream):
         self.importer = WordpressImporter(xml_stream)
         self.logger = Logger(LOG_DIR)
@@ -431,11 +419,14 @@ class TestImportHooksItemsCacheMethods(TestCase):
         )
 
         self.process_import(built_file)
-        items_cache = self.importer.items_cache.__dict__
-        function, actions = self.items_cache_class._get_hook_handler_data(items_cache)
+        function, actions = self.importer.items_cache._get_hook_handler_data()
+        page, data, items_cache = import_string(function)(
+            self.imported_pages[0], actions, self.importer.items_cache.__dict__
+        )
 
-        # The function run for a hook
-        self.assertEqual(import_string(function)(), "returned_from_foo_handler")
-
-        # The DATA_TAG returned form the config
-        self.assertEqual(actions, "datatagname")
+        self.assertIsInstance(page, Page)
+        self.assertEqual(page.title, "A title")
+        self.assertIsInstance(data, str)
+        self.assertEqual(data, "datatagname")
+        self.assertIsInstance(items_cache, dict)
+        self.assertEqual(items_cache["foo"][0]["title"], "foo-item")

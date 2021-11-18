@@ -18,20 +18,13 @@ class ItemsCache:
         ).keys():
             setattr(self, hook, [])
 
-    def get_cached_items(self):
-        """Return all the cached attributes added from the current config"""
-        return self.__dict__
-
     def process(self, imported_pages):
         """Run all hooks in the config for each page
         The function defined in the config key FUNCTION will be imported
         and run on each page"""
         for page in imported_pages:
-            for hook in getattr(
-                settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
-            ).keys():
-                func, data = self._get_hook_handler_data(self.get_cached_items())
-                import_string(func)(page, data, self.get_cached_items())
+            func, data = self._get_hook_handler_data()
+            import_string(func)(page, data, self.__dict__)
 
     def add_item_to_cache(self, hook, item):
         """Add an item dict to the cached hook if not already added"""
@@ -39,12 +32,11 @@ class ItemsCache:
         if item not in hook:
             hook.append(item)
 
-    @staticmethod
-    def _get_hook_handler_data(items_cache):
+    def _get_hook_handler_data(self):
         """Get the hook function and data to process"""
         for hook, actions in getattr(
             settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
         ).items():
-            if hook in items_cache:
+            if hook in self.__dict__:
                 return actions["FUNCTION"], actions["DATA_TAG"]
         return None, None
