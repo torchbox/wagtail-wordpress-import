@@ -9,7 +9,7 @@
 
 A full Wordpress XML export of a complete Wordpress website will contain all the entities within the database but as it's a text file the relationships between the entities are not ideally represented for the import process.
 
-**For example.** A blog post might include a header image thats not part of the body content in the Wordpress XML `<item>` tag for the post. It would be referenced by an ID in the `<wp:postmeta>` tag.
+**For example**, a blog post might include a header image that's not part of the body content in the Wordpress XML `<item>` tag for the post. The image would be elsewhere in the XML, referenced by an ID in the post item's `<wp:postmeta>` tag.
 
 Sample XML item for a blog post:
 
