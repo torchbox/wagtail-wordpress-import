@@ -194,6 +194,4 @@ class MaxDepthEtree:
         # returning 1 greater than actual length to work with
         """
         self._depth(self.tree.getroot(), -1)
-        max_depth = self.max_depth + 1
-
-        return max_depth
+        return self.max_depth + 1
