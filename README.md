@@ -4,6 +4,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 
 - [Wagtail WordPress Import](#wagtail-wordpress-import)
   - [Requirements](#requirements)
+  - [Compatibility](#compatibility)
   - [Initial app and package setup](#initial-app-and-package-setup)
     - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
   - [Running the import command](#running-the-import-command)
@@ -16,6 +17,14 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 1. Wagtail CMS Installed with initial setup
 2. WordPress XML export of all content in a single file
 3. The WordPress website will need to be live and available for importing of assets such as images and documents.
+
+## Compatibility
+
+The package has been developed and tested with:
+
+- Wagtail: 2.14 and 2.15
+- Django: 3.1 and 3.2
+- Postgres and SQLite Databases
 
 ## Initial app and package setup
 
