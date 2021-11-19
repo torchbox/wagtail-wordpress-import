@@ -125,7 +125,7 @@ def header_image_importer(page, data, items_cache):
     attachments = items_cache.get("attachment")
 
     # the code below would be your own code to process the header image,
-    # you can perform any type of python/Wagtail logic here and make use 
+    # you can perform any type of Python/Wagtail logic here and make use 
     # of thumbnail_id and attachments variables.
     image_url = None
 
