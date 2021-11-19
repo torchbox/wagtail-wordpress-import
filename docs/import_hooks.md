@@ -60,7 +60,7 @@ Sample XML tags for an image:
 </item>
 ```
 
-This `<item>` XML tag above is not included when an import is run because we only import `<item>` tags that represent a blog post or page to be created in Wagtail. These are items with a `<wp:post_type>` of post or page by default. The sample XML above represents an `attachment` type.
+The type of an XML `<item>` element is given by its `<wp:post_type>` tag. The example item above represents an "attachment" type. This is not included by default when an import is run, because we only import items of the "post" or "page" type, representing a blog post or page to be created in Wagtail.
 
 Import hooks allow you to define a function that will be called when a specific XML tag is encountered. This allows you to define your own custom import logic for your specific import requirements.
 
