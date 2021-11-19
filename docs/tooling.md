@@ -44,6 +44,8 @@ python manage.py analyze_html_content path/to/your/xmlfile.xml
 
 Will generate a JSON file your project which shows the structure of all unique XML tags and attributes.
 
+The file will be saved in the same location and with the same name as the original XML file as a `.json` file.
+
 ```bash
 python manage.py analyze_xml_content path/to/your/xmlfile.xml
 ```
