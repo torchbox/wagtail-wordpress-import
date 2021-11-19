@@ -2,7 +2,9 @@
 
 - [Developer Tooling Commands](#developer-tooling-commands)
   - [Reduce XML command](#reduce-xml-command)
-  - [Analyse XML command](#analyse-xml-command)
+  - [Analyse XML commands](#analyse-xml-commands)
+    - [analyze_html_content](#analyze_html_content)
+    - [analyze_xml_content](#analyze_xml_content)
   - [Delete imported page command](#delete-imported-page-command)
   - [Useful Django shell commands](#useful-django-shell-commands)
     - [Delete all images](#delete-all-images)
@@ -26,15 +28,27 @@ The original file is preserved and a new file is created with `-reduced` appende
 
 ---
 
-## Analyse XML command
+## Analyse XML commands
 
-This is a command to help you analyse the data you will be importing.
+These commands help you analyse the XML data source.
+
+### analyze_html_content
+
+Will generate a table output in the console to show inline styles, HTML tags and shortcodes used in the `<content:encoded>` XML tag.
 
 ```bash
 python manage.py analyze_html_content path/to/your/xmlfile.xml
 ```
 
-It will generate a table output in the console to show inline styles, HTML tags and shortcodes used to format the content.
+### analyze_xml_content
+
+Will generate a JSON file your project which shows the structure of all unique XML tags and attributes.
+
+The file will be saved in the same location and with the same name as the original XML file as a `.json` file.
+
+```bash
+python manage.py analyze_xml_content path/to/your/xmlfile.xml
+```
 
 ---
 
