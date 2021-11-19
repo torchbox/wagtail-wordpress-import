@@ -31,7 +31,7 @@ class Command(BaseCommand):
             )
         )
         file_name = options["xmlfile"]
-        xml = open(f"{file_name}", "rb").read()
+        xml = open(file_name, "rb").read()
 
         json_file_name = file_name.split(".")[0]
         json_file = open(f"{json_file_name}.json", "w+")
