@@ -66,7 +66,7 @@ Import hooks allow you to define a function that will be called when a specific 
 
 ## Adding an import hook
 
-The package doesn't include any import hooks by default. You can add your own import hooks by adding a dictionary the the  `WAGTAIL_WORDPRESS_IMPORT_HOOKS` setting and defining a function thats will be called and passed the Page model and data to be imported.
+The package doesn't include any import hooks by default. You can add your own import hooks by adding a dictionary as the  `WAGTAIL_WORDPRESS_IMPORT_HOOKS` setting and defining an XML post type to identify it, and a function to process the data. The function takes a page instance, and a cache of the tag data to be processed, as arguments.
 
 Following on with the example XML above, we can add an import hook to capture the `<item>` tags that are of type `attachment` and use that attachment data to create a header image for the blog post.
 
