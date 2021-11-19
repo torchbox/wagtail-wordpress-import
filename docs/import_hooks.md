@@ -92,7 +92,7 @@ The resulting dict item in the items_cache would be:
 ```python
 {
     ...
-    # each dict item is a nested dict that represents the XML item tags tree 
+    # each dict item is a nested list of dicts that represents the XML item tags tree 
     # of keys and values. It's not all shown here for brevity as 
     # it can be a large amount of data.
     ...
