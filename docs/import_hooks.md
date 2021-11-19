@@ -106,7 +106,7 @@ The resulting dict item in the items_cache would be:
 }
 ```
 
-The `FUNCTION` key is the dotted path to the function that will be called. The function should accept the Page model and the data to be imported as arguments. The function also needs to be passed an argument of `items_cache` whcih is the cache of all the items that have been imported with the `<wp:post_type>attachment</wp:post_type>`
+The `FUNCTION` key is the dotted path to the function that will be called. The function should accept the Page model and the data to be imported as arguments. The function also needs to be passed an argument of `items_cache` which is the cache of all the items that have been imported with the tag `<wp:post_type>attachment</wp:post_type>`
 
 Sample function and page model for processing the header image:
 
