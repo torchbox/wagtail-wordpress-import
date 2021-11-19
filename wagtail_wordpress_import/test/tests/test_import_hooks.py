@@ -358,6 +358,10 @@ def foo_handler(page, data, items_cache):
             "DATA_TAG": "datatagname",
             "FUNCTION": "wagtail_wordpress_import.test.tests.test_import_hooks.foo_handler",
         },
+        "bar": {
+            "DATA_TAG": "datatagname",
+            "FUNCTION": "wagtail_wordpress_import.test.tests.test_import_hooks.foo_handler",
+        },
     },
 )
 class TestImportHooksItemsCacheMethods(TestCase):
@@ -397,6 +401,19 @@ class TestImportHooksItemsCacheMethods(TestCase):
             <wp:post_type>foo</wp:post_type>
         </item>
         <item>
+            <title>bar-item</title>
+            <link>https://www.example.com/foo-item/</link>
+            <pubDate>Tue, 13 Jul 2010 16:16:46 +0000</pubDate>
+            <guid isPermaLink="false">https://www.example.com/foo.jpg</guid>
+            <wp:post_id>100</wp:post_id>
+            <wp:post_date>2010-07-13 12:16:46</wp:post_date>
+            <wp:post_date_gmt>2010-07-13 16:16:46</wp:post_date_gmt>
+            <wp:post_modified>2010-07-13 12:16:46</wp:post_modified>
+            <wp:post_modified_gmt>2010-07-13 16:16:46</wp:post_modified_gmt>
+            <wp:post_name>bar-item</wp:post_name>
+            <wp:post_type>bar</wp:post_type>
+        </item>
+        <item>
             <title>A title</title>
             <link>https://www.example.com/a-title</link>
             <description />
@@ -430,3 +447,4 @@ class TestImportHooksItemsCacheMethods(TestCase):
         self.assertEqual(data, "datatagname")
         self.assertIsInstance(items_cache, dict)
         self.assertEqual(items_cache["foo"][0]["title"], "foo-item")
+        self.assertEqual(items_cache["bar"][0]["title"], "bar-item")
