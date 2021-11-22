@@ -436,10 +436,13 @@ class TestImportHooksItemsCacheMethods(TestCase):
         )
 
         self.process_import(built_file)
-        function, actions = self.importer.items_cache._get_hook_handler_data()
-        page, data, items_cache = import_string(function)(
-            self.imported_pages[0], actions, self.importer.items_cache.__dict__
-        )
+        for (
+            hook,
+            (function, actions),
+        ) in self.importer.items_cache._get_hook_handler_data().items():
+            page, data, items_cache = function(
+                self.imported_pages[0], actions, self.importer.items_cache.__dict__
+            )
 
         self.assertIsInstance(page, Page)
         self.assertEqual(page.title, "A title")

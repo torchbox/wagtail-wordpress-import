@@ -19,12 +19,14 @@ class ItemsCache:
             setattr(self, hook, [])
 
     def process(self, imported_pages):
-        """Run all hooks in the config for each page
-        The function defined in the config key FUNCTION will be imported
-        and run on each page"""
+        """Run all hooks in the config for each page.
+
+        Each function defined in the config key "FUNCTION" will be run on each page.
+        """
+        registry = self._get_hook_handler_data()
         for page in imported_pages:
-            func, data = self._get_hook_handler_data()
-            import_string(func)(page, data, self.__dict__)
+            for hook, (func, data_tag) in registry.items():
+                func(page, data_tag, self.__dict__)
 
     def add_item_to_cache(self, hook, item):
         """Add an item dict to the cached hook if not already added"""
@@ -33,10 +35,11 @@ class ItemsCache:
             hook.append(item)
 
     def _get_hook_handler_data(self):
-        """Get the hook function and data to process"""
-        for hook, actions in getattr(
-            settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
-        ).items():
-            if hook in self.__dict__:
-                return actions["FUNCTION"], actions["DATA_TAG"]
-        return None, None
+        """Get the hook functions and data_tag names to process."""
+        return {
+            hook: (import_string(actions["FUNCTION"]), actions["DATA_TAG"])
+            for hook, actions in getattr(
+                settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+            ).items()
+            if hook in self.__dict__
+        }
