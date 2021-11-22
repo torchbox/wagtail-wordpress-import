@@ -1,28 +1,67 @@
 # Block Builder
 
 - [Block Builder](#block-builder)
+  - [What is a Block Builder?](#what-is-a-block-builder)
+  - [How does the Block Builder work?](#how-does-the-block-builder-work)
   - [Included Blocks](#included-blocks)
-    - [Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>`](#heading-block-h1-h2-h3-h4-h5-h6)
+    - [Heading Block `<h1>`](#heading-block-h1)
     - [Table Block `<table>`](#table-block-table)
     - [Iframe Block `<iframe>`](#iframe-block-iframe)
     - [Form Block `<form>`](#form-block-form)
-    - [Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`](#image-block-img--todo-not-yet-complete-likely-to-come-from-shortcode-parsing)
+    - [Image Block `<img />`](#image-block-img-)
     - [Blockquote Block `<blockquote>`](#blockquote-block-blockquote)
-  - [Included Fallback/Catch-all Block](#included-fallbackcatch-all-block)
+    - [Included Fallback Block](#included-fallback-block)
   - [Configuration](#configuration)
+    - [Examples](#examples)
+  - [Extending the package WPImportStreamBlocks](#extending-the-package-wpimportstreamblocks)
 
-The block builder takes the page body content in as a string of HTML.
-The filters listed below are then used to parse the HTML into a sequence of StreamField blocks.
+## What is a Block Builder?
 
-The parsing process uses Beautiful Soup to analyze each top level HTML tag in the order they appear in the HTML body content. If a match is found in the `WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS` configuration a single block is created for the HTML tag.
+The Block Builder transforms the body HTML content which could contain a lot of HTML tags and content into a sequence of Wagtail StreamField blocks.
+
+It does this by parsing the HTML content and converting each top level tag finds into a specific block type defined in settings.
+
+The default stream block mapping:
+
+```python
+WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
+    "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+    "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+    "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+    "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+    "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
+}
+```
+
+Any HTML tags encountered during parsing that don't have a mapping in the settings above are are combined into a single fallback StreamField block. This generally means that consecutive `<p>` tags are combined into the same block, **A RichText block is the package default**.
+
+It's possible other HTML tags that are not included in the default mapping will also be combined into the RichText block. This may not be the desired behaviour for your requirements and is where you should add a mapping in your own sites settings to override the default behaviour for the specific HTML tag.
+
+The default fallback block it a RichText block and is defined in settings:
+
+```python
+WAGTAIL_WORDPRESS_IMPORTER_FALLBACK_BLOCK = "wagtail_wordpress_import.block_builder_defaults.build_none_block_content
+```
+
+## How does the Block Builder work?
+
+After all the HTML content has been parsed and converted into a sequence of StreamField blocks it is held in memory as a dict and then passed to the Wagtail page instance as a serialized JSON string.
+
+While creating each StreamField block the Block Builder will also implement the following:
+
+1. Find images in the HTML content and download them to the Wagtail images app and link them correctly using the image ID.
+2. Find linked documents in the HTML content and download them to the Wagtail documents app and link them correctly using the document ID.
+
+Internally the Block Builder uses the `BeautifulSoup` package to parse the HTML content.
 
 ---
 
 ## Included Blocks
 
-### Heading Block `<h1>, <h2>, <h3>, <h4>, <h5>, <h6>`
+### Heading Block `<h1>`
 
-Builder:
+Builder function:
 
 ```python
 def build_heading_block(tag):
@@ -108,9 +147,11 @@ Wagtail Block:
 blocks.RawHTMLBlock()
 ```
 
-### Image Block `<img />` `TODO not yet complete, likely to come from shortcode parsing`
+### Image Block `<img />`
 
-Filter: `TODO not yet complete
+*This block is not been used at the moment and is likely to be removed or repurposed in future versions.*
+
+Filter:
 
 ```python
 def build_image_block(tag):
@@ -158,7 +199,7 @@ class QuoteBlock(blocks.StructBlock):
         template = "wagtail_wordpress_import/quote_block.html"
 ```
 
-## Included Fallback/Catch-all Block
+### Included Fallback Block
 
 By default, the fallback block is a Wagtail `RichText` Block.
 
@@ -166,21 +207,22 @@ Only content that has no specific block filter is added to the fallback block.
 
 Example: `<p> <ul> <a> <img /> ...`
 
-This block is only saved to the block sequence each time the builder finds a new Block is required or the builder has reached the end of the content parsing.
+*This block is only saved to the block sequence each time the builder finds a new Block is required in the sequence or the builder has reached the end of the content parsing.*
 
 This block has extra processing included each time it is saved as a block to the block sequence.
 
-1. All the `<img />` src values are analyzed and if the image is a local to site image it is fetched and saved to the Wagtail Images app. The `<img />` tags are updated to the Wagtail rich text embedded content type. e.g. `<embed embedtype="image" id="1001" alt="A image description" format="left" />`
+1. The `<img />` src values are parsed and if the image is a local to site image it is fetched and saved to the Wagtail Images app. The `<img />` tags are updated to the Wagtail RichText embedded content type. e.g. `<embed embedtype="image" id="1001" alt="A image description" format="left" />`
 2. All the `<a href="..."></a>` href values are analyzed and if the href is a document type it is fetched and saved to the Wagtail Documents app. The `<a href=""></a>` are updated to the Wagtail RichText linktype format. e.g. `<a id="1001" linktype="document">link</a>`
+
+Note: The fallback block may contain other HTML `<a>` tags that are links to other pages in your Wagtail site. These links are not processed bt the block builder but are processed at the end of the import process because all the imported pages need to exist for this to happen.
 
 Filter:
 
 ```python
 def build_none_block_content(cache, blocks):
-    """
-    image_linker is called to link up and retrive the remote image
-    """
+    # image_linker is called to link up and retrieve the remote images
     cache = image_linker(cache)
+    # document_linker is called to link up and retrieve the remote documents
     cache = document_linker(cache)
     blocks.append({"type": "rich_text", "value": cache})
     cache = ""
@@ -190,33 +232,32 @@ def build_none_block_content(cache, blocks):
 Wagtail Block
 
 ```python
+# the features of a RichText block are customised from the Wagtail default
+
 rich_text = blocks.RichTextBlock(
-    # "h1","h2","h3","h4","h5","h6","image","embed",
-    # are included to allow editing the content via the admin once the import is complete
-    #they are used while the body content is parsed into blocks.
-        features=[
-            "anchor-identifier",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "bold",
-            "italic",
-            "ol",
-            "ul",
-            "hr",
-            "link",
-            "document-link",
-            "image",
-            "embed",
-            "superscript",
-            "subscript",
-            "strikethrough",
-            "blockquote",
-        ]
-    )
+    features=[
+        "anchor-identifier",
+        "h1",
+        "h2",
+        "h3",
+        "h4",
+        "h5",
+        "h6",
+        "bold",
+        "italic",
+        "ol",
+        "ul",
+        "hr",
+        "link",
+        "document-link",
+        "image",
+        "embed",
+        "superscript",
+        "subscript",
+        "strikethrough",
+        "blockquote",
+    ]
+)
 ```
 
 ---
@@ -225,48 +266,125 @@ rich_text = blocks.RichTextBlock(
 
 You can add your own configuration to control the Block Building process.
 
-Below is the included configuration. You can copy this to your own settings and either add or remove tag to block filters.
+Below is the included configuration.
 
 ```python
-WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = 
-    [
-        (
-            "h1",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "h2",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "h3",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "h4",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "h5",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "h6",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",},),
-        (
-            "table",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_table_block",},),
-        (
-            "iframe",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",},),
-        (
-            "form",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_form_block",},),
-        (
-            "img",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_image_block",},),
-        (
-            "blockquote",{
-                "FUNCTION": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_bloc",},),
-    ]
+WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
+    "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+    "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+    "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+    "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+    "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
+}
 ```
 
-Examples:
+### Examples
 
-1. Include the `h1 - h6` HTML tags in the fallback block and not have their own block types. Just remove the `h1 - h6` filter configuration items in your own settings.
-2. Add extra HTML tag processing: you would add a function somewhere in your own Wagtail app. Then add an item to the config above with the HTML tag key along with a `FUNCTION` which is the dotted path to the function you have created. You may also need to include the Wagtail Block in your own app or you could repurpose one of the provided Block types.
+Include the `h1` - `h6` HTML tags in the config to create them as separate StreamField blocks for each heading size.
+
+Copy the default configuration below to your own sites settings and add the required HTML tags with an accompanying function to be called for that HTML tag.
+
+```python
+WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
+    "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "h2": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "h3": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "h4": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "h5": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "h6": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+    "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+    "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+    "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+    "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
+}
+```
+
+*The package provided block builder function for headings will work as expected for this example therefore a new Block Builder function isn't required.*
+
+---
+
+Change the Block Builder function to use your own provided function to create a `blockquote` block.
+
+Copy the default configuration below to your own sites settings and add the required function to build the block.
+
+```python
+WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
+    "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+    "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+    "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+    "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+    "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+    "blockquote": "path.to.my_site.block.functions.my_block_quote",
+}
+```
+
+and create a filter function in your own Wagtail site which will receive a single parameter for the tag. The tag is a `BeautifulSoup` tag object.
+
+```python
+def my_block_quote(tag):
+    # return a dict with the block type and value
+    block_quote = {
+        "type": "block_quote_block",
+        # type is the block type name in your stream_field
+        "value": {
+            "quote": tag.text.strip(), 
+            "attribution": tag.cite,
+        }
+        # value is the block value for each block type and 
+        # could contain child blocks depending on your implementation
+    }
+    return block_quote # return the block as a type(dict)
+```
+
+In your own site you could have a block class like the example below
+
+Wagtail Block:
+
+```python
+class MyQuoteBlock(blocks.StructBlock):
+    quote = blocks.CharBlock()
+    attribution = blocks.CharBlock(required=False)
+
+    class Meta:
+        # choose the icon thats most appropriate here
+        icon = "openquote" 
+        # and also define a template for the block
+        template = "templates/blocks/my_quote_block.html"
+```
+
+In your own sites StreamField block the block type will need to be available with the name `block_quote_block` for this example but you can call your block type whatever you want.
+
+```python
+# your Wagatail page model
+class MyPage(Page):
+    body = StreamField(MyStreamBlocks(), required=False)
+    ...
+
+    content_panels = Page.content_panels + [
+        StreamFieldPanel("body")
+    ]
+    ...
+
+# your Wagtail stream block class
+class MyStreamBlocks(blocks.StreamBlock):
+    block_quote_block = MyQuiteBlock()
+    ...
+```
+
+The [Wagtail Docs](https://docs.wagtail.io/en/stable/topics/streamfield.html) have a full example of creating custom blocks and block types.
+
+---
+
+## Extending the package WPImportStreamBlocks
+
+While you can you can extend the package provided WPImportStreamBlocks we recommend you use your own custom block types and StreamFields / StreamBlocks. This is because the package is not meant to be used in your own site after the import process has been completed. Once it's removed the package blocks and block types will not be available.
+
+You should create your own custom block types and use them in your own Wagtail page model StreamFields.
+
+The recommended approach is to copy the package defaults to your own Wagtail site from: `wagtail_wordpress_import/blocks.py` and adjust them to your own needs.
+
+Also copy `wagtail_wordpress_import/block_builder_defaults.py` and create your own functions for each block type you want to use.
+
+Then add your own `WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS` to your own setting and map the HTML tags to the functions you created.
