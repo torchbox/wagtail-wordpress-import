@@ -344,12 +344,8 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
         self.assertEqual(len(self.importer.items_cache.__dict__.keys()), 2)
 
 
-def foo_handler(page, data, items_cache):
-    return page, data, items_cache
-
-
-def bar_handler(page, data, items_cache):
-    return page, data, items_cache
+foo_handler = mock.Mock()
+bar_handler = mock.Mock()
 
 
 @override_settings(
@@ -436,21 +432,21 @@ class TestImportHooksItemsCacheMethods(TestCase):
         )
 
         self.process_import(built_file)
-        for (
-            hook,
-            (function, actions),
-        ) in self.importer.items_cache._get_hook_handler_data().items():
-            page, data, items_cache = function(
-                self.imported_pages[0], actions, self.importer.items_cache.__dict__
-            )
+        foo_handler.assert_called_once_with(
+            self.imported_pages[0].specific,
+            "foodatatagname",
+            self.importer.items_cache.__dict__,
+        )
+        bar_handler.assert_called_once_with(
+            self.imported_pages[0].specific,
+            "bardatatagname",
+            self.importer.items_cache.__dict__,
+        )
 
-        self.assertIsInstance(page, Page)
-        self.assertEqual(page.title, "A title")
-        self.assertIsInstance(data, str)
-        self.assertEqual(data, "foodatatagname")
-        self.assertIsInstance(items_cache, dict)
-        self.assertEqual(items_cache["foo"][0]["title"], "foo-item")
-        self.assertEqual(items_cache["bar"][0]["title"], "bar-item")
+        cache = self.importer.items_cache.__dict__
+        self.assertIsInstance(cache, dict)
+        self.assertEqual(cache["foo"][0]["title"], "foo-item")
+        self.assertEqual(cache["bar"][0]["title"], "bar-item")
 
     def test_handler_functions_are_registered(self):
         items_cache = ItemsCache()
