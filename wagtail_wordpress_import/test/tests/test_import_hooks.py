@@ -246,7 +246,7 @@ class WordpressImporterTestsCheckXmlItemsNotCached(TestCase):
 @override_settings(
     WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE={
         "foo": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
-        "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.function"},
+        "bar": {"DATA_TAG": "datatagname", "FUNCTION": "path.to.different.function"},
     },
 )
 class WordpressImporterTestsCheckXmlItemsCached(TestCase):
@@ -348,15 +348,19 @@ def foo_handler(page, data, items_cache):
     return page, data, items_cache
 
 
+def bar_handler(page, data, items_cache):
+    return page, data, items_cache
+
+
 @override_settings(
     WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE={
         "foo": {
-            "DATA_TAG": "datatagname",
+            "DATA_TAG": "foodatatagname",
             "FUNCTION": "wagtail_wordpress_import.test.tests.test_import_hooks.foo_handler",
         },
         "bar": {
-            "DATA_TAG": "datatagname",
-            "FUNCTION": "wagtail_wordpress_import.test.tests.test_import_hooks.foo_handler",
+            "DATA_TAG": "bardatatagname",
+            "FUNCTION": "wagtail_wordpress_import.test.tests.test_import_hooks.bar_handler",
         },
     },
 )
@@ -440,7 +444,49 @@ class TestImportHooksItemsCacheMethods(TestCase):
         self.assertIsInstance(page, Page)
         self.assertEqual(page.title, "A title")
         self.assertIsInstance(data, str)
-        self.assertEqual(data, "datatagname")
+        self.assertEqual(data, "foodatatagname")
         self.assertIsInstance(items_cache, dict)
         self.assertEqual(items_cache["foo"][0]["title"], "foo-item")
         self.assertEqual(items_cache["bar"][0]["title"], "bar-item")
+
+    def test_fails_foo_handler_function_is_registered(self):
+        # FIXME This is here to illustrate an issue with the current data structure.
+        # Delete this test method once test_handler_functions_are_registered passes.
+        items_cache = ItemsCache()
+        func, data = items_cache._get_hook_handler_data()
+        self.assertEqual(
+            func, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["foo"]["FUNCTION"]
+        )
+        self.assertEqual(
+            data, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["foo"]["DATA_TAG"]
+        )
+
+    def test_fails_bar_handler_function_is_registered(self):
+        # FIXME This is here to illustrate an issue with the current data structure.
+        # Delete this test method once test_handler_functions_are_registered passes.
+        items_cache = ItemsCache()
+        func, data = items_cache._get_hook_handler_data()
+        self.assertEqual(
+            func, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["bar"]["FUNCTION"]
+        )
+        self.assertEqual(
+            data, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["bar"]["DATA_TAG"]
+        )
+
+    def test_handler_functions_are_registered(self):
+        items_cache = ItemsCache()
+        registry = items_cache._get_hook_handler_data()
+        with self.subTest("foo is registered"):
+            func, data_tag = registry["foo"]
+            self.assertEqual(func, foo_handler)
+            self.assertEqual(
+                data_tag,
+                settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["foo"]["DATA_TAG"],
+            )
+        with self.subTest("bar is registered"):
+            func, data_tag = registry["bar"]
+            self.assertEqual(func, bar_handler)
+            self.assertEqual(
+                data_tag,
+                settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["bar"]["DATA_TAG"],
+            )
