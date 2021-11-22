@@ -9,9 +9,7 @@ from unittest import mock
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import conf_promote_child_tags
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.importers.import_hooks import (
-    ItemsCache,
-)
+from wagtail_wordpress_import.importers.import_hooks import ItemsCache
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 
@@ -268,9 +266,7 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
         return imported_pages
 
     @mock.patch.object(
-        ItemsCache,
-        "process",
-        process,
+        ItemsCache, "process", process,
     )
     def process_import(self, xml_stream):
         self.importer = WordpressImporter(xml_stream)
