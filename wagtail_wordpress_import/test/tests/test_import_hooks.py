@@ -452,30 +452,6 @@ class TestImportHooksItemsCacheMethods(TestCase):
         self.assertEqual(items_cache["foo"][0]["title"], "foo-item")
         self.assertEqual(items_cache["bar"][0]["title"], "bar-item")
 
-    def test_fails_foo_handler_function_is_registered(self):
-        # FIXME This is here to illustrate an issue with the current data structure.
-        # Delete this test method once test_handler_functions_are_registered passes.
-        items_cache = ItemsCache()
-        func, data = items_cache._get_hook_handler_data()
-        self.assertEqual(
-            func, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["foo"]["FUNCTION"]
-        )
-        self.assertEqual(
-            data, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["foo"]["DATA_TAG"]
-        )
-
-    def test_fails_bar_handler_function_is_registered(self):
-        # FIXME This is here to illustrate an issue with the current data structure.
-        # Delete this test method once test_handler_functions_are_registered passes.
-        items_cache = ItemsCache()
-        func, data = items_cache._get_hook_handler_data()
-        self.assertEqual(
-            func, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["bar"]["FUNCTION"]
-        )
-        self.assertEqual(
-            data, settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE["bar"]["DATA_TAG"]
-        )
-
     def test_handler_functions_are_registered(self):
         items_cache = ItemsCache()
         registry = items_cache._get_hook_handler_data()
