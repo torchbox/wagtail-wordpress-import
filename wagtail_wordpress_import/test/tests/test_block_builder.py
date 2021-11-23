@@ -18,6 +18,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     get_image_alt,
     get_image_file_name,
 )
+from wagtail.images import get_image_model
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -248,11 +249,9 @@ class TestRichTextImageLinking(TestCase):
         self.assertEqual(self.blocks[0]["type"], "rich_text")
 
         value_soup = BeautifulSoup(self.blocks[0]["value"], "html.parser")
-        # attr["id"] should be returned as an integer but we cannot
-        # rely on the value returned here so it's not None.
-        # there is a ticket to improve testing when fetching remote images:
-        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
-        self.assertIsNotNone(value_soup.find("embed").attrs["id"])
+        image = get_image_model().objects.get(title="bruno-4-runner.jpg")
+
+        self.assertEqual(int(value_soup.find("embed").attrs["id"]), image.id)
 
     def test_get_image_alt(self):
         input = get_soup(
