@@ -3,7 +3,7 @@ from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
 from django.utils.module_loading import import_string
-
+from django.conf import settings
 from bs4 import BeautifulSoup
 from django.apps import apps
 from django.utils.module_loading import import_string
@@ -25,12 +25,17 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
 
+from wagtail_wordpress_import.importers.import_hooks import (
+    ItemsCache,
+)
+
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
         self.imported_pages = []
         self.page_link_errors = []
+        self.items_cache = ItemsCache()
 
     def run(self, *args, **kwargs):
         self.logger = kwargs["logger"]
@@ -64,6 +69,15 @@ class WordpressImporter:
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.logger.processed += 1
+
+                # check import hooks config for item level xml tags to cache
+                # an example would be that wp:post_type is attachment
+                # which is a XML item that is a media type
+                post_type = item.get("wp:post_type")
+                if post_type in getattr(
+                    settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+                ):
+                    self.items_cache.add_item_to_cache(post_type, item)
 
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
@@ -160,6 +174,8 @@ class WordpressImporter:
             self.logger.log_progress()
 
         self.connect_richtext_page_links(self.imported_pages)
+        if getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
+            self.items_cache.process(self.imported_pages)
 
     @staticmethod
     def check_stream_field_block_types(page, body):
@@ -268,6 +284,7 @@ class WordpressItem:
 
         self.debug_content = {}
         self.logger = logger
+        self.post_meta_items = None
 
     def prefilter_content(self, content):
         """
@@ -385,6 +402,19 @@ class WordpressItem:
         else:
             return ""
 
+    def get_wp_post_meta(self):
+        post_meta = self.node.get("wp:postmeta")
+        if isinstance(post_meta, dict):
+            self.post_meta_items = {
+                post_meta["wp:meta_key"]: post_meta["wp:meta_value"]
+            }
+        elif isinstance(post_meta, list):
+            self.post_meta_items = {
+                item["wp:meta_key"]: item["wp:meta_value"] for item in post_meta
+            }
+
+        return self.post_meta_items
+
     @cached_property
     def cleaned_data(self):
         """
@@ -398,6 +428,7 @@ class WordpressItem:
         """
 
         return {
+            "wp_post_meta": self.get_wp_post_meta(),
             "title": self.cleaned_title(),
             "slug": self.cleaned_slug(),
             "first_published_at": self.cleaned_first_published_at(),

@@ -126,6 +126,7 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 
 - [Block Builder](docs/blockbuilder.md)
 - [Categories Import](docs/categories.md)
+- [Import Hooks](docs/import_hooks.md)
 - [Prefilters](docs/prefilters.md)
 - [WordPress Shortcodes](docs/shortcodes.md)
 - [Yoast Import](docs/yoast.md)

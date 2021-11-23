@@ -274,3 +274,68 @@ class WordpressImporterTestsYoastMetaDescriptions(TestCase):
             wordpress_item.get_yoast_description_value(),
             "This page has a default description",
         )
+
+
+class WordpressImporterTestsParsePostMeta(TestCase):
+    """
+    This tests the post meta items retrieved from an XML file
+    are stored in WordpressItem().post_meta_items
+    """
+
+    fixtures = [
+        f"{FIXTURES_PATH}/dump.json",
+    ]
+
+    def setUp(self):
+        self.logger = Logger("fakedir")
+        xml_file = open(f"{FIXTURES_PATH}/post_meta.xml", "rb")
+        xml_doc = pulldom.parse(xml_file)
+        self.items_dict = []
+        for event, node in xml_doc:
+            if event == pulldom.START_ELEMENT and node.tagName == "item":
+                xml_doc.expandNode(node)
+                self.items_dict.append(node_to_dict(node))
+
+    def test_items_dict_0(self):
+        # self.items_dict[0] = the single item wp:post_meta without yoast
+        wordpress_item = WordpressItem(self.items_dict[0], self.logger)
+        wordpress_item.get_wp_post_meta(),
+        self.assertEqual(wordpress_item.post_meta_items, {"_thumbnail_id": 43124})
+
+    def test_items_dict_1(self):
+        # self.items_dict[1] = the multiple item wp:post_meta
+        wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        wordpress_item.get_wp_post_meta(),
+        self.assertEqual(
+            wordpress_item.post_meta_items,
+            {"_facebook_shares": 0, "_pinterest_shares": 0, "_twitter_shares": 0},
+        )
+
+    def test_items_dict_2(self):
+        # self.items_dict[2] = the single item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[2], self.logger)
+        wordpress_item.get_wp_post_meta(),
+        self.assertEqual(
+            wordpress_item.post_meta_items,
+            {"_yoast_wpseo_metadesc": "This is a yoast metadesc!"},
+        )
+
+    def test_items_dict_3(self):
+        # self.items_dict[3] = the multiple item wp:post_meta with yoast
+        wordpress_item = WordpressItem(self.items_dict[3], self.logger)
+        wordpress_item.get_wp_post_meta(),
+        self.assertEqual(
+            wordpress_item.post_meta_items,
+            {
+                "_facebook_shares": 0,
+                "_pinterest_shares": 0,
+                "_twitter_shares": 0,
+                "_yoast_wpseo_metadesc": "This is a yoast metadesc!",
+            },
+        )
+
+    def test_items_dict_4(self):
+        # self.items_dict[4] = has no wp:post_meta items
+        wordpress_item = WordpressItem(self.items_dict[4], self.logger)
+        wordpress_item.get_wp_post_meta(),
+        self.assertIsNone(wordpress_item.post_meta_items)
