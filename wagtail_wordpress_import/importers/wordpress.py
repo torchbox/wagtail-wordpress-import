@@ -1,25 +1,27 @@
+import copy
 import json
 from datetime import datetime
 from functools import cached_property
 from xml.dom import pulldom
-from django.utils.module_loading import import_string
-from django.conf import settings
+
 from bs4 import BeautifulSoup
 from django.apps import apps
+from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import node_to_dict
+from wagtail_wordpress_import.importers.import_hooks import ItemsCache, TagsCache
 from wagtail_wordpress_import.importers.wordpress_defaults import (
     category_name_min_length,
+    category_plugin_enabled,
     debug_enabled,
     default_prefilters,
     get_category_model,
     yoast_plugin_config,
     yoast_plugin_enabled,
-    category_plugin_enabled,
 )
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
@@ -33,9 +35,10 @@ from wagtail_wordpress_import.importers.import_hooks import (
 class WordpressImporter:
     def __init__(self, xml_file_path):
         self.xml_file = xml_file_path
-        self.imported_pages = []
+        self.imported_page_ids = []
         self.page_link_errors = []
         self.items_cache = ItemsCache()
+        self.tags_cache = TagsCache()
 
     def run(self, *args, **kwargs):
         self.logger = kwargs["logger"]
@@ -65,18 +68,23 @@ class WordpressImporter:
             Each node represents a tag in the xml.
             `event` is true for a start element.
             """
+
+            if event == pulldom.START_ELEMENT and node.tagName in getattr(
+                settings, "WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE", {}
+            ):  # add top level xml tags to cache
+                xml_doc.expandNode(node)
+                item = node_to_dict(node)
+                self.tags_cache.add_item_to_cache(node.tagName, item)
+
             if event == pulldom.START_ELEMENT and node.tagName == "item":
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.logger.processed += 1
 
-                # check import hooks config for item level xml tags to cache
-                # an example would be that wp:post_type is attachment
-                # which is a XML item that is a media type
                 post_type = item.get("wp:post_type")
                 if post_type in getattr(
                     settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
-                ):
+                ):  # add item level xml tags to cache
                     self.items_cache.add_item_to_cache(post_type, item)
 
                 if (
@@ -144,7 +152,7 @@ class WordpressImporter:
                             }
                         )
 
-                    self.imported_pages.append(page)
+                    self.imported_page_ids.append(page.id)
 
                 else:
                     self.logger.skipped += 1
@@ -173,9 +181,27 @@ class WordpressImporter:
                 )
             self.logger.log_progress()
 
-        self.connect_richtext_page_links(self.imported_pages)
-        if getattr(settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}):
-            self.items_cache.process(self.imported_pages)
+        imported_pages = self.page_model_instance.objects.filter(
+            id__in=[id for id in self.imported_page_ids]
+        ).specific()
+
+        self.connect_richtext_page_links(imported_pages)
+
+        """Run all hooks in settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE"""
+        for hook, actions in getattr(
+            settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
+        ).items():
+            import_string(actions["FUNCTION"])(
+                imported_pages, actions["DATA_TAG"], self.items_cache.__dict__[hook]
+            )
+
+        """Run all hooks in settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE"""
+        for hook, actions in getattr(
+            settings, "WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE", {}
+        ).items():
+            import_string(actions["FUNCTION"])(
+                imported_pages, actions["DATA_TAG"], self.tags_cache.__dict__[hook]
+            )
 
     @staticmethod
     def check_stream_field_block_types(page, body):
@@ -285,6 +311,7 @@ class WordpressItem:
         self.debug_content = {}
         self.logger = logger
         self.post_meta_items = None
+        self.post_item_tags = None
 
     def prefilter_content(self, content):
         """
@@ -402,33 +429,47 @@ class WordpressItem:
         else:
             return ""
 
-    def get_wp_post_meta(self):
-        post_meta = self.node.get("wp:postmeta")
-        if isinstance(post_meta, dict):
-            self.post_meta_items = {
-                post_meta["wp:meta_key"]: post_meta["wp:meta_value"]
-            }
-        elif isinstance(post_meta, list):
-            self.post_meta_items = {
-                item["wp:meta_key"]: item["wp:meta_value"] for item in post_meta
-            }
+    def coerce_item_node(self):
+        # node is manipulated and saved to the
+        # wp_post_meta imported page model field
+        node = copy.deepcopy(self.node)
 
-        return self.post_meta_items
+        # the content:encoded tag is not needed in the
+        # wp_post_meta field as the content is parsed elsewhere
+        del node["content:encoded"]
+
+        if "wp:postmeta" in node:
+            if isinstance(node["wp:postmeta"], dict):
+                # wp:post_meta needs to be a list of dicts but if only one
+                # item is present it's a dict due to the way the XML is parsed
+                node["wp:postmeta"] = [node["wp:postmeta"]]
+
+            for item in node["wp:postmeta"]:
+                # the keys are not suitable for our needs so use
+                # 'wp:meta_key' value as the key and
+                # 'wp:meta_value' value as the value
+                if item.get("wp:meta_key"):
+                    key = str(  # some keys look like boolean types
+                        item["wp:meta_key"]
+                    ).replace(  # some keys contain ':'
+                        ":", "_"
+                    )
+                    if key[0] == "_":
+                        # some keys start with '_' which is not going to work
+                        # when using filter() on the page queryset for
+                        # the wp_post_meta field
+                        key = key[1:]
+                    node[key] = item["wp:meta_value"]
+
+            del node["wp:postmeta"]
+
+        return node
 
     @cached_property
     def cleaned_data(self):
-        """
-        I'm leaving a note here because later on we will be adding the ability
-        for a developer to specify fields we haven't included in the import
-        process. That'll need to happend starting here. Check out self.cleaned_search_description()
-        which imports to a standard Wagtail field.
-
-        This came out of dealing with the Yoast search_description field which we have
-        included and can be configured to accept different values that are in wp:postmeta keys
-        """
+        """Return all processed page model fields"""
 
         return {
-            "wp_post_meta": self.get_wp_post_meta(),
             "title": self.cleaned_title(),
             "slug": self.cleaned_slug(),
             "first_published_at": self.cleaned_first_published_at(),
@@ -445,4 +486,5 @@ class WordpressItem:
             ),
             "wp_normalized_styles": "",
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
+            "wp_post_meta": self.coerce_item_node(),
         }
