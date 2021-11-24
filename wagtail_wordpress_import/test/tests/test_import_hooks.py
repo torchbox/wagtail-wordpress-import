@@ -266,7 +266,9 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
         return imported_pages
 
     @mock.patch.object(
-        ItemsCache, "process", process,
+        ItemsCache,
+        "process",
+        process,
     )
     def process_import(self, xml_stream):
         self.importer = WordpressImporter(xml_stream)
