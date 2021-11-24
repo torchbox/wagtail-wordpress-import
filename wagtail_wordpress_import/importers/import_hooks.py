@@ -1,5 +1,6 @@
+import copy
+
 from django.conf import settings
-from django.utils.module_loading import import_string
 
 
 class ItemsCache:
@@ -18,28 +19,35 @@ class ItemsCache:
         ).keys():
             setattr(self, hook, [])
 
-    def process(self, imported_pages):
-        """Run all hooks in the config for each page.
+    def add_item_to_cache(self, hook, item):
+        """Add an item dict to the cached hook if not already added"""
+        hook = getattr(self, hook)
+        item = copy.deepcopy(item)
+        if "wp:postmeta" in item:  # wp:postmeta is not needed in the cache
+            del item["wp:postmeta"]
+        if item not in hook:
+            hook.append(item)
 
-        Each function defined in the config key "FUNCTION" will be run on each page.
+
+class TagsCache:
+    """Store the WordPress XML top level tags.
+    These are tags that don't represent a page in the XML file.
+    They are temporarily stored and used at the end of the import process.
+    """
+
+    def __init__(self):
+        """For each value in settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE
+        create the class attribute.
         """
-        registry = self._get_hook_handler_data()
-        for page in imported_pages:
-            for hook, (func, data_tag) in registry.items():
-                func(page, data_tag, self.__dict__)
+
+        for hook in getattr(settings, "WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE", {}):
+            setattr(self, hook, [])
 
     def add_item_to_cache(self, hook, item):
         """Add an item dict to the cached hook if not already added"""
         hook = getattr(self, hook)
+        item = copy.deepcopy(item)
+        if "wp:postmeta" in item:  # wp:postmeta is not needed in the cache
+            del item["wp:postmeta"]
         if item not in hook:
             hook.append(item)
-
-    def _get_hook_handler_data(self):
-        """Get the hook functions and data_tag names to process."""
-        return {
-            hook: (import_string(actions["FUNCTION"]), actions["DATA_TAG"])
-            for hook, actions in getattr(
-                settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
-            ).items()
-            if hook in self.__dict__
-        }
