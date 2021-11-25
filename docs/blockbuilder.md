@@ -214,7 +214,7 @@ This block has extra processing included each time it is saved as a block to the
 1. The `<img />` src values are parsed and if the image is a local to site image it is fetched and saved to the Wagtail Images app. The `<img />` tags are updated to the Wagtail RichText embedded content type. e.g. `<embed embedtype="image" id="1001" alt="A image description" format="left" />`
 2. All the `<a href="..."></a>` href values are analyzed and if the href is a document type it is fetched and saved to the Wagtail Documents app. The `<a href=""></a>` are updated to the Wagtail RichText linktype format. e.g. `<a id="1001" linktype="document">link</a>`
 
-Note: The fallback block may contain other HTML `<a>` tags that are links to other pages in your Wagtail site. These links are not processed bt the block builder but are processed at the end of the import process because all the imported pages need to exist for this to happen.
+Note: The fallback block may contain other HTML `<a>` tags that are links to other pages in your Wagtail site. These links are not processed by the block builder but are processed at the end of the import process because all the imported pages need to exist for this to happen.
 
 Filter:
 
