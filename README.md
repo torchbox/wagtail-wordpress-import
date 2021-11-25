@@ -6,6 +6,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
   - [Requirements](#requirements)
   - [Compatibility](#compatibility)
   - [Initial app and package setup](#initial-app-and-package-setup)
+    - [Site URL for importing images and documents](#site-url-for-importing-images-and-documents)
     - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
   - [Running the import command](#running-the-import-command)
     - [Optional command arguments](#optional-command-arguments)
@@ -34,6 +35,10 @@ The package has been developed and tested with:
 3. Place your XML files somewhere on your disk. The file can have any name you choose.
 4. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
 5. Add `"wagtail_wordpress_import"` to your INSTALLED_APPS config in your settings.py file.
+
+### Site URL for importing images and documents
+
+Add a setting of `WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN` in your sites settings and set it to the the URL of the website that the images and documents will be imported from.
 
 ### First steps to configure your Wagtail app
 

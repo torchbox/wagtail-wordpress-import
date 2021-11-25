@@ -1,9 +1,9 @@
 import os
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
-from wagtail_wordpress_import.block_builder_defaults import conf_domain_prefix
 
 LOG_DIR = "log"
 
@@ -57,10 +57,10 @@ class Command(BaseCommand):
         )
 
     def handle(self, **options):
-        if not conf_domain_prefix():
+        if not getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN", ""):
             self.stdout.write(
                 self.style.ERROR(
-                    "BASE_URL or WAGTAIL_WORDPRESS_IMPORTER_BASE_URL: needs to be added to your settings"
+                    "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN: is missing in your site settings"
                 )
             )
             exit()

@@ -17,6 +17,7 @@ IMPORTER_RUN_PARAMS_TEST = {
 }
 
 
+@override_settings(WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://www.example.com")
 class WordpressImporterTests(TestCase):
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",
@@ -146,7 +147,10 @@ IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
 }
 
 
-@override_settings(WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True)
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED=True,
+    WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://www.example.com",
+)
 class WordpressImporterTestsYoastEnabled(TestCase):
     """
     We check here that if the Yoast plugin is enabled import the search description
