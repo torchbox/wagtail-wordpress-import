@@ -149,7 +149,7 @@ blocks.RawHTMLBlock()
 
 ### Image Block `<img />`
 
-*This block is not been used at the moment and is likely to be removed or repurposed in future versions.*
+*This block is not being used at the moment and is likely to be removed or repurposed in future versions.*
 
 Filter:
 
