@@ -324,18 +324,17 @@ and create a filter function in your own Wagtail site which will receive a singl
 
 ```python
 def my_block_quote(tag):
-    # return a dict with the block type and value
-    block_quote = {
-        "type": "block_quote_block",
-        # type is the block type name in your stream_field
+    """Return a Python dict with the block type and value.
+    
+    The value could contain child blocks, depending on your implementation.
+    """
+    return {
+        "type": "block_quote_block",  # the StreamField block type name
         "value": {
             "quote": tag.text.strip(), 
             "attribution": tag.cite,
         }
-        # value is the block value for each block type and 
-        # could contain child blocks depending on your implementation
     }
-    return block_quote # return the block as a type(dict)
 ```
 
 In your own site you could have a block class like the example below
