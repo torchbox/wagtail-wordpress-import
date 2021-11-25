@@ -207,7 +207,7 @@ Only content that has no specific block filter is added to the fallback block.
 
 Example: `<p> <ul> <a> <img /> ...`
 
-*This block is only saved to the block sequence each time the builder finds a new Block is required in the sequence or the builder has reached the end of the content parsing.*
+*This block is only saved to the block sequence each time the builder determines that a new Block is required in the sequence or the builder has reached the end of the content parsing.*
 
 This block has extra processing included each time it is saved as a block to the block sequence.
 
