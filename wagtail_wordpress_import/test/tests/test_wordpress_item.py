@@ -13,9 +13,6 @@ from wagtail_wordpress_import.importers.wordpress import (
     WordpressItem,
 )
 from wagtail_wordpress_import.logger import Logger
-from wagtail.core.fields import StreamField
-from wagtail.core.blocks import RichTextBlock
-from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -106,7 +103,7 @@ class WordpressItemTests(TestCase):
 
 
 @override_settings(
-    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://localhost:8000",
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
 )  # testing requires a live domain for requests to use, this is something I need to change before package release
@@ -166,7 +163,7 @@ class WordpressItemImportTests(TestCase):
 
 
 @override_settings(
-    BASE_URL="http://localhost:8000",
+    WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://localhost:8000",
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
 )  # testing requires a live domain for requests to use, this is something I need to change before package release

@@ -1,12 +1,10 @@
-import re
-
 import requests
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
-from wagtail.images import get_image_model
 from wagtail.documents import get_document_model
+from wagtail.images import get_image_model
 
 ImportedImage = get_image_model()
 ImportedDocument = get_document_model()
@@ -142,15 +140,6 @@ def conf_valid_document_content_types():
     )
 
 
-def conf_domain_prefix():
-
-    if hasattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_BASE_URL"):
-        return settings.WAGTAIL_WORDPRESS_IMPORTER_BASE_URL
-    elif hasattr(settings, "BASE_URL"):
-        settings, "BASE_URL"
-        return settings.BASE_URL
-
-
 def image_linker(html):
     """
     params
@@ -169,7 +158,10 @@ def image_linker(html):
     images = soup.find_all("img")
     for image in images:
         if image.attrs and image.attrs.get("src"):
-            image_src = get_absolute_src(image.attrs["src"], conf_domain_prefix())
+            image_src = get_absolute_src(
+                image.attrs["src"],
+                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
+            )
             saved_image = get_or_save_image(image_src)
             if saved_image:
                 image_embed = soup.new_tag("embed")
@@ -295,7 +287,10 @@ def document_linker(html):
     anchors = soup.find_all("a")
     for anchor in anchors:
         if anchor.attrs and anchor.attrs.get("href"):
-            anchor_href = get_absolute_src(anchor.attrs["href"], conf_domain_prefix())
+            anchor_href = get_absolute_src(
+                anchor.attrs["href"],
+                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
+            )
             anchor_inner_content = anchor.text
             saved_document = get_or_save_document(anchor_href)
             if saved_document:
@@ -303,8 +298,6 @@ def document_linker(html):
                 document_embed.attrs["linktype"] = "document"
                 document_embed.attrs["id"] = saved_document.id
                 document_embed.string = anchor_inner_content
-                # image_embed.attrs["alt"] = get_image_alt(image)
-                # image_embed.attrs["format"] = get_alignment_class(image)
                 anchor.replace_with(document_embed)
         else:
             print(f"DOCUMENT HAS NO HREF: {anchor}")
