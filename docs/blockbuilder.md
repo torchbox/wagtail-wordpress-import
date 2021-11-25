@@ -36,7 +36,7 @@ WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
 
 Any HTML tags encountered during parsing that don't have a mapping in the settings above are combined into a single fallback StreamField block. This generally means that consecutive `<p>` tags are combined into the same block.
 
-It's possible other HTML tags that are not included in the default mapping will also be combined into the RichText block. This may not be the desired behaviour for your requirements and is where you should add a mapping in your own sites settings to override the default behaviour for the specific HTML tag.
+It's possible other HTML tags that are not included in the default mapping will also be combined into the RichTextBlock. This may not be the desired behaviour for your data. To import HTML tags that are not in the default mapping, or to change the default behaviour for a specific HTML tag, you can change the mapping in your own site's settings.
 
 The default fallback block it a RichText block and is defined in settings:
 
