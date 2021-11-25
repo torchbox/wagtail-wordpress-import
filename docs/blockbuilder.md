@@ -38,7 +38,7 @@ Any HTML tags encountered during parsing that don't have a mapping in the settin
 
 It's possible other HTML tags that are not included in the default mapping will also be combined into the RichTextBlock. This may not be the desired behaviour for your data. To import HTML tags that are not in the default mapping, or to change the default behaviour for a specific HTML tag, you can change the mapping in your own site's settings.
 
-The default fallback block it a RichText block and is defined in settings:
+The default fallback block builder function returns a RichTextBlock. You can override this in settings:
 
 ```python
 WAGTAIL_WORDPRESS_IMPORTER_FALLBACK_BLOCK = "wagtail_wordpress_import.block_builder_defaults.build_none_block_content
