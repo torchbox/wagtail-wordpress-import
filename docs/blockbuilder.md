@@ -357,7 +357,7 @@ class MyQuoteBlock(blocks.StructBlock):
 In your own sites StreamField block the block type will need to be available with the name `block_quote_block` for this example but you can call your block type whatever you want.
 
 ```python
-# your Wagatail page model
+# your Wagtail page model
 class MyPage(Page):
     body = StreamField(MyStreamBlocks(), required=False)
     ...
