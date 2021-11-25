@@ -41,7 +41,7 @@ It's possible other HTML tags that are not included in the default mapping will 
 The default fallback block builder function returns a RichTextBlock. You can override this in settings:
 
 ```python
-WAGTAIL_WORDPRESS_IMPORTER_FALLBACK_BLOCK = "wagtail_wordpress_import.block_builder_defaults.build_none_block_content
+WAGTAIL_WORDPRESS_IMPORTER_FALLBACK_BLOCK = "my_fallback_block_builder_function"
 ```
 
 ## How does the Block Builder work?
