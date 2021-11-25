@@ -21,7 +21,7 @@ The Block Builder transforms the body HTML content which could contain a lot of 
 
 It does this by parsing the HTML content and converting each top level tag it finds into a specific block type defined in settings.
 
-The default stream block mapping:
+The default StreamBlock mapping:
 
 ```python
 WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
