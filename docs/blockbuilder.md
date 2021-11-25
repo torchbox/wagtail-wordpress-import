@@ -369,7 +369,7 @@ class MyPage(Page):
 
 # your Wagtail stream block class
 class MyStreamBlocks(blocks.StreamBlock):
-    block_quote_block = MyQuiteBlock()
+    block_quote_block = MyQuoteBlock()
     ...
 ```
 
