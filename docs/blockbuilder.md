@@ -283,7 +283,7 @@ WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
 
 Include the `h1` - `h6` HTML tags in the config to create them as separate StreamField blocks for each heading size.
 
-Copy the default configuration below to your own sites settings and add the required HTML tags with an accompanying function to be called for that HTML tag.
+Copy the default configuration below to your own site's settings and add the required HTML tags with an corresponding function to be called for each tag.
 
 ```python
 WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
