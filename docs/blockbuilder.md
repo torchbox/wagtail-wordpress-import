@@ -19,7 +19,7 @@
 
 The Block Builder transforms the body HTML content which could contain a lot of HTML tags and content into a sequence of Wagtail StreamField blocks.
 
-It does this by parsing the HTML content and converting each top level tag finds into a specific block type defined in settings.
+It does this by parsing the HTML content and converting each top level tag it finds into a specific block type defined in settings.
 
 The default stream block mapping:
 
