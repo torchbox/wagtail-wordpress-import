@@ -3,6 +3,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
+from django.utils.module_loading import import_string
 from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
 
@@ -91,9 +92,15 @@ def build_none_block_content(html, blocks):
     """
     image_linker is called to link up and retrive the remote image
     document_linker is called to link up and retrive the remote documents
+    filters are called to replace inline shortcodes
     """
     html = image_linker(html)
     html = document_linker(html)
+    for inline_shortcode_handler in getattr(
+        settings, "WAGTAIL_WORDPRESS_IMPORTER_INLINE_SHORTCODE_HANDLERS", []
+    ):
+        function = import_string(inline_shortcode_handler).construct_html_tag
+        html = function(html)
     blocks.append({"type": "rich_text", "value": html})
     html = ""
     return html
