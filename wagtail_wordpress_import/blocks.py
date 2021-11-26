@@ -49,30 +49,7 @@ class QuoteBlock(blocks.StructBlock):
 
 
 class WPImportStreamBlocks(blocks.StreamBlock):
-    rich_text = blocks.RichTextBlock(
-        features=[
-            "anchor-identifier",
-            "h1",
-            "h2",
-            "h3",
-            "h4",
-            "h5",
-            "h6",
-            "bold",
-            "italic",
-            "ol",
-            "ul",
-            "hr",
-            "link",
-            "document-link",
-            "image",
-            "embed",
-            "superscript",
-            "subscript",
-            "strikethrough",
-            "blockquote",
-        ]
-    )
+    rich_text = blocks.RichTextBlock()
     heading = HeadingBlock()
     image = ImageBlock()
     block_quote = QuoteBlock()
