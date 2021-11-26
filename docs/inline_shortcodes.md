@@ -88,7 +88,7 @@ class StockHandler(InlineShortcodeHandler):
             # Modify the `html` string by replacing the shortcode with a HTML tag.
             html = html.replace(
                 match.group(),
-                f'<{self.element_name} data-{self.shortcode_name}="{attrs["symbol"]}">${attrs["symbol"]}</span>',
+                f'<{self.element_name} data-{self.shortcode_name}="{attrs["symbol"]}">${attrs["symbol"]}</{self.element_name}>',
             )
 
         return html # always return the modified `html` as a string
