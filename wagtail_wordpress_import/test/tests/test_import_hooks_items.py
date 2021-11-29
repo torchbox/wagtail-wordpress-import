@@ -1,13 +1,12 @@
 import os
 from io import StringIO
+from unittest import mock
 from xml.dom import pulldom
 
 from django.conf import settings
-from unittest import mock
 from django.test import TestCase, override_settings
 from wagtail.core.models import Page
 from wagtail_wordpress_import.functions import node_to_dict
-from wagtail_wordpress_import.importers.import_hooks import ItemsCache
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 from wagtail_wordpress_import.test.tests.xml_boilerplate import (
@@ -278,8 +277,6 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
             page_types=["post"],
             page_statuses=["publish"],
         )
-        self.parent_page = Page.objects.get(id=2)
-        self.imported_pages = self.parent_page.get_children().all()
 
     def test_xml_items_cached(self):
         """There is a place in WordPressImporter thats runs add_item_to_cache()
@@ -336,20 +333,20 @@ class WordpressImporterTestsCheckXmlItemsCached(TestCase):
         self.process_import(built_file)
 
         # One page should be imported
-        self.assertEqual(self.imported_pages.count(), 1)
-        self.assertEqual(self.imported_pages.first().title, "A title")
+        self.assertEqual(self.importer.imported_pages.count(), 1)
+        self.assertEqual(self.importer.imported_pages.first().title, "A title")
 
         # ItemsCache instance should have 2 writable attributes
         self.assertEqual(len(self.importer.items_cache.__dict__.keys()), 2)
 
         process_foo.assert_called_once_with(
-            mock.ANY,  # this is the queryset, and doesn't always match,
+            self.importer.imported_pages,
             "datatagname",
-            self.importer.items_cache.__dict__["foo"],
+            getattr(self.importer.items_cache, "foo"),
         )
 
         process_bar.assert_called_once_with(
-            mock.ANY,  # this is the queryset, and doesn't always match,
+            self.importer.imported_pages,
             "datatagname",
-            self.importer.items_cache.__dict__["bar"],
+            getattr(self.importer.items_cache, "bar"),
         )

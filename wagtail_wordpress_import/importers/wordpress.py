@@ -27,10 +27,6 @@ from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
 
-from wagtail_wordpress_import.importers.import_hooks import (
-    ItemsCache,
-)
-
 
 class WordpressImporter:
     def __init__(self, xml_file_path):
@@ -181,18 +177,20 @@ class WordpressImporter:
                 )
             self.logger.log_progress()
 
-        imported_pages = self.page_model_instance.objects.filter(
+        self.imported_pages = self.page_model_instance.objects.filter(
             id__in=[id for id in self.imported_page_ids]
         ).specific()
 
-        self.connect_richtext_page_links(imported_pages)
+        self.connect_richtext_page_links(self.imported_pages)
 
         """Run all hooks in settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE"""
         for hook, actions in getattr(
             settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
         ).items():
             import_string(actions["FUNCTION"])(
-                imported_pages, actions["DATA_TAG"], self.items_cache.__dict__[hook]
+                self.imported_pages,
+                actions["DATA_TAG"],
+                getattr(self.items_cache, hook),
             )
 
         """Run all hooks in settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE"""
@@ -200,7 +198,9 @@ class WordpressImporter:
             settings, "WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE", {}
         ).items():
             import_string(actions["FUNCTION"])(
-                imported_pages, actions["DATA_TAG"], self.tags_cache.__dict__[hook]
+                self.imported_pages,
+                actions["DATA_TAG"],
+                getattr(self.tags_cache, hook),
             )
 
     @staticmethod
