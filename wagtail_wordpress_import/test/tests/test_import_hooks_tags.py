@@ -45,7 +45,7 @@ class TestImportHooksOverrideXmlTagConfig(TestCase):
 )
 class TestImportHooksXmlTagsPersisted(TestCase):
     """The overridden config should result in TagsCache instance containing two
-    dicts with keys foo and bar. Each dict should contain all xml tags and
+    dicts with keys foo and bar. Each dict should contain all XML tags and
     values from the fragment"""
 
     def setUp(self):

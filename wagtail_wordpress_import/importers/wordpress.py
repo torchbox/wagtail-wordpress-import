@@ -429,14 +429,12 @@ class WordpressItem:
         else:
             return ""
 
-    def coerce_item_node(self):
+    def clean_wp_post_meta(self):
         # node is manipulated and saved to the
         # wp_post_meta imported page model field
         node = copy.deepcopy(self.node)
 
-        # the content:encoded tag is not needed in the
-        # wp_post_meta field as the content is parsed elsewhere
-        del node["content:encoded"]
+        post_meta = {}
 
         if "wp:postmeta" in node:
             if isinstance(node["wp:postmeta"], dict):
@@ -449,21 +447,16 @@ class WordpressItem:
                 # 'wp:meta_key' value as the key and
                 # 'wp:meta_value' value as the value
                 if item.get("wp:meta_key"):
-                    key = str(  # some keys look like boolean types
-                        item["wp:meta_key"]
-                    ).replace(  # some keys contain ':'
-                        ":", "_"
+                    key = (
+                        # We need keys to be usable as Python kwargs, to filter the
+                        # Django page QuerySet.
+                        str(item["wp:meta_key"])  # some keys look like boolean types
+                        .replace(":", "_")  # some keys contain ':'
+                        .lstrip("_")  # some keys start with '_'
                     )
-                    if key[0] == "_":
-                        # some keys start with '_' which is not going to work
-                        # when using filter() on the page queryset for
-                        # the wp_post_meta field
-                        key = key[1:]
-                    node[key] = item["wp:meta_value"]
+                    post_meta[key] = item["wp:meta_value"]
 
-            del node["wp:postmeta"]
-
-        return node
+        return post_meta
 
     @cached_property
     def cleaned_data(self):
@@ -486,5 +479,5 @@ class WordpressItem:
             ),
             "wp_normalized_styles": "",
             "wp_raw_content": self.debug_content.get("filter_linebreaks_wp"),
-            "wp_post_meta": self.coerce_item_node(),
+            "wp_post_meta": self.clean_wp_post_meta(),
         }

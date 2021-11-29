@@ -273,10 +273,10 @@ class WordpressImporterTestsYoastMetaDescriptions(TestCase):
         )
 
 
-class WordpressImporterTestsParsePostMeta(TestCase):
+class WordpressImporterTestsCleanWpPostMeta(TestCase):
     """
     This tests the post meta items retrieved from an XML file
-    are extracted correctly in WordpressItem().coerce_post_meta_items()
+    are extracted correctly in WordpressItem().clean_wp_post_meta()
     for various scenarios
     """
 
