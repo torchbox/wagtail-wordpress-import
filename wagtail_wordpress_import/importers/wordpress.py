@@ -41,7 +41,7 @@ class WordpressImporter:
         xml_doc = pulldom.parse(self.xml_file)
 
         try:
-            self.page_model_instance = apps.get_model(
+            self.page_model_class = apps.get_model(
                 kwargs["app_for_pages"], kwargs["model_for_pages"]
             )
         except LookupError:
@@ -67,7 +67,7 @@ class WordpressImporter:
 
             if event == pulldom.START_ELEMENT and node.tagName in getattr(
                 settings, "WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE", {}
-            ):  # add top level xml tags to cache
+            ):  # add top level XML tags to cache
                 xml_doc.expandNode(node)
                 item = node_to_dict(node)
                 self.tags_cache.add_item_to_cache(node.tagName, item)
@@ -80,7 +80,7 @@ class WordpressImporter:
                 post_type = item.get("wp:post_type")
                 if post_type in getattr(
                     settings, "WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE", {}
-                ):  # add item level xml tags to cache
+                ):  # add item level XML tags to cache
                     self.items_cache.add_item_to_cache(post_type, item)
 
                 if (
@@ -91,11 +91,11 @@ class WordpressImporter:
                     wordpress_item = WordpressItem(item, self.logger)
 
                     try:
-                        page = self.page_model_instance.objects.get(
+                        page = self.page_model_class.objects.get(
                             wp_post_id=wordpress_item.cleaned_data.get("wp_post_id")
                         )
-                    except self.page_model_instance.DoesNotExist:
-                        page = self.page_model_instance()
+                    except self.page_model_class.DoesNotExist:
+                        page = self.page_model_class()
 
                     # add categories for this page if categories plugin is enabled
                     if category_plugin_enabled() and get_category_model():
@@ -177,7 +177,7 @@ class WordpressImporter:
                 )
             self.logger.log_progress()
 
-        self.imported_pages = self.page_model_instance.objects.filter(
+        self.imported_pages = self.page_model_class.objects.filter(
             id__in=[id for id in self.imported_page_ids]
         ).specific()
 
@@ -279,8 +279,8 @@ class WordpressImporter:
         try:
             if debug_enabled():
                 self.logger.page_link_errors.append((link, page))
-            return self.page_model_instance.objects.get(wp_link=link)
-        except self.page_model_instance.DoesNotExist:
+            return self.page_model_class.objects.get(wp_link=link)
+        except self.page_model_class.DoesNotExist:
             pass
 
     def connect_page_categories(self, page, category_model, item):
