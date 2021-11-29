@@ -297,13 +297,13 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
     def test_items_dict_0(self):
         # self.items_dict[0] = the single item wp:post_meta without yoast
         wordpress_item = WordpressItem(self.items_dict[0], self.logger)
-        thumbnail_id = wordpress_item.coerce_item_node()["thumbnail_id"]
+        thumbnail_id = wordpress_item.clean_wp_post_meta()["thumbnail_id"]
         self.assertEqual(thumbnail_id, 43124)
 
     def test_items_dict_1(self):
         # self.items_dict[1] = the multiple item wp:post_meta
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
-        post_meta = wordpress_item.coerce_item_node()
+        post_meta = wordpress_item.clean_wp_post_meta()
         self.assertEqual(post_meta["facebook_shares"], 0)
         self.assertEqual(post_meta["pinterest_shares"], 0)
         self.assertEqual(post_meta["twitter_shares"], 0)
@@ -311,13 +311,13 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
     def test_items_dict_2(self):
         # self.items_dict[2] = the single item wp:post_meta with yoast
         wordpress_item = WordpressItem(self.items_dict[2], self.logger)
-        post_meta = wordpress_item.coerce_item_node()
+        post_meta = wordpress_item.clean_wp_post_meta()
         self.assertEqual(post_meta["yoast_wpseo_metadesc"], "This is a yoast metadesc!")
 
     def test_items_dict_3(self):
         # self.items_dict[3] = the multiple item wp:post_meta with yoast
         wordpress_item = WordpressItem(self.items_dict[3], self.logger)
-        post_meta = wordpress_item.coerce_item_node()
+        post_meta = wordpress_item.clean_wp_post_meta()
         self.assertEqual(post_meta["facebook_shares"], 0)
         self.assertEqual(post_meta["pinterest_shares"], 0)
         self.assertEqual(post_meta["twitter_shares"], 0)
@@ -327,4 +327,4 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         # self.items_dict[4] = has no wp:post_meta items
         wordpress_item = WordpressItem(self.items_dict[4], self.logger)
         with self.assertRaises(KeyError):
-            post_meta = wordpress_item.coerce_item_node()["wp:postmeta"]
+            post_meta = wordpress_item.clean_wp_post_meta()["wp:postmeta"]
