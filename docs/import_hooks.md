@@ -74,7 +74,10 @@ Import hooks allow you to define a function that will be called with some parame
 
 The package doesn't include any import hooks by default.
 
-You can add your own import hooks by adding a settings to your own sites settings.
+You can add your own import hooks by modifying:
+
+- `settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE` for tags within the `<wp:post_meta>` tag, or
+- `settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE` for tags which are directly attributes of the imported post or page
 
 ## Example XML Item Hook Configuration
 
@@ -84,7 +87,7 @@ Add a settings variable to your site settings file called `WORDPRESS_IMPORT_HOOK
 
 ```python
 WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE = {
-    # the key is the wp:post_type XML tag value
+    # the key is the wp:post_type XML tag value in the XML item that contains the related content
     "attachment": { 
         # the XML wp:postmeta tag wp:meta_key value
         "DATA_TAG": "thumbnail_id", 
@@ -109,6 +112,7 @@ Note: If the DATA_TAG has a leading `_` character do not include the underscore 
 
 # get_or_save_image is a convenience function provided in the package
 from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
+
 
 def header_image_processor(imported_pages, data, items_cache):
 
@@ -212,7 +216,7 @@ Add a settings variable to your site settings file called `WORDPRESS_IMPORT_HOOK
 
 ```python
 WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE = {
-    # the key is the XML tag name
+    # the key is the XML tag name of the item tag that contains the related content
     "wp:author": {
         # the XML tag which has the value to lookup in the tags cache
         "DATA_TAG": "dc:creator",
@@ -234,6 +238,7 @@ The key of the dict is the name for the tag/s to cache in the XML file which con
 # pages/import_hooks.py
 
 from pages.models import Author  # a snippet model for authors
+
 
 def author_processor(imported_pages, data, tags_cache):
 
