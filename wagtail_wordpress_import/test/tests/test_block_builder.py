@@ -39,6 +39,22 @@ def mock_image():
     return open(temp_file.name, mode="rb")
 
 
+def mock_pdf():
+    temp_file = tempfile.NamedTemporaryFile(suffix=".pdf")
+    temp_file.write(b"PDF Document")
+    return open(temp_file.name, mode="rb")
+
+
+class TestFixtures(TestCase):
+    def test_mock_image(self):
+        image_content = mock_image().read()
+        self.assertTrue(image_content.startswith(b"\x89PNG"))
+
+    def test_mock_pdf(self):
+        pdf_content = mock_pdf().read()
+        self.assertEqual(pdf_content, b"PDF Document")
+
+
 class TestBlockBuilderRemoveParents(TestCase):
     def setUp(self):
         raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
@@ -171,7 +187,22 @@ class TestBlockBuilderBlockDefaults(TestCase):
 
 @override_settings(WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://www.example.com")
 class TestBlockBuilderBuild(TestCase):
+    @responses.activate
     def setUp(self):
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/bruno-4-runner.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        responses.add(
+            responses.GET,
+            "https://www.example.com/files/personal-finance-culminating-assignment.pdf",
+            body=mock_pdf(),
+            status=200,
+            content_type="application/pdf",
+        )
         raw_html_file = open(f"{FIXTURES_PATH}/raw_html.txt", "r")
         self.builder = BlockBuilder(raw_html_file, None, None)
         self.builder.promote_child_tags()
