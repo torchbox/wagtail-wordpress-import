@@ -93,7 +93,7 @@ class TestImportHooksXmlTagsPersisted(TestCase):
         built = build_xml_stream(xml_tags_fragment=fragment).read()
         cache = self.process_item(StringIO(built))
 
-        # using getattr here because keys can have
+        # using getattr here because then keys can contain special characters
         foo = getattr(cache, "wp:foo")
         self.assertIsInstance(foo, list)
         self.assertEqual(len(foo), 1)
