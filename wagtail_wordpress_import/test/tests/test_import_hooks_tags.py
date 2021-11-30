@@ -97,6 +97,7 @@ class TestImportHooksXmlTagsPersisted(TestCase):
         foo = getattr(cache, "wp:foo")
         self.assertIsInstance(foo, list)
         self.assertEqual(len(foo), 1)
+        self.assertIsInstance(foo[0], dict)
 
         # tests for first item in the list
         self.assertEqual(foo[0]["wp:foo_id"], 3)
@@ -109,6 +110,7 @@ class TestImportHooksXmlTagsPersisted(TestCase):
         bar = getattr(cache, "wp:bar")
         self.assertIsInstance(bar, list)
         self.assertEqual(len(bar), 1)
+        self.assertIsInstance(bar[0], dict)
 
         # values of the second item in the list
         self.assertEqual(bar[0]["wp:bar_id"], 12345)
