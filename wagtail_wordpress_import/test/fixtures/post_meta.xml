@@ -88,15 +88,15 @@
             <category domain="category" nicename="blogging">Blogging</category>
             <wp:postmeta>
                 <wp:meta_key>_facebook_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>100</wp:meta_value>
             </wp:postmeta>
             <wp:postmeta>
                 <wp:meta_key>_pinterest_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>200</wp:meta_value>
             </wp:postmeta>
             <wp:postmeta>
                 <wp:meta_key>_twitter_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>300</wp:meta_value>
             </wp:postmeta>
         </item>
         <item>
@@ -154,15 +154,15 @@
             <category domain="category" nicename="blogging">Blogging</category>
             <wp:postmeta>
                 <wp:meta_key>_facebook_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>10</wp:meta_value>
             </wp:postmeta>
             <wp:postmeta>
                 <wp:meta_key>_pinterest_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>20</wp:meta_value>
             </wp:postmeta>
             <wp:postmeta>
                 <wp:meta_key>_twitter_shares</wp:meta_key>
-                <wp:meta_value>0</wp:meta_value>
+                <wp:meta_value>30</wp:meta_value>
             </wp:postmeta>
             <wp:postmeta>
                 <wp:meta_key>_yoast_wpseo_metadesc</wp:meta_key>

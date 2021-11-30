@@ -304,9 +304,9 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         # self.items_dict[1] = the multiple item wp:post_meta
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
         post_meta = wordpress_item.clean_wp_post_meta()
-        self.assertEqual(post_meta["facebook_shares"], 0)
-        self.assertEqual(post_meta["pinterest_shares"], 0)
-        self.assertEqual(post_meta["twitter_shares"], 0)
+        self.assertEqual(post_meta["facebook_shares"], 100)
+        self.assertEqual(post_meta["pinterest_shares"], 200)
+        self.assertEqual(post_meta["twitter_shares"], 300)
 
     def test_items_dict_2(self):
         # self.items_dict[2] = the single item wp:post_meta with yoast
@@ -318,9 +318,9 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         # self.items_dict[3] = the multiple item wp:post_meta with yoast
         wordpress_item = WordpressItem(self.items_dict[3], self.logger)
         post_meta = wordpress_item.clean_wp_post_meta()
-        self.assertEqual(post_meta["facebook_shares"], 0)
-        self.assertEqual(post_meta["pinterest_shares"], 0)
-        self.assertEqual(post_meta["twitter_shares"], 0)
+        self.assertEqual(post_meta["facebook_shares"], 10)
+        self.assertEqual(post_meta["pinterest_shares"], 20)
+        self.assertEqual(post_meta["twitter_shares"], 30)
         self.assertEqual(post_meta["yoast_wpseo_metadesc"], "This is a yoast metadesc!")
 
     def test_items_dict_4(self):
