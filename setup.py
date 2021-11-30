@@ -46,14 +46,12 @@ setup(
         "bleach>=4.1,<4.2",
         "prettytable>=2.2,<2.3",
         "shortcodes>=5.1,<6.0",
-        "responses>=0.16.0,<0.17.0",
-        "requests>=2.26.0,<2.27.0",
-        "pillow>=8.4.0,<8.5.0",
     ],
     extras_require={
         "testing": [
             "dj-database-url==0.5.0",
             "freezegun==0.3.15",
+            "responses>=0.16.0,<0.17.0",
         ],
     },
     zip_safe=False,
