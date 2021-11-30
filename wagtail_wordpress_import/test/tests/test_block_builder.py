@@ -1,8 +1,12 @@
 import os
+import tempfile
 
 import bs4
+import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase, override_settings
+from PIL import Image
+from wagtail.images import get_image_model
 from wagtail_wordpress_import.block_builder import BlockBuilder, conf_promote_child_tags
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,
@@ -11,12 +15,13 @@ from wagtail_wordpress_import.block_builder_defaults import (
     build_iframe_block,
     build_image_block,
     build_table_block,
+    fetch_url,
     get_absolute_src,
     get_alignment_class,
     get_image_alt,
     get_image_file_name,
+    image_linker,
 )
-from wagtail.images import get_image_model
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
@@ -25,6 +30,13 @@ FIXTURES_PATH = BASE_PATH + "/fixtures"
 def get_soup(html, parser):
     soup = BeautifulSoup(html, parser)
     return soup
+
+
+def mock_image():
+    temp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
+    image = Image.new("RGB", (200, 200), "white")
+    image.save(temp_file, "PNG")
+    return open(temp_file.name, mode="rb")
 
 
 class TestBlockBuilderRemoveParents(TestCase):
@@ -201,32 +213,83 @@ class TestBlockBuilderBuild(TestCase):
 
 @override_settings(WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://www.example.com")
 class TestRichTextImageLinking(TestCase):
-    def test_images_linked_rich_text(self):
-        """
-        <p>Absolute image url.
-            <a href="#">
-                <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
-            </a>
+    @responses.activate
+    def test_embed_tag_generated_all_attrs(self):
+        raw_html_file = """
+        <p>
+        <a href="https://www.example.com/images/bruno-4-runner.jpg">
+        <img src="https://www.example.com/images/bruno-4-runner.jpg" alt="bruno 4 runner">
+        </a>
         </p>
-        In the fixture file is the only one that will be converted.
-        The other img tags will become image blocks
         """
-        raw_html_file = """<p>Absolute image url.
-            <a href="#">
-                <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
-            </a>
-        </p>"""
-        self.builder = BlockBuilder(raw_html_file, None, None)
-        self.builder.promote_child_tags()
-        self.blocks = self.builder.build()
-
-        self.assertEqual(self.blocks[0]["type"], "rich_text")
-
-        value_soup = BeautifulSoup(self.blocks[0]["value"], "html.parser")
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/bruno-4-runner.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        output = image_linker(raw_html_file)
         image = get_image_model().objects.get(title="bruno-4-runner.jpg")
+        soup = BeautifulSoup(output, "html.parser")
+        embed_tag = soup.find("embed")
+        self.assertEqual(embed_tag.attrs["id"], str(image.id))
+        self.assertEqual(embed_tag.attrs["embedtype"], "image")
+        self.assertEqual(embed_tag.attrs["format"], "fullwidth")
+        self.assertEqual(embed_tag.attrs["alt"], "bruno 4 runner")
 
-        self.assertEqual(int(value_soup.find("embed").attrs["id"]), image.id)
+    @responses.activate
+    def test_embed_tag_generated_class_align_left(self):
+        raw_html_file = """
+        <p>
+        <a href="https://www.example.com/images/bruno-4-runner.jpg">
+        <img src="https://www.example.com/images/bruno-4-runner.jpg" alt="bruno 4 runner" class="align-left">
+        </a>
+        </p>
+        """
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/bruno-4-runner.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        output = image_linker(raw_html_file)
+        image = get_image_model().objects.get(title="bruno-4-runner.jpg")
+        soup = BeautifulSoup(output, "html.parser")
+        embed_tag = soup.find("embed")
+        self.assertEqual(embed_tag.attrs["id"], str(image.id))
+        self.assertEqual(embed_tag.attrs["embedtype"], "image")
+        self.assertEqual(embed_tag.attrs["format"], "left")
+        self.assertEqual(embed_tag.attrs["alt"], "bruno 4 runner")
 
+    @responses.activate
+    def test_embed_tag_generated_class_align_right(self):
+        raw_html_file = """
+        <p>
+        <a href="https://www.example.com/images/bruno-4-runner.jpg">
+        <img src="https://www.example.com/images/bruno-4-runner.jpg" alt="bruno 4 runner" class="align-right">
+        </a>
+        </p>
+        """
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/bruno-4-runner.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        output = image_linker(raw_html_file)
+        image = get_image_model().objects.get(title="bruno-4-runner.jpg")
+        soup = BeautifulSoup(output, "html.parser")
+        embed_tag = soup.find("embed")
+        self.assertEqual(embed_tag.attrs["id"], str(image.id))
+        self.assertEqual(embed_tag.attrs["embedtype"], "image")
+        self.assertEqual(embed_tag.attrs["format"], "right")
+        self.assertEqual(embed_tag.attrs["alt"], "bruno 4 runner")
+
+
+class TestBlockBuilderUtilityMethods(TestCase):
     def test_get_image_alt(self):
         input = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" />', "html.parser"
@@ -284,9 +347,32 @@ class TestRichTextImageLinking(TestCase):
         ).find("img")
         self.assertEqual(get_alignment_class(soup), "fullwidth")
 
-    """
-    TODO: Add some more tests
-    I need to include tests here for images and documents.
-    I'm not sure how this could be done at the moment.
-    Also applies to: test_images_linked_rich_text() above
-    """
+
+class TestBlockBuilderFetchUrlRequests(TestCase):
+    @responses.activate
+    def test_fetch_url_success(self):
+        url_to_fetch = "https://www.example.com/images/bruno-4-runner.jpg"
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/bruno-4-runner.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        response, status, content_type = fetch_url(url_to_fetch)
+        self.assertTrue(response.content.startswith(b"\x89PNG"))
+        self.assertTrue(status)
+        self.assertTrue("image/jpeg" in content_type)
+
+    @responses.activate
+    def test_fetch_url_raises_connection_error(self):
+        # test a valid url with an domain/image that doesn't exist
+        url_to_fetch = "https://www.example.com/images/connection_error.jpg"
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/connection_error.jpg",
+            body=Exception("Connection error"),
+        )
+        with self.assertRaises(Exception) as ctx:
+            fetch_url(url_to_fetch)
+        self.assertTrue("Connection error" in str(ctx.exception))
