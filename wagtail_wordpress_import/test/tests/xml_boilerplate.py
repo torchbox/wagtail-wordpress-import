@@ -10,8 +10,8 @@ xml_stream_header = StringIO(
         <pubDate>Fri, 30 Jul 2021 11:56:01 +0000</pubDate>
         <language>en-US</language>
         <wp:wxr_version>1.2</wp:wxr_version>
-        <wp:base_site_url>https://www.budgetsaresexy.com</wp:base_site_url>
-        <wp:base_blog_url>https://www.budgetsaresexy.com</wp:base_blog_url>"""
+        <wp:base_site_url>https://www.example.com</wp:base_site_url>
+        <wp:base_blog_url>https://www.example.com</wp:base_blog_url>"""
 ).read()
 
 xml_stream_footer = StringIO(

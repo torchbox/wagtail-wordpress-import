@@ -1,6 +1,9 @@
 import unittest
 from bs4 import BeautifulSoup
 from django.test import TestCase
+from PIL import Image
+import tempfile
+import responses
 
 from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     SHORTCODE_HANDLERS,
@@ -8,6 +11,13 @@ from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     CaptionHandler,
     register,
 )
+
+
+def mock_image():
+    temp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
+    image = Image.new("RGB", (200, 200), "white")
+    image.save(temp_file, "PNG")
+    return open(temp_file.name, mode="rb")
 
 
 class TestBlockShortcodeRegex(TestCase):
@@ -275,12 +285,20 @@ class TestIncludedShortcodeHandlers(TestCase):
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
+    @responses.activate
     def test_construct_block_method_output(self):
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/j-money-family-portrait.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
         handler = CaptionHandler()
         wagtail_custom_html = BeautifulSoup(
             '<wagtail_block_caption id="46162" align="aligncenter" width="600">'
             '<img class="size-full" '
-            'src="https://www.budgetsaresexy.com/images/j-money-family-portrait.jpg" '
+            'src="https://www.example.com/images/j-money-family-portrait.jpg" '
             'alt="This describes the image" width="600" height="338" /> '
             "<em>[This is a caption about the image (the one above) in "
             '<a href="https//www.example.com/bar/" target="_blank" '
