@@ -9,6 +9,7 @@ from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     CaptionHandler,
     register,
 )
+from wagtail_wordpress_import.test.tests.utility_functions import mock_image
 
 
 class TestBlockShortcodeRegex(TestCase):
@@ -275,6 +276,19 @@ class TestIncludedShortcodeHandlers(TestCase):
         self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
+class TestIncludedShortcodeIsTopLevel(TestCase):
+    def test_is_top_level_html_tag(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
+            # change the class attribute
+            is_top_level_html_tag = False
+
+        foo = FooHandler()
+        is_top_level_html_tag = foo.is_top_level_html_tag
+        self.assertEqual(is_top_level_html_tag, False)
+
+
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
     @responses.activate
     def test_construct_block_method_output(self):
@@ -313,3 +327,133 @@ class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
         )
         self.assertEqual(json["value"]["alignment"], "center")
         self.assertEqual(json["value"]["link"], "https//www.example.com/bar/")
+
+
+class TestCaptionHandler(TestCase):
+    @responses.activate
+    def test_absence_of_image(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+            <a href="http://www.example.com/">
+                
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        # The image is not present in the html, the output should be a raw_html block
+        self.assertEqual(output["type"], "raw_html")
+        self.assertTrue("No image found in caption" in output["value"])
+
+    @responses.activate
+    def test_construct_block_method_output(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+            <a href="http://www.example.com/">
+                <img
+                    class="wp-image-46162 size-full" 
+                    src="https://www.example.com/images/foo.jpg" 
+                    alt="This describes the image" 
+                    width="600" 
+                    height="338" />
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "center")
+        self.assertEqual(output["value"]["link"], "http://www.example.com/")
+
+    @responses.activate
+    def test_absence_of_alignment(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" width="600">
+            <a href="http://www.example.com/">
+                <img
+                    class="wp-image-46162 size-full"
+                    src="https://www.example.com/images/foo.jpg"
+                    alt="This describes the image"
+                    width="600"
+                    height="338" />
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "left")
+        self.assertEqual(output["value"]["link"], "http://www.example.com/")
+
+    @responses.activate
+    def test_absence_of_an_anchor(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+                <img
+                    class="wp-image-46162 size-full" 
+                    src="https://www.example.com/images/foo.jpg" 
+                    alt="This describes the image" 
+                    width="600" 
+                    height="338" />
+            This is a caption about the image
+        </wagtail_block_caption>"""
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "center")
+        self.assertEqual(output["value"]["link"], "")

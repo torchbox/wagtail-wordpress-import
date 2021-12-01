@@ -134,36 +134,44 @@ class CaptionHandler(BlockShortcodeHandler):
 
         soup: <class 'bs4.element.Tag'>
         """
-        try:
-            alignment = soup.attrs["align"] if "align" in soup.attrs else "alignleft"
-            alignment = alignment.replace("align", "")
-        except (KeyError, AttributeError, TypeError):
-            alignment = ""
 
-        # parse the image
-        try:
-            image = soup.find("img")
-            image_file = get_or_save_image(image.attrs["src"])
-            image_id = image_file.id
-        except (KeyError, AttributeError, TypeError):
-            image_id = None
+        # Without an image the caption shortcode is useless
+        # Here we'll add a raw HTML block to the stream so in admin
+        # it can be seen and some action taken.
+        image = soup.find("img")
+        if not image:
+            return {
+                "type": "raw_html",
+                "value": f"<!-- No image found in caption {soup}-->",
+            }
+        # TODO: Output this in logging when we have a logger
+        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/63
 
-        # parse the caption
-        try:
-            caption = soup.text.replace("\n", "").strip()
-        except (KeyError, AttributeError, TypeError):
-            caption = ""
+        # Parse the image
+        image_file = get_or_save_image(image.attrs["src"])
 
-        try:
-            anchor = soup.find("a")
-            link = anchor.get("href")
-        except (KeyError, AttributeError, TypeError):
+        # Parse alignment
+        if "align" in soup.attrs:
+            alignment = soup.attrs["align"].replace("align", "")
+        else:
+            alignment = "left"
+
+        # Parse the caption
+        caption = soup.text.replace("\n", "").strip()
+
+        # Parse the anchor link
+        # The template has a conditional that only render the link
+        # if the return value["link"] has a value
+        anchor = soup.find("a")
+        if anchor:
+            link = anchor.attrs["href"]
+        else:
             link = ""
 
         return {
             "type": "image",
             "value": {
-                "image": image_id,
+                "image": image_file.id,
                 "caption": caption,
                 "alignment": alignment,
                 "link": link,
