@@ -1,11 +1,9 @@
 import os
-import tempfile
 
 import bs4
 import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase, override_settings
-from PIL import Image
 from wagtail.images import get_image_model
 from wagtail_wordpress_import.block_builder import BlockBuilder, conf_promote_child_tags
 from wagtail_wordpress_import.block_builder_defaults import (
@@ -22,37 +20,14 @@ from wagtail_wordpress_import.block_builder_defaults import (
     get_image_file_name,
     image_linker,
 )
+from wagtail_wordpress_import.test.tests.utility_functions import (
+    get_soup,
+    mock_image,
+    mock_pdf,
+)
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
-
-
-def get_soup(html, parser):
-    soup = BeautifulSoup(html, parser)
-    return soup
-
-
-def mock_image():
-    temp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
-    image = Image.new("RGB", (200, 200), "white")
-    image.save(temp_file, "PNG")
-    return open(temp_file.name, mode="rb")
-
-
-def mock_pdf():
-    temp_file = tempfile.NamedTemporaryFile(suffix=".pdf")
-    temp_file.write(b"PDF Document")
-    return open(temp_file.name, mode="rb")
-
-
-class TestFixtures(TestCase):
-    def test_mock_image(self):
-        image_content = mock_image().read()
-        self.assertTrue(image_content.startswith(b"\x89PNG"))
-
-    def test_mock_pdf(self):
-        pdf_content = mock_pdf().read()
-        self.assertEqual(pdf_content, b"PDF Document")
 
 
 class TestBlockBuilderRemoveParents(TestCase):

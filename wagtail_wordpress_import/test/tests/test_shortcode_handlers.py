@@ -1,9 +1,7 @@
-import unittest
 from bs4 import BeautifulSoup
 from django.test import TestCase
-from PIL import Image
-import tempfile
 import responses
+from wagtail_wordpress_import.test.tests.utility_functions import mock_image
 
 from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     SHORTCODE_HANDLERS,
@@ -11,13 +9,6 @@ from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     CaptionHandler,
     register,
 )
-
-
-def mock_image():
-    temp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
-    image = Image.new("RGB", (200, 200), "white")
-    image.save(temp_file, "PNG")
-    return open(temp_file.name, mode="rb")
 
 
 class TestBlockShortcodeRegex(TestCase):
