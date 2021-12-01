@@ -124,6 +124,11 @@ class TestImportHooksXmlItemPersisted(TestCase):
 
         # Values of the first item in the ItemsCache instance foo attribute
         foo = cache.foo[0]
+
+        # there should be no wp:postmeta in the cache
+        with self.assertRaises(KeyError):
+            foo["wp:postmeta"]
+
         self.assertEqual(foo["title"], "foo-item")
         self.assertEqual(foo["link"], "https://www.example.com/foo-item/")
         self.assertEqual(foo["pubDate"], "Tue, 13 Jul 2010 16:16:46 +0000")
@@ -140,18 +145,23 @@ class TestImportHooksXmlItemPersisted(TestCase):
         self.assertEqual(len(cache.bar), 1)
 
         # Values of the first item in the ItemsCache instance bar attribute
-        foo = cache.bar[0]
-        self.assertEqual(foo["title"], "bar-item")
-        self.assertEqual(foo["link"], "https://www.example.com/bar-item/")
-        self.assertEqual(foo["pubDate"], "Tue, 13 Jul 2010 16:16:46 +0000")
-        self.assertEqual(foo["guid"], "https://www.example.com/bar.jpg")
-        self.assertEqual(foo["wp:post_id"], 200)
-        self.assertEqual(foo["wp:post_date"], "2010-07-13 12:16:46")
-        self.assertEqual(foo["wp:post_date_gmt"], "2010-07-13 16:16:46")
-        self.assertEqual(foo["wp:post_modified"], "2010-07-13 12:16:46")
-        self.assertEqual(foo["wp:post_modified_gmt"], "2010-07-13 16:16:46")
-        self.assertEqual(foo["wp:post_name"], "bar-item")
-        self.assertEqual(foo["wp:post_type"], "bar")
+        bar = cache.bar[0]
+
+        # there should be no wp:postmeta in the cache
+        with self.assertRaises(KeyError):
+            bar["wp:postmeta"]
+
+        self.assertEqual(bar["title"], "bar-item")
+        self.assertEqual(bar["link"], "https://www.example.com/bar-item/")
+        self.assertEqual(bar["pubDate"], "Tue, 13 Jul 2010 16:16:46 +0000")
+        self.assertEqual(bar["guid"], "https://www.example.com/bar.jpg")
+        self.assertEqual(bar["wp:post_id"], 200)
+        self.assertEqual(bar["wp:post_date"], "2010-07-13 12:16:46")
+        self.assertEqual(bar["wp:post_date_gmt"], "2010-07-13 16:16:46")
+        self.assertEqual(bar["wp:post_modified"], "2010-07-13 12:16:46")
+        self.assertEqual(bar["wp:post_modified_gmt"], "2010-07-13 16:16:46")
+        self.assertEqual(bar["wp:post_name"], "bar-item")
+        self.assertEqual(bar["wp:post_type"], "bar")
 
 
 class WordpressImporterTestsCheckXmlItemsNotCached(TestCase):
