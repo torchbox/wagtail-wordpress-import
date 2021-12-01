@@ -1,8 +1,7 @@
+import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase
-import responses
-from wagtail_wordpress_import.test.tests.utility_functions import mock_image
-
+from wagtail.images import get_image_model
 from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     SHORTCODE_HANDLERS,
     BlockShortcodeHandler,
@@ -382,8 +381,9 @@ class TestCaptionHandler(TestCase):
                 f"wagtail_block_{handler.shortcode_name}"
             )
         )
+        image = get_image_model().objects.get(title="foo.jpg")
         self.assertEqual(output["type"], "image")
-        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(output["value"]["image"], image.id)
         self.assertEqual(
             output["value"]["caption"], "This is a caption about the image"
         )
@@ -417,8 +417,9 @@ class TestCaptionHandler(TestCase):
                 f"wagtail_block_{handler.shortcode_name}"
             )
         )
+        image = get_image_model().objects.get(title="foo.jpg")
         self.assertEqual(output["type"], "image")
-        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(output["value"]["image"], image.id)
         self.assertEqual(
             output["value"]["caption"], "This is a caption about the image"
         )
@@ -450,8 +451,9 @@ class TestCaptionHandler(TestCase):
                 f"wagtail_block_{handler.shortcode_name}"
             )
         )
+        image = get_image_model().objects.get(title="foo.jpg")
         self.assertEqual(output["type"], "image")
-        self.assertEqual(str(output["value"]["image"]), "1")
+        self.assertEqual(output["value"]["image"], image.id)
         self.assertEqual(
             output["value"]["caption"], "This is a caption about the image"
         )
