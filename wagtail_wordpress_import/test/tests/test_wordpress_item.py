@@ -327,4 +327,26 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         # self.items_dict[4] = has no wp:post_meta items
         wordpress_item = WordpressItem(self.items_dict[4], self.logger)
         with self.assertRaises(KeyError):
-            post_meta = wordpress_item.clean_wp_post_meta()["wp:postmeta"]
+            wordpress_item.clean_wp_post_meta()["wp:postmeta"]
+
+    def test_items_dict_1_excluded_tags(self):
+        # self.items_dict[5] = has no wp:post_meta items
+        wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        with self.assertRaises(KeyError):
+            wordpress_item.clean_wp_post_meta()["wp:postmeta"]
+        with self.assertRaises(KeyError):
+            wordpress_item.clean_wp_post_meta()["content:encoded"]
+        with self.assertRaises(KeyError):
+            wordpress_item.clean_wp_post_meta()["dc:creator"]
+        with self.assertRaises(KeyError):
+            wordpress_item.clean_wp_post_meta()["wp:post_id"]
+
+    def test_items_dict_1_included_tags(self):
+        wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        self.assertTrue("title" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("dc_creator" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("guid" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("description" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("wp_post_id" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("wp_post_date" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("wp_post_meta" in wordpress_item.clean_wp_post_meta())
