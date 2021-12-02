@@ -65,8 +65,13 @@ def snakecase_key(key):
 
 
 def get_attr_as_list(node, key):
-    if key in node:
-        if isinstance(node[key], dict):
-            return [node[key]]
-        return node[key]
-    return []
+    try:
+        if key in node:
+            if len(node[key]) == 0:
+                return []
+            if isinstance(node[key], dict):
+                return [node[key]]
+            return node[key]
+        return []
+    except TypeError:
+        return []
