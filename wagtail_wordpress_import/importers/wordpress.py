@@ -12,7 +12,11 @@ from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.functions import dict_to_list, node_to_dict, snakecase_key
+from wagtail_wordpress_import.functions import (
+    get_attr_as_list,
+    node_to_dict,
+    snakecase_key,
+)
 from wagtail_wordpress_import.importers.import_hooks import ItemsCache, TagsCache
 from wagtail_wordpress_import.importers.wordpress_defaults import (
     category_name_min_length,
@@ -446,7 +450,7 @@ class WordpressItem:
 
         cleaned = {}  # the final value to be returned
 
-        for item in dict_to_list(node, "wp:postmeta"):
+        for item in get_attr_as_list(node, "wp:postmeta"):
             cleaned[snakecase_key(item["wp:meta_key"])] = item["wp:meta_value"]
 
         # Remove wp:postmeta from the node so we don't use it's values again.

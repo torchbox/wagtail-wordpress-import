@@ -1,5 +1,5 @@
 from django.test import TestCase
-from wagtail_wordpress_import.functions import snakecase_key, dict_to_list
+from wagtail_wordpress_import.functions import get_attr_as_list, snakecase_key
 
 
 class TestSnakeCaseKey(TestCase):
@@ -13,8 +13,10 @@ class TestSnakeCaseKey(TestCase):
 class TestDictToList(TestCase):
     def test_dict_to_list_with_dict(self):
         node = {"foo": {"bar": "baz"}}
-        self.assertEqual(dict_to_list(node, "foo"), [{"bar": "baz"}])
+        self.assertEqual(get_attr_as_list(node, "foo"), [{"bar": "baz"}])
 
     def test_dict_to_list_with_list(self):
         node = {"foo": [{"foo": "bar"}, {"foo": "baz"}]}
-        self.assertEqual(dict_to_list(node, "foo"), [{"foo": "bar"}, {"foo": "baz"}])
+        self.assertEqual(
+            get_attr_as_list(node, "foo"), [{"foo": "bar"}, {"foo": "baz"}]
+        )

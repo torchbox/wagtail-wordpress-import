@@ -64,7 +64,7 @@ def snakecase_key(key):
     )
 
 
-def dict_to_list(node, key):
+def get_attr_as_list(node, key):
     if key in node:
         if isinstance(node[key], dict):
             return [node[key]]
