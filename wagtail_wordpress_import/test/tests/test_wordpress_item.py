@@ -275,9 +275,8 @@ class WordpressImporterTestsYoastMetaDescriptions(TestCase):
 
 class WordpressImporterTestsCleanWpPostMeta(TestCase):
     """
-    This tests the post meta items retrieved from an XML file
-    are extracted correctly in WordpressItem().clean_wp_post_meta()
-    for various scenarios
+    This tests the wp_post_meta field contents after cleaning in
+    WordpressItem().clean_wp_post_meta()
     """
 
     fixtures = [
@@ -329,11 +328,12 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         with self.assertRaises(KeyError):
             wordpress_item.clean_wp_post_meta()["wp:postmeta"]
 
-    def test_items_dict_1_excluded_tags(self):
-        # self.items_dict[5] = has no wp:post_meta items
+    def test_items_dict_1_excluded_keys(self):
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
         with self.assertRaises(KeyError):
             wordpress_item.clean_wp_post_meta()["wp:postmeta"]
+        with self.assertRaises(KeyError):
+            wordpress_item.clean_wp_post_meta()["wp_post_meta"]
         with self.assertRaises(KeyError):
             wordpress_item.clean_wp_post_meta()["content:encoded"]
         with self.assertRaises(KeyError):
@@ -341,7 +341,7 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         with self.assertRaises(KeyError):
             wordpress_item.clean_wp_post_meta()["wp:post_id"]
 
-    def test_items_dict_1_included_tags(self):
+    def test_items_dict_1_included_keys(self):
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
         self.assertTrue("title" in wordpress_item.clean_wp_post_meta())
         self.assertTrue("dc_creator" in wordpress_item.clean_wp_post_meta())
@@ -349,4 +349,7 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         self.assertTrue("description" in wordpress_item.clean_wp_post_meta())
         self.assertTrue("wp_post_id" in wordpress_item.clean_wp_post_meta())
         self.assertTrue("wp_post_date" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("wp_post_meta" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("category" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("facebook_shares" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("pinterest_shares" in wordpress_item.clean_wp_post_meta())
+        self.assertTrue("twitter_shares" in wordpress_item.clean_wp_post_meta())
