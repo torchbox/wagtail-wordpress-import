@@ -11,12 +11,30 @@ class TestSnakeCaseKey(TestCase):
 
 
 class TestDictToList(TestCase):
-    def test_dict_to_list_with_dict(self):
-        node = {"foo": {"bar": "baz"}}
-        self.assertEqual(get_attr_as_list(node, "foo"), [{"bar": "baz"}])
+    def test_default_with_string(self):
+        node = "foo"
+        self.assertEqual(get_attr_as_list(node, "foo"), [])
 
-    def test_dict_to_list_with_list(self):
-        node = {"foo": [{"foo": "bar"}, {"foo": "baz"}]}
-        self.assertEqual(
-            get_attr_as_list(node, "foo"), [{"foo": "bar"}, {"foo": "baz"}]
-        )
+    def test_default_with_dict(self):
+        node = {}
+        self.assertEqual(get_attr_as_list(node, "foo"), [])
+
+    def test_default_with_list(self):
+        node = []
+        self.assertEqual(get_attr_as_list(node, "foo"), [])
+
+    def test_default_list(self):
+        node = ["foo"]
+        self.assertEqual(get_attr_as_list(node, "foo"), [])
+
+    def test_default_empty_dict(self):
+        node = {"foo": {}}
+        self.assertEqual(get_attr_as_list(node, "foo"), [])
+
+    def test_with_expected_dict(self):
+        node = {"foo": {"bar": "baz", "baz": "bar"}}
+        self.assertEqual(get_attr_as_list(node, "foo"), [{"bar": "baz", "baz": "bar"}])
+
+    def test_with_expected_list(self):
+        node = {"foo": [{"bar": "baz", "baz": "bar"}]}
+        self.assertEqual(get_attr_as_list(node, "foo"), [{"bar": "baz", "baz": "bar"}])
