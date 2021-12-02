@@ -9,7 +9,7 @@ def get_soup(html, parser):
 
 
 def mock_image():
-    temp_file = tempfile.NamedTemporaryFile(suffix=".jpg")
+    temp_file = tempfile.NamedTemporaryFile(suffix=".png")
     image = Image.new("RGB", (200, 200), "white")
     image.save(temp_file, "PNG")
     return open(temp_file.name, mode="rb")
