@@ -330,26 +330,28 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
 
     def test_items_dict_1_excluded_keys(self):
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
+        cleaned_postmeta = wordpress_item.clean_wp_post_meta()
         with self.assertRaises(KeyError):
-            wordpress_item.clean_wp_post_meta()["wp:postmeta"]
+            cleaned_postmeta["wp:postmeta"]
         with self.assertRaises(KeyError):
-            wordpress_item.clean_wp_post_meta()["wp_post_meta"]
+            cleaned_postmeta["wp_post_meta"]
         with self.assertRaises(KeyError):
-            wordpress_item.clean_wp_post_meta()["content:encoded"]
+            cleaned_postmeta["content:encoded"]
         with self.assertRaises(KeyError):
-            wordpress_item.clean_wp_post_meta()["dc:creator"]
+            cleaned_postmeta["dc:creator"]
         with self.assertRaises(KeyError):
-            wordpress_item.clean_wp_post_meta()["wp:post_id"]
+            cleaned_postmeta["wp:post_id"]
 
     def test_items_dict_1_included_keys(self):
         wordpress_item = WordpressItem(self.items_dict[1], self.logger)
-        self.assertTrue("title" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("dc_creator" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("guid" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("description" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("wp_post_id" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("wp_post_date" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("category" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("facebook_shares" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("pinterest_shares" in wordpress_item.clean_wp_post_meta())
-        self.assertTrue("twitter_shares" in wordpress_item.clean_wp_post_meta())
+        cleaned_postmeta = wordpress_item.clean_wp_post_meta()
+        self.assertTrue("title" in cleaned_postmeta)
+        self.assertTrue("dc_creator" in cleaned_postmeta)
+        self.assertTrue("guid" in cleaned_postmeta)
+        self.assertTrue("description" in cleaned_postmeta)
+        self.assertTrue("wp_post_id" in cleaned_postmeta)
+        self.assertTrue("wp_post_date" in cleaned_postmeta)
+        self.assertTrue("category" in cleaned_postmeta)
+        self.assertTrue("facebook_shares" in cleaned_postmeta)
+        self.assertTrue("pinterest_shares" in cleaned_postmeta)
+        self.assertTrue("twitter_shares" in cleaned_postmeta)
