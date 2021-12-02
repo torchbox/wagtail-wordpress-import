@@ -12,7 +12,7 @@ from django.utils.text import slugify
 from django.utils.timezone import make_aware
 from wagtail.core.models import Page
 from wagtail_wordpress_import.block_builder import BlockBuilder
-from wagtail_wordpress_import.functions import node_to_dict
+from wagtail_wordpress_import.functions import dict_to_list, node_to_dict, snakecase_key
 from wagtail_wordpress_import.importers.import_hooks import ItemsCache, TagsCache
 from wagtail_wordpress_import.importers.wordpress_defaults import (
     category_name_min_length,
@@ -430,33 +430,33 @@ class WordpressItem:
             return ""
 
     def clean_wp_post_meta(self):
-        # node is manipulated and saved to the
-        # wp_post_meta imported page model field
+        """
+        The complete XML item node is converted to a dict.
+        The XML item node 'content:encoded' is not included in the dict.
+        The original XML item node 'wp:postmeta' is not included in the dict.
+        The dict item values are all data values without any nesting of 'list'
+        or 'dict' types.
+        """
+
         node = copy.deepcopy(self.node)
 
-        post_meta = {}
+        # the content:encoded tag is not needed in the
+        # wp_post_meta field as the content is parsed elsewhere
+        del node["content:encoded"]
 
+        cleaned = {}  # the final value to be returned
+
+        for item in dict_to_list(node, "wp:postmeta"):
+            cleaned[snakecase_key(item["wp:meta_key"])] = item["wp:meta_value"]
+
+        # Remove wp:postmeta from the node so we don't use it's values again.
         if "wp:postmeta" in node:
-            if isinstance(node["wp:postmeta"], dict):
-                # wp:post_meta needs to be a list of dicts but if only one
-                # item is present it's a dict due to the way the XML is parsed
-                node["wp:postmeta"] = [node["wp:postmeta"]]
+            del node["wp:postmeta"]
 
-            for item in node["wp:postmeta"]:
-                # the keys are not suitable for our needs so use
-                # 'wp:meta_key' value as the key and
-                # 'wp:meta_value' value as the value
-                if item.get("wp:meta_key"):
-                    key = (
-                        # We need keys to be usable as Python kwargs, to filter the
-                        # Django page QuerySet.
-                        str(item["wp:meta_key"])  # some keys look like boolean types
-                        .replace(":", "_")  # some keys contain ':'
-                        .lstrip("_")  # some keys start with '_'
-                    )
-                    post_meta[key] = item["wp:meta_value"]
+        for k, v in node.items():
+            cleaned[snakecase_key(k)] = v
 
-        return post_meta
+        return cleaned
 
     @cached_property
     def cleaned_data(self):
