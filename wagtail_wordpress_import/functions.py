@@ -48,3 +48,25 @@ def node_to_dict(node):
     if obj == {"nil": True}:
         return None
     return obj
+
+
+def snakecase_key(key):
+    """
+    Convert the key to snake_case by replacing ':' with '_'
+    and remove any leading '_'
+    This is so the keys are valid as Python kwargs and can be used to filter
+    the page models on on keys in the wp_post_meta which is a JSONField().
+    """
+    return (
+        str(key)  # some keys look like boolean types
+        .replace(":", "_")  # some keys contain ':'
+        .lstrip("_")  # some keys start with '_'
+    )
+
+
+def dict_to_list(node, key):
+    if key in node:
+        if isinstance(node[key], dict):
+            return [node[key]]
+        return node[key]
+    return []
