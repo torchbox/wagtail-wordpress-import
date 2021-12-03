@@ -16,8 +16,8 @@ We provide a base class [InlineShortcodeHandler](/wagtail-wordpress-import/wagta
 
 ## How to create your own inline shortcode handler
 
-1. You will need to create a subclass of InlineShortcodeHandler.
-2. Then you will need to extend the Draftail editor to recognise the new HTML tag that your shortcode handler will generate.
+1. Create a subclass of InlineShortcodeHandler.
+2. Extend the Draftail editor to recognise the new HTML tag that your shortcode handler will generate.
 
 ## An example of how to add a shortcode handler for the Draftail editor
 
@@ -27,11 +27,11 @@ This example will enable the stock chooser display in the Draftail editor. It's 
 
 The complete Wagtail Documentation example can be [Viewed Here](https://docs.wagtail.io/en/stable/extending/extending_draftail.html#creating-new-entities) and this is the first step you should take to get the example working in your own project.
 
-We are making the assumption that in your imported HTML that will be part of a RichText block there is an inline shortcode that will represent a stock to be displayed both in the editor and in the front end.
+We assume here that you are importing HTML that will be part of a RichText block, and that the HTML contains an inline shortcode `[stock symbol="TSLA"]`, that you want to be editable in the Draftail editor, and to be displayed in the rendered page.
 
-The word press shortcode will be transformed during the import form  `[stock symbol="TSLA"]` to `<span data-stock="TSLA">$TSLA</span>` before being saved to the RichText block.
+The WordPress shortcode will be transformed during the import, from `[stock symbol="TSLA"]` to `<span data-stock="TSLA">$TSLA</span>` before being saved to the RichText block.
 
-You will only need to write one class to handle a shortcode like this. the symbol is dynamic and can be different across multiple shortcode in hte same HTML content.
+You will only need to write one class to handle a shortcode like this. The symbol is dynamic and can be different across multiple shortcodes in the same HTML content.
 
 All shortcodes of the type `[stock symbol="any-valid-symbol"]` will be transformed.
 
@@ -48,7 +48,6 @@ from wagtail_wordpress_import.handle_inline_shortcodes import (
 
 # Subclasses should declare a shortcode_name and provide
 # a construct_html_tag method for converting the shortcode to a HTML tag.
-# @register()
 class StockHandler(InlineShortcodeHandler):
     """
     The Wordpress shortcode is replaced by a custom HTML tag. 
@@ -112,7 +111,7 @@ The package will always call the `construct_html_tag` method of you handler clas
 
 ## How to test this example works
 
-Find an `item` in the XML file you are importing and add a stock shortcode of `[stock symbol="TSLA"]` to the `<content:encoded></content:encoded>` tag. Alongside any of the existing content.
+Find an `item` in the XML file you are importing and add a stock shortcode of `[stock symbol="TSLA"]` to the `<content:encoded></content:encoded>` tag. The stock shortcode can be inline within a piece of text or on it's own line.
 
 Now run the import command. When the command completes check the RichText content for the page you added the stock shortcode to. It should be visible in the editor just as if you had used the toolbar button to add a stock symbol.
 

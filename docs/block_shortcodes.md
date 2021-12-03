@@ -9,7 +9,7 @@
 
 ## Block Shortcode handler class
 
-The package is able to parse Wordpress block shortcodes.
+The package is able to parse WordPress block shortcodes.
 
 We provide a base class [BlockShortcodeHandler](/wagtail_wordpress_import/prefilters/handle_shortcodes.py#L27) that performs the transformation of the raw shortcode into a custom HTML tag using a regular expression.
 
