@@ -240,10 +240,18 @@ class TestRichTextImageLinking(TestCase):
         image = get_image_model().objects.get(title="bruno-4-runner.jpg")
         soup = BeautifulSoup(output, "html.parser")
         embed_tag = soup.find("embed")
-        self.assertEqual(embed_tag.attrs["id"], str(image.id))
-        self.assertEqual(embed_tag.attrs["embedtype"], "image")
-        self.assertEqual(embed_tag.attrs["format"], "fullwidth")
-        self.assertEqual(embed_tag.attrs["alt"], "bruno 4 runner")
+
+        with self.subTest("embed tag attr 'id' has the correct ID"):
+            self.assertEqual(embed_tag.attrs["id"], str(image.id))
+
+        with self.subTest("embed tag attr 'embedtype' has the correct type"):
+            self.assertEqual(embed_tag.attrs["embedtype"], "image")
+
+        with self.subTest("embed tag attr 'format' has correct style format"):
+            self.assertEqual(embed_tag.attrs["format"], "fullwidth")
+
+        with self.subTest("embed tag attr 'alt' has correct content"):
+            self.assertEqual(embed_tag.attrs["alt"], "bruno 4 runner")
 
     @responses.activate
     def test_embed_tag_generated_class_align_left(self):
