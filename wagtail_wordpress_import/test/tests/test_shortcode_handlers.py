@@ -275,17 +275,26 @@ class TestIncludedShortcodeHandlers(TestCase):
         self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
-class TestIncludedShortcodeIsTopLevel(TestCase):
-    def test_is_top_level_html_tag(self):
+class TestProvidedShortcodeIsTopLevel(TestCase):
+    """
+    Block Shortcode Handler has a is_top_level_html_tag property that is True by default.
+    It can be set to False to indicate that the shortcode is not a top level HTML tag.
+    """
+
+    def test_is_top_level_html_tag_defaults_to_true(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
-            custom_html_tag_prefix = "wagtail_block_"
-            # change the class attribute
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_can_be_overridden(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
             is_top_level_html_tag = False
 
         foo = FooHandler()
-        is_top_level_html_tag = foo.is_top_level_html_tag
-        self.assertEqual(is_top_level_html_tag, False)
+        self.assertFalse(foo.is_top_level_html_tag)
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
