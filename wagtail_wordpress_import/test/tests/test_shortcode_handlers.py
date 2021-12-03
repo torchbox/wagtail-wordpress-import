@@ -373,13 +373,6 @@ class TestCaptionHandler(TestCase):
     @responses.activate
     def test_absence_of_image(self):
         handler = CaptionHandler()
-        responses.add(
-            responses.GET,
-            "https://www.example.com/images/foo.jpg",
-            body=mock_image(),
-            status=200,
-            content_type="image/jpeg",
-        )
         wagtail_custom_html = """
         <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
             <a href="http://www.example.com/">
