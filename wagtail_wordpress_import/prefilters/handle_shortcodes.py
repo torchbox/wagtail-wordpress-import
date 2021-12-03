@@ -28,7 +28,7 @@ class BlockShortcodeHandler:
 
     shortcode_name: str
 
-    is_top_level_html_tag: True
+    top_level_html_tag: True
 
     def __init__(self):
         # Subclasses should declare a shortcode_name
@@ -96,7 +96,9 @@ class BlockShortcodeHandler:
 
     @property
     def is_top_level_html_tag(self):
-        return self.is_top_level_html_tag
+        if not type(self.top_level_html_tag) == bool:
+            return True
+        return self.top_level_html_tag
 
 
 # Subclasses should declare a shortcode_name and provide
