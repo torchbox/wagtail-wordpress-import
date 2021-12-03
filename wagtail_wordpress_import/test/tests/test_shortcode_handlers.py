@@ -294,7 +294,7 @@ class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/j-money-family-portrait.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -361,7 +361,7 @@ class TestCaptionHandler(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/foo.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -396,7 +396,7 @@ class TestCaptionHandler(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/foo.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -432,7 +432,7 @@ class TestCaptionHandler(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/foo.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )

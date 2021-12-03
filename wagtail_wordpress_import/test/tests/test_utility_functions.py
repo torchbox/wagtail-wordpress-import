@@ -7,9 +7,16 @@ from wagtail_wordpress_import.test.tests.utility_functions import (
 
 
 class TestFixtures(TestCase):
+    def setUp(self):
+        self.image = mock_image()
+        self.pdf = mock_pdf()
+
     def test_mock_image(self):
-        image_content = mock_image().read()
-        self.assertTrue(image_content.startswith(b"\x89PNG"))
+        self.assertEqual(self.image.name, "test.jpg")
+
+    def test_mock_image_content(self):
+        image_content = self.image.read()
+        self.assertTrue(image_content.startswith(b"\xff\xd8"))
 
     def test_mock_pdf(self):
         pdf_content = mock_pdf().read()

@@ -167,7 +167,7 @@ class TestBlockBuilderBuild(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/bruno-4-runner.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -231,7 +231,7 @@ class TestRichTextImageLinking(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/bruno-4-runner.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -256,7 +256,7 @@ class TestRichTextImageLinking(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/bruno-4-runner.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -281,7 +281,7 @@ class TestRichTextImageLinking(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/bruno-4-runner.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
@@ -361,12 +361,12 @@ class TestBlockBuilderFetchUrlRequests(TestCase):
         responses.add(
             responses.GET,
             "https://www.example.com/images/bruno-4-runner.jpg",
-            body=mock_image(),
+            body=mock_image().read(),
             status=200,
             content_type="image/jpeg",
         )
         response, status, content_type = fetch_url(url_to_fetch)
-        self.assertTrue(response.content.startswith(b"\x89PNG"))
+        self.assertTrue(response.content.startswith(b"\xff\xd8"))
         self.assertTrue(status)
         self.assertTrue("image/jpeg" in content_type)
 
