@@ -309,8 +309,6 @@ WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS = {
 
 *The package provided block builder function for headings will work as expected for this example therefore a new Block Builder function isn't required.*
 
----
-
 #### Custom blockquote
 
 Change the Block Builder function to use your own provided function to create a `blockquote` block.
