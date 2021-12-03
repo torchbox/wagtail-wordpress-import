@@ -275,17 +275,58 @@ class TestIncludedShortcodeHandlers(TestCase):
         self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
-class TestIncludedShortcodeIsTopLevel(TestCase):
-    def test_is_top_level_html_tag(self):
+class TestProvidedShortcodeIsTopLevel(TestCase):
+    """
+    Block Shortcode Handler has a top_level_property that is True by default.
+    It can be set to False to indicate that the shortcode is not a top level html tag.
+
+    There are tests here to ensure that none boolean values will return True.
+    """
+
+    def test_is_top_level_html_tag_value_false(self):
         class FooHandler(BlockShortcodeHandler):
             shortcode_name = "foo"
             custom_html_tag_prefix = "wagtail_block_"
-            # change the class attribute
-            is_top_level_html_tag = False
+            top_level_html_tag = False
 
         foo = FooHandler()
-        is_top_level_html_tag = foo.is_top_level_html_tag
-        self.assertEqual(is_top_level_html_tag, False)
+        self.assertFalse(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_value_string(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
+            top_level_html_tag = "bar"
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_value_none(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
+            top_level_html_tag = None
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_value_list(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
+            top_level_html_tag = ["foo", "bar"]
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_value_dict(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            custom_html_tag_prefix = "wagtail_block_"
+            top_level_html_tag = {"foo": "bar"}
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
 
 
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
