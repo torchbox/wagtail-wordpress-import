@@ -18,7 +18,7 @@ class InlineShortcodeHandler:
             )
         pattern = re.compile(r"^\S[a-zA-Z0-9_\S]+\S$")
         # shortcode_name must use upper or lower case letters or digits and cannot contain spaces
-        if not re.match(pattern, self.shortcode_name):
+        if not pattern.match(self.shortcode_name):
             raise ValueError(
                 "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces"
             )
