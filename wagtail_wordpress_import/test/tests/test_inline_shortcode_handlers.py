@@ -42,3 +42,13 @@ class TestInlineShortcodeHandler(TestCase):
 
         attrs = handler.get_shortcode_attrs(attrs)
         self.assertEqual(attrs, {"foo": "1", "bar": "2"})
+
+    def test_get_shortcode_attrs_missing_quotes(self):
+        class FooHandler(InlineShortcodeHandler):
+            shortcode_name = "foo"
+
+        handler = FooHandler()
+        attrs = 'foo="1" bar=2'
+
+        attrs = handler.get_shortcode_attrs(attrs)
+        self.assertEqual(attrs, {"foo": "1", "bar": "2"})
