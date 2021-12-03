@@ -83,11 +83,11 @@ def conf_fallback_block():
     return getattr(
         settings,
         "WAGTAIL_WORDPRESS_IMPORTER_FALLBACK_BLOCK",
-        "wagtail_wordpress_import.block_builder_defaults.build_none_block_content",
+        "wagtail_wordpress_import.block_builder_defaults.build_richtext_block_content",
     )
 
 
-def build_none_block_content(html, blocks):
+def build_richtext_block_content(html, blocks):
     """
     image_linker is called to link up and retrive the remote image
     document_linker is called to link up and retrive the remote documents
