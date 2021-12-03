@@ -10,7 +10,7 @@ from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 from wagtail_wordpress_import.xml_boilerplate import (
     build_xml_stream,
-    generate_temporay_file,
+    generate_temporary_file,
 )
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -174,7 +174,7 @@ class WordpressImporterTestsCheckXmlTagsNotCached(TestCase):
             <wp:post_type>post</wp:post_type>
         </item>
         """
-        built_file = generate_temporay_file(
+        built_file = generate_temporary_file(
             build_xml_stream(xml_tags_fragment=fragment).read()
         )
 

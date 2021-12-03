@@ -5,7 +5,7 @@ from wagtail_wordpress_import.management.commands.import_xml import Command as R
 from wagtail_wordpress_import.management.commands.reduce_xml import Command as ReduceCmd
 from wagtail_wordpress_import.xml_boilerplate import (
     build_xml_stream,
-    generate_temporay_file,
+    generate_temporary_file,
 )
 
 
@@ -41,7 +41,7 @@ class TestImportXmlCommandWithConfig(TestCase):
             call_command("import_xml", "test.xml", "2")
 
     def test_run_with_xml_and_parent_id(self):
-        built_file = generate_temporay_file(
+        built_file = generate_temporary_file(
             build_xml_stream(xml_tags_fragment="").read()
         )
 
@@ -74,7 +74,7 @@ class TestReduceCommand(TestCase):
         with self.assertRaises(SystemExit):
             xml_file = cmd.get_xml_file("folder/test.xml")
 
-        built_file = generate_temporay_file(
+        built_file = generate_temporary_file(
             build_xml_stream(xml_tags_fragment="").read()
         )
         self.assertEqual(built_file, cmd.get_xml_file(built_file))
