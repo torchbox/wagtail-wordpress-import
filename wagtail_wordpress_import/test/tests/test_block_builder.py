@@ -2,6 +2,7 @@ import os
 
 import bs4
 import responses
+import requests
 from bs4 import BeautifulSoup
 from django.test import TestCase, override_settings
 from wagtail.images import get_image_model
@@ -379,6 +380,6 @@ class TestBlockBuilderFetchUrlRequests(TestCase):
             "https://www.example.com/images/connection_error.jpg",
             body=Exception("Connection error"),
         )
-        with self.assertRaises(Exception) as ctx:
+        with self.assertRaises(requests.ConnectionError) as ctx:
             fetch_url(url_to_fetch)
         self.assertTrue("Connection error" in str(ctx.exception))
