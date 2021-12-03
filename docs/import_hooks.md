@@ -1,15 +1,23 @@
 # Import Hooks
 
 - [Import Hooks](#import-hooks)
+  - [The Importer Debug Feature Default Action](#the-importer-debug-feature-default-action)
   - [What are import hooks useful for?](#what-are-import-hooks-useful-for)
   - [Adding an import hook](#adding-an-import-hook)
-  - [Example XML Item Hook Configuration](#example-xml-item-hook-configuration)
-    - [Sample function for processing the header image](#sample-function-for-processing-the-header-image)
+  - [Example: Import Hook For A Header Image (Items Cache)](#example-import-hook-for-a-header-image-items-cache)
+    - [Settings Configuration](#settings-configuration)
+    - [The Function For Processing A Header Image](#the-function-for-processing-a-header-image)
     - [Sample page model with header_image field](#sample-page-model-with-header_image-field)
-  - [Example XML Tag Hook Configuration](#example-xml-tag-hook-configuration)
+  - [Example: Import Hook For An Author (Tags Cache)](#example-import-hook-for-an-author-tags-cache)
     - [XML Tag Hook Configuration](#xml-tag-hook-configuration)
     - [Sample function for processing the author](#sample-function-for-processing-the-author)
     - [Sample page model with author field](#sample-page-model-with-author-field)
+
+## The Importer Debug Feature Default Action
+
+**Import hooks rely on the Importer Debug Feature which is enabled by default.**
+
+The import process will save the XML item tags as a JSON string in the `wp_post_meta` field on a page model. In the examples that follow the JSON field data is used in the function examples to get values of XML tags in the XML item. This is how the related data foreign keys can be used to create the relationships between the page model and other wagtail models.
 
 ## What are import hooks useful for?
 
@@ -79,33 +87,44 @@ You can add your own import hooks by modifying:
 - `settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE` for tags within the `<wp:post_meta>` tag, or
 - `settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE` for tags which are directly attributes of the imported post or page
 
-## Example XML Item Hook Configuration
+## Example: Import Hook For A Header Image (Items Cache)
 
-This hook is run for extra XML items that will be imported.
+This example will add a header image to the imported page based on the presence of an image ID in the XML file.
 
-Add a settings variable to your site settings file called `WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE`, add a dict with a key of `attachment` and values as follows:
+You will need to include the following in your app.
+
+- Settings Configuration
+- A field thats's available in your page model for the image.
+- A function that will be called to link the image to the page.
+
+This type of hook will cache an `<item>` tag from the XML, that has a match for the key of the hook configuration.
+
+### Settings Configuration
+
+Add the following configuration to your site settings file
+
+<!-- called `WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE`, add a dict with a key of `attachment` and values as follows: -->
 
 ```python
 WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE = {
-    # the key is the wp:post_type XML tag value in the XML item that contains the related content
     "attachment": { 
-        # the XML wp:postmeta tag wp:meta_key value
         "DATA_TAG": "thumbnail_id", 
-        # the dotted path to the function to call in your own Wagtail site
         "FUNCTION": "pages.import_hooks.header_image_processor", 
     }
 }
 ```
 
-The key of the dict is the value in  `<wp:post_type>...</wp:post_type>` in the XML item that contains the related content.
+The key of `attachment` is the value to look for in `<wp:post_type>` in an `<item>` tag in the XML file.
 
-`DATA_TAG` is the value in `<wp:meta_key>value</wp:meta_key>` of the `<wp:postmeta>` tag in the XML item that contains the related content. *This is passed to your function.*
+The `DATA_TAG` value is the key to use to look up the value for the image ID in your own function that processes the header image. This value is passed to your function.
 
-`FUNCTION` the dotted path to the function to call in your own Wagtail site.
+**Important:** If the DATA_TAG value in your XML has a leading `_` character do not include the underscore in the value above. If the value contains a `:` then replace it with a `_` in the value above. This is because in the function that processes the header image, the value is used to construct a lookup by key query parameter on a JSONField available on the page model.
 
-Note: If the DATA_TAG has a leading `_` character do not include the underscore in the settings value. If the value contains a `:` anywhere in it replace it with a `_` in the settings value.
+The `FUNCTION` value is a dotted path to the function to call in your own Wagtail site.
 
-### Sample function for processing the header image
+### The Function For Processing A Header Image
+
+*During the import process the configuration passed in above will be used to cache any XML `<item>` tag that has a `<wp:post_type>` with a value of `attachment`. The cache is a list of dictionary items that represent XML items. You can use the dictionary as a data source for your own function.*
 
 ```python
 # pages/import_hooks.py
@@ -114,26 +133,37 @@ Note: If the DATA_TAG has a leading `_` character do not include the underscore 
 from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
 
 
-def header_image_processor(imported_pages, data, items_cache):
+def header_image_processor(imported_pages, data_tag, items_cache):
+    """
+    imported_pages: 
+        Is a specific() page model queryset of all imported pages.
+    data_tag:
+        Is the value of the `DATA_TAG` key from the configuration above.
+    items_cache:
+        Is a list of dictionaries, one for each item in the XML file.
+    """
 
-    # see note above about leading _ and : characters 
-    # in the settings value
-    lookup = f"wp_post_meta__{data}"
+    # See note above about leading _ and : characters in the XML value
+    lookup = f"wp_post_meta__{data_tag}"
 
     for attachment in items_cache:
-        # the id of the cached item used in the filter
+        # The id of the cached item used in the filter
         thumbnail_id = attachment.get("wp:post_id")
-        # a result set of pages that include the 
+
+        # Filter the imported_pages for only pages that include the 
         # matching thumbnail_id in the wp_post_meta field
         pages = imported_pages.filter(**{lookup: thumbnail_id})
 
         if pages.exists():
+
             # guid is the url of the image to fetch, the get_or_save_image() 
             # function will fetch the image if it doesn't exist
             image = get_or_save_image(attachment.get("guid"))
+
             # update header_image field in all of the pages in 
             # the queryset with the image object
             pages.update(header_image=image)
+
             # the print statement below is optional 
             # and will show the progress in the console
             print("Attaching header images to pages:", pages)
@@ -164,13 +194,19 @@ class PostPage(WPImportedPageMixin, Page):
 
 ---
 
-## Example XML Tag Hook Configuration
+## Example: Import Hook For An Author (Tags Cache)
 
-This hook is run for extra XML tags that will be imported.
+This example will add a author relation to the imported page based on the presence of an `<dc:creator>` value in the XML file.
 
-A blog post `<item>` could include author information that has a reference to another XML tag. Here it would be referenced in the post `<item>` tag in `<dc:creator>`.
+You will need to include the following in your app.
 
-Sample XML item for a blog post:
+- Settings Configuration
+- A field thats's available in your page model for the related author.
+- A function that will be called to link the page to a author record.
+
+This type of hook will cache an XML tag from the XML, that has a match for the key of the hook configuration.
+
+**Sample XML item for a blog post:**
 
 ```xml
 <item>
@@ -193,9 +229,9 @@ Sample XML item for a blog post:
 </item>
 ```
 
-The related author in the `<dc:creator>` tag above defines the relationship between the blog post and the `<wp:author>` tag. The author data we need to construct the blog post and Author record in Wagtail is stored in a separate XML tag see below.
+The related author in the `<dc:creator>` tag above defines the relationship between the blog post and the `<wp:author>` tag below.
 
-Sample XML tags for an author:
+**Sample XML tags for an author:**
 
 ```xml
 <wp:author>
@@ -219,18 +255,20 @@ WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE = {
     # the key is the XML tag name of the item tag that contains the related content
     "wp:author": {
         # the XML tag which has the value to lookup in the tags cache
-        "DATA_TAG": "dc:creator",
+        "DATA_TAG": "dc_creator",
         # the dotted path to the function to call in your own Wagtail site
         "FUNCTION": "pages.import_hooks.author_processor",
     }
 }
 ```
 
-The key of the dict is the name for the tag/s to cache in the XML file which contains the related content.
+The key of `wp:author` is the tag name in the XML file.
 
-`DATA_TAG` is the tag `<dc:creator></dc:creator>` value. *This is passed to your function.*
+The `DATA_TAG` value is the key to use to look up the value for the author in your own function that processes the author relation. This value is passed to your function.
 
-`FUNCTION` is the dotted path to the function that will be called.
+**Important:** If the DATA_TAG value in your XML has a leading `_` character do not include the underscore in the value above. If the value contains a `:` then replace it with a `_` in the value above. This is because in the function that processes the header image, the value is used to construct a lookup by key query parameter on a JSONField available on the page model.
+
+The `FUNCTION` value is a dotted path to the function to call in your own Wagtail site.
 
 ### Sample function for processing the author
 
@@ -240,15 +278,25 @@ The key of the dict is the name for the tag/s to cache in the XML file which con
 from pages.models import Author  # a snippet model for authors
 
 
-def author_processor(imported_pages, data, tags_cache):
+def author_processor(imported_pages, data_tag, tags_cache):
+    """
+    imported_pages: 
+        Is a specific() page model queryset of all imported pages.
+    data_tag:
+        Is the value of the `DATA_TAG` key from the configuration above.
+    tags_cache:
+        Is a list of dictionaries, one for each tag in the XML file.
+    """
 
-    lookup = f"wp_post_meta__{data}"
+    # See note above about leading _ and : characters in the XML value
+    lookup = f"wp_post_meta__{data_tag}"
 
     for author in tags_cache:
         # the reference tag to use to for the data value
         author_login = author.get("wp:author_login")
-        # a result set of pages that include the 
-        # matching author_login value
+
+        # Filter the imported_pages for only pages that include the 
+        # matching dc_creator in the wp_post_meta field
         pages = imported_pages.filter(**{lookup: author_login})
 
         if pages:
@@ -265,6 +313,7 @@ def author_processor(imported_pages, data, tags_cache):
                 else "known"
             )
             email_address = author.get("wp:author_email")
+
             # author is snippet model but you can use any 
             # model type that you have created in your own Wagtail site
             author, created = Author.objects.get_or_create(
@@ -272,10 +321,12 @@ def author_processor(imported_pages, data, tags_cache):
                 last_name=last_name,
                 email_address=email_address,
             )
+
             if pages.exists():
                 # update author field in all of the pages in 
                 # the queryset with the author object
                 pages.update(author=author)
+
                 # the print statement below is optional 
                 # and will show the progress in the console
                 print("Attaching authors to pages:", pages)
