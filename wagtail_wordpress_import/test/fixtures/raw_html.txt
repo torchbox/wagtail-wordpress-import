@@ -1,23 +1,23 @@
 <!-- BE CAREFUL WHEN ALTERING THIS FIXTURE AS THE ORDER OF TAG MATTERS -->
-<img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+<img src="https://www.example.com/images/bruno-4-runner.jpg" alt="">
 
 <span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
 
 <a href="#ideas"><strong>Lorem ipsum dolor sit (xcounterx) amet!</strong></a>
-<a href="https://www.budgetsaresexy.com/files/personal-finance-culminating-assignment.pdf">Read this</a>
+<a href="https://www.example.com/files/personal-finance-culminating-assignment.pdf">Read this</a>
 <h1><strong>Lorem ipsum dolor sit amet?</strong></h1>
 
 <p>Absolute image url.
     <a href="#">
-        <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+        <img src="https://www.example.com/images/bruno-4-runner.jpg" alt="">
     </a>
 </p>
 
-<p><wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption></p>
-<wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption>
+<p><wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.example.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption></p>
+<wagtail_block_caption align="aligncenter" id="attachment_46162" width="600"><img alt="living the life financially independent" class="wp-image-46162 size-full" height="338" src="https://www.example.com/images/bruno-4-runner.jpg" width="600"/> <i>[Crossing a river with Bruno (our Toyota 4Runner) in <a href="http://freedomwithbruno.com/arrival-to-costa-rica/" rel="noopener noreferrer" target="_blank">Costa Rica</a>!]</i></wagtail_block_caption>
 <p>Absolute image url.
     <a href="#">
-        <img src="https://www.budgetsaresexy.com/images/bruno-4-runner.jpg" alt="">
+        <img src="https://www.example.com/images/bruno-4-runner.jpg" alt="">
     </a>
 </p>
 <ul>

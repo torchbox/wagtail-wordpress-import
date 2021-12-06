@@ -1,13 +1,14 @@
-import unittest
+import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase
-
+from wagtail.images import get_image_model
 from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     SHORTCODE_HANDLERS,
     BlockShortcodeHandler,
     CaptionHandler,
     register,
 )
+from wagtail_wordpress_import.test.tests.utility_functions import mock_image
 
 
 class TestBlockShortcodeRegex(TestCase):
@@ -274,13 +275,43 @@ class TestIncludedShortcodeHandlers(TestCase):
         self.assertEqual(len(SHORTCODE_HANDLERS), 2)
 
 
+class TestProvidedShortcodeIsTopLevel(TestCase):
+    """
+    Block Shortcode Handler has a is_top_level_html_tag property that is True by default.
+    It can be set to False to indicate that the shortcode is not a top level HTML tag.
+    """
+
+    def test_is_top_level_html_tag_defaults_to_true(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+
+        foo = FooHandler()
+        self.assertTrue(foo.is_top_level_html_tag)
+
+    def test_is_top_level_html_tag_can_be_overridden(self):
+        class FooHandler(BlockShortcodeHandler):
+            shortcode_name = "foo"
+            is_top_level_html_tag = False
+
+        foo = FooHandler()
+        self.assertFalse(foo.is_top_level_html_tag)
+
+
 class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
+    @responses.activate
     def test_construct_block_method_output(self):
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/j-money-family-portrait.jpg",
+            body=mock_image().read(),
+            status=200,
+            content_type="image/jpeg",
+        )
         handler = CaptionHandler()
         wagtail_custom_html = BeautifulSoup(
             '<wagtail_block_caption id="46162" align="aligncenter" width="600">'
             '<img class="size-full" '
-            'src="https://www.budgetsaresexy.com/images/j-money-family-portrait.jpg" '
+            'src="https://www.example.com/images/j-money-family-portrait.jpg" '
             'alt="This describes the image" width="600" height="338" /> '
             "<em>[This is a caption about the image (the one above) in "
             '<a href="https//www.example.com/bar/" target="_blank" '
@@ -291,16 +322,140 @@ class TestShortcodeHandlerStreamfieldBlockCreation(TestCase):
         json = handler.construct_block(
             wagtail_custom_html.find("wagtail_block_caption")
         )
+        image = get_image_model().objects.get(title="j-money-family-portrait.jpg")
+
         self.assertIsInstance(json, dict)
         self.assertEqual(json["type"], "image")
-        # ["value"]["image"] is an image id. it should be returned as an integer but we cannot
-        # reply on the value returned here so check if it is an integer.
-        # there is a ticket to improve testing when fetching remote images:
-        # https://projects.torchbox.com/projects/wordpress-to-wagtail-importer-package/tickets/76
-        self.assertIsInstance(int(json["value"]["image"]), int)
+        self.assertEqual(json["value"]["image"], image.id)
         self.assertEqual(
             json["value"]["caption"],
             "[This is a caption about the image (the one above) in Glorious Rich Text!]",
         )
         self.assertEqual(json["value"]["alignment"], "center")
         self.assertEqual(json["value"]["link"], "https//www.example.com/bar/")
+
+
+class TestCaptionHandler(TestCase):
+    @responses.activate
+    def test_absence_of_image(self):
+        handler = CaptionHandler()
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+            <a href="http://www.example.com/">
+                
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        # The image is not present in the html, the output should be a raw_html block
+        self.assertEqual(output["type"], "raw_html")
+        self.assertTrue("No image found in caption" in output["value"])
+
+    @responses.activate
+    def test_construct_block_method_output(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image().read(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+            <a href="http://www.example.com/">
+                <img
+                    class="wp-image-46162 size-full" 
+                    src="https://www.example.com/images/foo.jpg" 
+                    alt="This describes the image" 
+                    width="600" 
+                    height="338" />
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        image = get_image_model().objects.get(title="foo.jpg")
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(output["value"]["image"], image.id)
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "center")
+        self.assertEqual(output["value"]["link"], "http://www.example.com/")
+
+    @responses.activate
+    def test_absence_of_alignment(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image().read(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" width="600">
+            <a href="http://www.example.com/">
+                <img
+                    class="wp-image-46162 size-full"
+                    src="https://www.example.com/images/foo.jpg"
+                    alt="This describes the image"
+                    width="600"
+                    height="338" />
+            </a>This is a caption about the image
+        </wagtail_block_caption>"""
+
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        image = get_image_model().objects.get(title="foo.jpg")
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(output["value"]["image"], image.id)
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "left")
+        self.assertEqual(output["value"]["link"], "http://www.example.com/")
+
+    @responses.activate
+    def test_absence_of_an_anchor(self):
+        handler = CaptionHandler()
+        responses.add(
+            responses.GET,
+            "https://www.example.com/images/foo.jpg",
+            body=mock_image().read(),
+            status=200,
+            content_type="image/jpeg",
+        )
+        wagtail_custom_html = """
+        <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
+                <img
+                    class="wp-image-46162 size-full" 
+                    src="https://www.example.com/images/foo.jpg" 
+                    alt="This describes the image" 
+                    width="600" 
+                    height="338" />
+            This is a caption about the image
+        </wagtail_block_caption>"""
+        output = handler.construct_block(
+            BeautifulSoup(wagtail_custom_html, "html.parser").find(
+                f"wagtail_block_{handler.shortcode_name}"
+            )
+        )
+        image = get_image_model().objects.get(title="foo.jpg")
+        self.assertEqual(output["type"], "image")
+        self.assertEqual(output["value"]["image"], image.id)
+        self.assertEqual(
+            output["value"]["caption"], "This is a caption about the image"
+        )
+        self.assertEqual(output["value"]["alignment"], "center")
+        self.assertEqual(output["value"]["link"], "")

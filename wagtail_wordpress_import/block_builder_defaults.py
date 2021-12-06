@@ -238,16 +238,16 @@ def get_or_save_image(src):
 def fetch_url(src, r=None, status=False, content_type=None):
     """general purpose url fetcher with ability to pass in own config"""
     try:
-        r = requests.get(src, **conf_get_requests_settings())
-        status = r.status_code == 200
+        response = requests.get(src, **conf_get_requests_settings())
+        status = True if response.status_code == 200 else False
         content_type = (
-            r.headers["content-type"].lower() if r.headers.get("content-type") else ""
+            response.headers["content-type"].lower()
+            if response.headers.get("content-type")
+            else ""
         )
-    except requests.ConnectTimeout:
-        print(f"CONNECTION TIMEOUT: {src}")
-    except requests.ConnectionError:
-        print(f"CONNECTION ERROR: {src}")
-    return r, status, content_type
+        return response, status, content_type
+    except Exception as e:
+        raise requests.ConnectionError(e)
 
 
 def get_absolute_src(src, domain_prefix=None):
