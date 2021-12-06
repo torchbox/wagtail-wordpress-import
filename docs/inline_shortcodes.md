@@ -111,7 +111,7 @@ The package will always call the `construct_html_tag` method of you handler clas
 
 ## How to test this example works
 
-Find an `item` in the XML file you are importing and add a stock shortcode of `[stock symbol="TSLA"]` to the `<content:encoded></content:encoded>` tag. The stock shortcode can be inline within a piece of text or on it's own line.
+Find an `item` in the XML file you are importing and add a stock shortcode of `[stock symbol="TSLA"]` to the `<content:encoded></content:encoded>` tag. The stock shortcode can be inline within a piece of text or on its own line.
 
 Now run the import command. When the command completes check the RichText content for the page you added the stock shortcode to. It should be visible in the editor just as if you had used the toolbar button to add a stock symbol.
 
