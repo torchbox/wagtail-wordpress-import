@@ -12,6 +12,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
     - [Optional command arguments](#optional-command-arguments)
   - [Module documentation](#module-documentation)
   - [Developer Tooling](#developer-tooling)
+  - [Import Process Flow Diagram](#import-process-flow-diagram)
 
 ## Requirements
 
@@ -142,3 +143,11 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 We have included some developer commands to help you with importing large datasets and analyzing the data.
 
 [View Developer Tooling](docs/tooling.md)
+
+## Import Process Flow Diagram
+
+While the import process is simple to run with the options above there's a lot that happens during the import.
+
+If you intend to customise or extending the import process the following diagram will help you understand what happens and when.
+
+<img src="import-flow-diagram.png">
