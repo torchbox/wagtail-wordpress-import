@@ -21,16 +21,9 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser):
-        parser.add_argument("xmlfile", type=str, help="The name of your xml file")
+        parser.add_argument("xml_file", type=str, help="The full path to your xml file")
 
     def get_xml_file(self, xml_file):
-        if "/" in xml_file:
-            self.stdout.write(
-                self.style.ERROR(
-                    f"Your xml file should be place in the root of your app: {xml_file}"
-                )
-            )
-            exit()
 
         if os.path.exists(xml_file):
             return xml_file
@@ -41,7 +34,7 @@ class Command(BaseCommand):
         exit()
 
     def handle(self, *args, **options):
-        file_path = self.get_xml_file(options["xmlfile"])
+        file_path = self.get_xml_file(options["xml_file"])
         self.stdout.write(self.style.WARNING("Reducing ..."))
         self.stdout.write(
             self.style.NOTICE(

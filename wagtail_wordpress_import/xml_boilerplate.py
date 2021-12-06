@@ -30,7 +30,7 @@ def build_xml_stream(xml_tags_fragment="", xml_items_fragment=""):
     )
 
 
-def generate_temporay_file(xml_stream):
+def generate_temporary_file(xml_stream):
 
     temp_file = tempfile.NamedTemporaryFile(delete=False)
 
