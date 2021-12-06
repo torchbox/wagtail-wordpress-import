@@ -133,7 +133,8 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 - [Categories Import](docs/categories.md)
 - [Import Hooks](docs/import_hooks.md)
 - [Prefilters](docs/prefilters.md)
-- [WordPress Shortcodes](docs/shortcodes.md)
+- [WordPress Block Shortcodes](docs/block_shortcodes.md)
+- [WordPress Inline Shortcodes](docs/inline_shortocdes.md)
 - [Yoast Import](docs/yoast.md)
 
 ## Developer Tooling

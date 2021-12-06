@@ -1,17 +1,17 @@
-# Converting Wordpress shortcodes to StreamField blocks
+# Converting Wordpress block shortcodes to StreamField blocks
 
-- [Converting Wordpress shortcodes to StreamField blocks](#converting-wordpress-shortcodes-to-streamfield-blocks)
-  - [Shortcode handler classes](#shortcode-handler-classes)
+- [Converting Wordpress block shortcodes to StreamField blocks](#converting-wordpress-block-shortcodes-to-streamfield-blocks)
+  - [Block Shortcode handler class](#block-shortcode-handler-class)
   - [Caption shortcode handler (included)](#caption-shortcode-handler-included)
     - [CaptionHandler Pre-filter](#captionhandler-pre-filter)
     - [Caption StreamField block constructor](#caption-streamfield-block-constructor)
   - [How to create your own shortcode handlers](#how-to-create-your-own-shortcode-handlers)
 
-## Shortcode handler classes
+## Block Shortcode handler class
 
-The package is able to parse Wordpress shortcodes.
+The package is able to parse WordPress block shortcodes.
 
-We provide a base class [BlockShortcodeHandler](wagtail_wordpress_import/prefilters/handle_shortcodes.py#L27) that performs the transformation of the raw shortcode into a custom HTML tag using a regular expression.
+We provide a base class [BlockShortcodeHandler](/wagtail_wordpress_import/prefilters/handle_shortcodes.py#L27) that performs the transformation of the raw shortcode into a custom HTML tag using a regular expression.
 
 The custom HTML tag will retain all the parts of the original shortcode which you can use to create the StreamField block.
 
@@ -21,7 +21,7 @@ The package includes a handler for the Wordpress `caption` shortcode called `Cap
 
 ## Caption shortcode handler (included)
 
-[View CaptionHandler Source](wagtail_wordpress_import/prefilters/handle_shortcodes.py#L102)
+[View CaptionHandler Source](/wagtail_wordpress_import/prefilters/handle_shortcodes.py#L102)
 
 ### CaptionHandler Pre-filter
 
@@ -47,13 +47,13 @@ would be transformed and replaced with:
 
 ### Caption StreamField block constructor
 
-The StreamField block dict is created from the custom HTML tag at the block builder stage. The [construct_block()](wagtail_wordpress_import/prefilters/handle_shortcodes.py#L133) method of the CaptionHandler() class is passed the custom HTML tag by the block builder for parsing and will return a dict for the StreamField block.
+The StreamField block dict is created from the custom HTML tag at the block builder stage. The [construct_block()](/wagtail_wordpress_import/prefilters/handle_shortcodes.py#L133) method of the CaptionHandler() class is passed the custom HTML tag by the block builder for parsing and will return a dict for the StreamField block.
 
 *The StreamField block name used in the dict will need a matching Wagtail block type in your app. We provide an ImageBlock for the Caption shortcode handler.*
 
 ## How to create your own shortcode handlers
 
-You will need to create a class that inherits from the provided `BlockShortcodeHandler` [source](wagtail_wordpress_import/prefilters/handle_shortcodes.py)
+You will need to create a class that inherits from the provided `BlockShortcodeHandler` [source](/wagtail_wordpress_import/prefilters/handle_shortcodes.py)
 
 A complete shortcode example:
 
