@@ -1,5 +1,7 @@
 # Wagtail WordPress Import
 
+[![codecov](https://codecov.io/gh/torchbox/wagtail-wordpress-import/branch/main/graph/badge.svg?token=KFSTTxTGxZ)](https://codecov.io/gh/torchbox/wagtail-wordpress-import)
+
 A package for Wagtail CMS to import WordPress blog content from an XML file into Wagtail.
 
 - [Wagtail WordPress Import](#wagtail-wordpress-import)
