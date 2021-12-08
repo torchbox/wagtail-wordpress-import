@@ -12,6 +12,7 @@ from wagtail_wordpress_import.importers.wordpress import (
     WordpressImporter,
     WordpressItem,
 )
+from wagtail_wordpress_import.importers.wordpress_defaults import default_prefilters
 from wagtail_wordpress_import.logger import Logger
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -355,3 +356,34 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
         self.assertTrue("facebook_shares" in cleaned_postmeta)
         self.assertTrue("pinterest_shares" in cleaned_postmeta)
         self.assertTrue("twitter_shares" in cleaned_postmeta)
+
+
+class TestWordpressItemPrefilterConfig(TestCase):
+    def test_prefilter_content_default(self):
+        node = {"content:encoded": "foo bar baz"}
+        wordpress_item = WordpressItem(node, "")
+        output = wordpress_item.prefilter_content(wordpress_item.raw_body)
+        self.assertEqual(output, "<p>foo bar baz</p>\n")
+
+
+class TestWordpressPrefilterDefaults(TestCase):
+    def test_default_prefilters(self):
+        defaults = default_prefilters()
+        self.assertIsInstance(defaults, list)
+        self.assertTrue(len(defaults), 4)
+        self.assertEqual(
+            defaults[0]["FUNCTION"],
+            "wagtail_wordpress_import.prefilters.linebreaks_wp",
+        )
+        self.assertEqual(
+            defaults[1]["FUNCTION"],
+            "wagtail_wordpress_import.prefilters.transform_shortcodes",
+        )
+        self.assertEqual(
+            defaults[2]["FUNCTION"],
+            "wagtail_wordpress_import.prefilters.transform_inline_styles",
+        )
+        self.assertEqual(
+            defaults[3]["FUNCTION"],
+            "wagtail_wordpress_import.prefilters.bleach_clean",
+        )
