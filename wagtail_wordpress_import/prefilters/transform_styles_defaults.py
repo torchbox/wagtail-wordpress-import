@@ -116,25 +116,21 @@ def conf_styles_mapping():
 
     See the documentation in this repo for further help with creating filters
     """
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS",
-        [
-            (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
-            (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
-            (
-                re.compile(
-                    r"text-align:center*",
-                    re.IGNORECASE,
-                ),
-                transform_style_center,
+    return [
+        (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
+        (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
+        (
+            re.compile(
+                r"text-align:center*",
+                re.IGNORECASE,
             ),
-            (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
-            (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
-            (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
-            (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
-        ],
-    )
+            transform_style_center,
+        ),
+        (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
+        (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
+        (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
+        (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
+    ]
 
 
 def transform_html_tag_strong(soup, tag):
