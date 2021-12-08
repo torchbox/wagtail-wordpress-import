@@ -360,6 +360,8 @@ class WordpressImporterTestsCleanWpPostMeta(TestCase):
 
 class TestWordpressItemPrefilterConfig(TestCase):
     def test_prefilter_content_default(self):
+        # The expected output should be transformed after passing through the
+        # the default prefilters
         node = {"content:encoded": "foo bar baz"}
         wordpress_item = WordpressItem(node, "")
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
@@ -387,3 +389,61 @@ class TestWordpressPrefilterDefaults(TestCase):
             defaults[3]["FUNCTION"],
             "wagtail_wordpress_import.prefilters.bleach_clean",
         )
+
+
+def foo_filter(content, options):
+    return content, options
+
+
+@override_settings(WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[])
+class TestWordpressItemPrefilterOverride(TestCase):
+    """Remove all pre-filters"""
+
+    def test_prefilter_content_no_filters(self):
+        # The expected output is the same as the input because there
+        # are no prefilters to apply to the content
+        node = {"content:encoded": "foo bar baz"}
+        wordpress_item = WordpressItem(node, "")
+        output = wordpress_item.prefilter_content(wordpress_item.raw_body)
+        self.assertEqual(output, "foo bar baz")
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
+        {
+            "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter"
+        }
+    ]
+)
+class TestWordpressItemPrefilterCustomOverride(TestCase):
+    """Provide a custom pref-filter"""
+
+    def test_custom_provided_prefilter(self):
+        # The expected output is the same as the input because the applied filters
+        # do nothing and return the same value.
+        node = {"content:encoded": "foo bar baz"}
+        wordpress_item = WordpressItem(node, "")
+        output = wordpress_item.prefilter_content(wordpress_item.raw_body)
+        self.assertEqual(output[0], "foo bar baz")
+        self.assertEqual(output[1], None)
+
+
+@override_settings(
+    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
+        {
+            "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter",
+            "OPTIONS": {"foo": "bar"},
+        }
+    ]
+)
+class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
+    """Provide a custom pref-filter with options"""
+
+    def test_custom_provided_prefilter(self):
+        # The expected output is the same as the input because the applied filters
+        # do nothing and return the same value.
+        node = {"content:encoded": "foo bar baz"}
+        wordpress_item = WordpressItem(node, "")
+        output = wordpress_item.prefilter_content(wordpress_item.raw_body)
+        self.assertEqual(output[0], "foo bar baz")
+        self.assertEqual(output[1], {"foo": "bar"})
