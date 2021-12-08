@@ -12,6 +12,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
     - [Optional command arguments](#optional-command-arguments)
   - [Module documentation](#module-documentation)
   - [Developer Tooling](#developer-tooling)
+  - [Further Usage Examples](#further-usage-examples)
 
 ## Requirements
 
@@ -141,3 +142,7 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 We have included some developer commands to help you with importing large datasets and analyzing the data.
 
 [View Developer Tooling](docs/tooling.md)
+
+## Further Usage Examples
+
+- [Handling Specific HTML content structures](docs/examples.md)
