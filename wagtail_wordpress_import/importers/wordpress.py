@@ -323,7 +323,9 @@ class WordpressItem:
         """
         cached_result = content
 
-        for filter in default_prefilters():
+        for filter in getattr(
+            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", default_prefilters()
+        ):
             function = import_string(filter["FUNCTION"])
             cached_result = function(cached_result, filter.get("OPTIONS"))
             if debug_enabled():
