@@ -10,6 +10,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
     - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
   - [Running the import command](#running-the-import-command)
     - [Optional command arguments](#optional-command-arguments)
+  - [Import process flow](#import-process-flow)
   - [Module documentation](#module-documentation)
   - [Developer Tooling](#developer-tooling)
 
@@ -126,6 +127,12 @@ Running this command will import all WordPress 'post' and 'page' types to the 'P
 - `-a` can be used to specify the Wagtail App where you have created your Wagtail Page model. The default is `pages` when it's not specified.
 - `-t` can be used to limit the WordPress page types to be imported. You can pass in a comma-separated string of page types or just a single page type. The default is `page,post` if not specified.
 - `-s` can be used to specify the status of pages you want to import. You can pass in a comma-separated string of statuses or just a single status. The default is `publish,draft` if not specified.
+
+## Import process flow
+
+While the import process is simple to run with the options above there's a lot that happens during the import.
+
+By changing the import configuration, you can customise the import process without modifying `wagtail-wordpress-import` package files. To understand what is possible, and how you can change the behaviour at different stages, you can read an [overview of the import process](docs/import_process.md).
 
 ## Module documentation
 
