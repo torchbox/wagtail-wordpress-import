@@ -318,6 +318,23 @@ class WordpressImporter:
             page.categories = page_categories
 
 
+def default_prefilters():
+    return [
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
+        },
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
+        },
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+        },
+        {
+            "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
+        },
+    ]
+
+
 class WordpressItem:
     def __init__(self, node, logger):
         self.node = node
