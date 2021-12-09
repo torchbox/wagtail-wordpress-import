@@ -357,10 +357,16 @@ class WordpressItem:
         return self.clean_date(self.node["wp:post_date_gmt"].strip())
 
     def cleaned_last_published_at(self):
-        return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+        try:
+            return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+        except KeyError:
+            return self.cleaned_first_published_at()
 
     def cleaned_latest_revision_created_at(self):
-        return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+        try:
+            return self.clean_date(self.node["wp:post_modified_gmt"].strip())
+        except KeyError:
+            return self.cleaned_first_published_at()
 
     def clean_date(self, value):
         """

@@ -137,6 +137,22 @@ class WordpressImporterTests(TestCase):
             "This page has a default description",
         )
 
+    def test_page_field_values_if_no_post_date_modified(self):
+        page = self.imported_pages.get(title="Item two title")
+        print(page)
+        self.assertEqual(str(page.first_published_at.date()), "2010-01-13")
+        self.assertEqual(str(page.first_published_at.time()), "16:00:00")
+        self.assertEqual(str(page.last_published_at.date()), "2010-01-13")
+        self.assertEqual(str(page.last_published_at.time()), "16:00:00")
+        self.assertEqual(
+            str(page.latest_revision_created_at.date()),
+            "2010-01-13",
+        )
+        self.assertEqual(
+            str(page.latest_revision_created_at.time()),
+            "16:00:00",
+        )
+
 
 IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
     "app_for_pages": "example",
