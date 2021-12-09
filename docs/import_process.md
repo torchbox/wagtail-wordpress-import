@@ -54,7 +54,7 @@ The page is saved, and published according to the WordPress live/draft status. T
 
 [Import Hooks Documentation](docs/import_hooks.md)
 
-If the XML node is configured in settings for cacheing until later, it will be stored in `WordpressImporter.tags_cache` (for top-level tags such as Authors), or `.items_cache`. Nodes that are suitable for this are those such as references to objects elsewhere in the XML, for example a header image, or an author link. We can't create the relationship until both objects have been imported.
+If the XML node is configured in settings for cacheing until later, it will be stored in `WordpressImporter.tags_cache` (for top-level tags such as authors), or `.items_cache`. Nodes that are suitable for this are those such as references to objects elsewhere in the XML, for example a header image, or an author link. We can't create the relationship until both objects have been imported.
 
 The cache will use a key, e.g, `"wp:author"`, to store a list of unique author entities found.
 
@@ -72,7 +72,7 @@ If page body StreamField contains RichText blocks with HTML `a` elements linking
 
 These are configurable functions to process cached tags and items, and create the ForeignKey relationships they represent. If an XML node has been configured for cacheing until later, a corresponding function will have been registered to process the cached data.
 
-For the author example previously, this function would handle creating an Author instance for each entry found in the cache, and then querying the imported pages, and linking them to this author. This query uses the list of page IDs stored by the importer class.
+For the author example previously, this function would handle getting the `Author` model instance (or creating a new one) for each entry found in the cache, and then querying the imported pages, and linking them to this author. Only auhtor entries that have a relation to an imported page are saved. This query uses the list of page IDs stored by the importer class.
 
 As the `wp:post_meta` tag of pages was cleaned and stored in a JSON field, it is possible to query all pages which refer to this author in their WordPress metadata, and update them with actual database links.
 
