@@ -12,7 +12,7 @@ but what happens afterwards is complicated, and highly configurable:
 
 ## `import_xml` Command
 
-We assume here that you have an XML export of a WordPress site. You should at least have [analysed](docs/tooling.md#analyze-xml-commands) and [reduced](docs/tooling.md#reduce-xml-command) it, ready for import.
+We assume here that you have a full XML export of a WordPress site. You should at least have considered using  [analyse](docs/tooling.md#analyze-xml-commands) and [reduce](docs/tooling.md#reduce-xml-command), before you run the import.
 
 Then, when you run the `import_xml` command it creates an `importers.wordpress.WordpressImporter` instance, which handles the rest of the import.
 
