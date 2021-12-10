@@ -3,7 +3,7 @@
 - [Examples](#examples)
   - [Creating a Wagtail Block for specific HTML structures](#creating-a-wagtail-block-for-specific-html-structures)
   - [How to implement a handler for a specific HTML structure](#how-to-implement-a-handler-for-a-specific-html-structure)
-    - [Add extra configuration to allow this HTML tag is pass through bleach_clean()](#add-extra-configuration-to-allow-this-html-tag-is-pass-through-bleach_clean)
+    - [Add extra configuration to allow this HTML tag to be passed through bleach_clean()](#add-extra-configuration-to-allow-this-html-tag-to-be-passed-through-bleach_clean)
     - [Loading your handler](#loading-your-handler)
 
 ## Creating a Wagtail Block for specific HTML structures
@@ -21,9 +21,9 @@ For example, the code snippet below defines an anchor tag with an image inside i
 </a>
 ```
 
-Once imported, the content will be included inside a RichText block but the anchor around the image would be removed by Draftail once it's saved after the page has been edited in the Wagtail Admin.
+Once imported, the content will be included inside a RichText block but the anchor around the image would be removed by Draftail if the page is edited in the Wagtail Admin.
 
-The Draftail editor is able to handle many different types of content but if it's not possible to handle content types like the one above there's a chance that some data will be lost. You can read more about the content types supported by Draftail [here](https://docs.wagtail.io/en/stable/extending/rich_text_internals.html#rich-text-internals)
+The Draftail editor is able to handle many different types of content but if it's not possible to handle content types like the one above there's a chance that some data will be lost. You can read more about the content types supported by Draftail [here](https://docs.wagtail.io/en/stable/extending/rich_text_internals.html#rich-text-internals).
 
 The package includes a class to convert WordPress block shortcodes to Wagtail blocks during the import, it's possible to use this class to transform content that is not a shortcode, but a specific HTML structure. This is done though the use of BeautifulSoup parsing the HTML rather than the provided regular expression that is part of a block shortcode handler.
 
@@ -94,6 +94,7 @@ class AnchorImageHandler(BlockShortcodeHandler):
             # You should return at least one valid block here.
             # This returns a raw_html block containing the custom HTML tag.
             # It's a way to handle content that for some reason could not be parsed.
+            # RawHTMLBlock provided by Wagtail https://docs.wagtail.io/en/latest/reference/streamfield/blocks.html#wagtail.core.blocks.RawHTMLBlock
             return {
                 "type": "raw_html",
                 "value": str(soup),
@@ -117,7 +118,7 @@ Then generated custom HTML tag for the example above would be:
 
 Before the custom HTML tag above is converted to a Wagtail block all the content is run through bleach_clean() to remove any unwanted HTML tags. The default list of HTML tags and attributes doesn't include the custom HTML here.
 
-### Add extra configuration to allow this HTML tag is pass through bleach_clean()
+### Add extra configuration to allow this HTML tag to be passed through bleach_clean()
 
 In your own settings add the following:
 
@@ -152,7 +153,7 @@ The specific `OPTIONS` for `ADDITIONAL_ALLOWED_ATTRIBUTES` are required for this
 
 ### Loading your handler
 
-If you handler is in a module thats not loaded during the import, you can add it to your apps.py `ready()` method:
+If your handler is in a module that's not loaded during the import, you can add it to your apps.py `ready()` method:
 
 ```python
 # pages.apps.py
@@ -166,5 +167,3 @@ class PagesConfig(AppConfig):
     def ready(self):
         from . import anchor_image_handler
 ```
-
-The `@register` decorator for your handler will be called and the handler will be added to the list of handlers to parse the HTML content.
