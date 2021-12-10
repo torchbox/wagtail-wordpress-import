@@ -1,7 +1,10 @@
 import json
 import os
+import re
+import unittest
 from collections import Counter
 from datetime import datetime
+from unittest import mock
 from xml.dom import pulldom
 
 from django.test import TestCase, override_settings
@@ -446,3 +449,37 @@ class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
         self.assertEqual(output[0], "foo bar baz")
         self.assertEqual(output[1], {"foo": "bar"})
+
+
+def transform_foo(soup, tag):
+    new_tag = soup.new_tag("foo")
+    new_tag.string = tag.string
+    tag.replace_with(new_tag)
+
+
+class TestTransformStylesFilterAddOptions(TestCase):
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
+            {
+                "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+                "OPTIONS": {
+                    "TRANSFORM_STYLES_MAPPING": [
+                        (
+                            re.compile(r"font-weight:bold", re.IGNORECASE),
+                            "wagtail_wordpress_import.test.tests.test_wordpress_item.transform_foo",
+                        )
+                    ],
+                },
+            },
+        ]
+    )
+    def test_override(self):
+        """
+        There's only config for transform_inline_styles in WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
+        here so that the other prefilters are not run which helps focus the test on
+        a developer been able to provide a custom transform_inline_styles and pass in OPTIONS.
+        """
+        node = {"content:encoded": '<p style="font-weight: bold">foo bar baz</p>'}
+        wordpress_item = WordpressItem(node, "")
+        output = wordpress_item.prefilter_content(wordpress_item.raw_body)
+        self.assertEqual(output.strip(), "<foo>foo bar baz</foo>")
