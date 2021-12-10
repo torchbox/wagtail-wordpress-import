@@ -2,6 +2,7 @@
 branch = True
 include = wagtail_wordpress_import/*
 omit = */migrations/*,*/tests/*
+source=wagtail_wordpress_import
 
 [report]
 # Regexes for lines to exclude from consideration
