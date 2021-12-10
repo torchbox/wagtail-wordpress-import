@@ -5,7 +5,8 @@
   - [How Pre-filters work](#how-pre-filters-work)
     - [Included Pre-Filters](#included-pre-filters)
     - [Pre-filter configuration](#pre-filter-configuration)
-    - [Add your own pre-filter options to an existing pre-filter](#add-your-own-pre-filter-options-to-an-existing-pre-filter)
+    - [Add your own pre-filter](#add-your-own-pre-filter)
+    - [Using custom options for bleach filter and transform inline styles filter](#using-custom-options-for-bleach-filter-and-transform-inline-styles-filter)
   - [Create your own pre-filter](#create-your-own-pre-filter)
 
 ## Why use pre-filters
@@ -113,13 +114,19 @@ Each pre-filter receives the output from the previous pre-filter, with the excep
 
 The output of the last pre-filter is passed to block builder to create the StreamField blocks JSON.
 
-### Add your own pre-filter options to an existing pre-filter
+### Add your own pre-filter
 
 Add `WAGTAIL_WORDPRESS_IMPORT_PREFILTERS` to your own settings file and include the new pre-filter. *It's possible to exclude a pre-filter by removing it from the list.*
+  
+```python
+{
+    "FUNCTION": "my_app.my_prefilters.my_filter",
+},
+```
 
-All filters can be passed an `OPTIONS` dict but it's currently only useful for the bleach filter.
+### Using custom options for bleach filter and transform inline styles filter
 
-For example: Using custom options in the bleach filter
+Filters can be passed an `OPTIONS` dict. It's currently only useful for the bleach filter and transform inline styles filter.
 
 ```python
 WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
@@ -131,6 +138,14 @@ WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
     },
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+        "OPTIONS": {
+            "TRANSFORM_STYLES_MAPPING": [
+                (
+                    re.compile(r"font-weight:bold", re.IGNORECASE),
+                    "path.to.your.transform_function",
+                )
+            ],
+        },
     },
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
@@ -142,21 +157,17 @@ WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
 ]
 ```
 
-Here `my-custom-tag` would be appended to the `ALLOWED_TAGS` in the bleach_filters and would not be escaped or removed from the final HTML
+Transform Styles Filter:
 
-To provide your own pre-filter add a new item to the configuration with the key FUNCTION and value is the dotted path to the function to be called.
+- `font-weight:normal` would be used by `filter_transform_inline_styles` to replace a HTML tag with a `b` tag if it has a style rule of `font-weight:bold`
 
-```python
-{
-    "FUNCTION": "my_app.my_prefilters.my_filter",
-},
-```
+Bleach filter:
 
-Add it at the position to match the running order you need. *It's possible to include an `OPTIONS` key for your own pre-filter which will be passed into your pre-filter method*
+- `my-custom-tag` would be appended to the `ALLOWED_TAGS` in the bleach_filters and would not be escaped or removed from the final HTML
 
 ## Create your own pre-filter
 
-You can find the provided pre-filters [here](wagtail_wordpress_import/prefilters) They are a good source of examples to create your own pre-filter.
+You can view the provided pre-filters [here](wagtail_wordpress_import/prefilters) They are a good source of examples to create your own pre-filter.
 
 To create your own pre-filter you need to create a module with a function in your app with the following signature:
 
