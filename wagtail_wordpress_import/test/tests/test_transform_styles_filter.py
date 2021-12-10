@@ -1,21 +1,21 @@
 import os
-from django.test import TestCase, override_settings, modify_settings
-from bs4 import BeautifulSoup
-from wagtail_wordpress_import.prefilters.transform_styles_filter import (
-    normalize_style_attrs,
-    filter_transform_inline_styles,
-)
 
+from bs4 import BeautifulSoup
+from django.test import TestCase, override_settings
 from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
-    transform_style_bold,
-    transform_style_italic,
-    transform_style_center,
-    transform_float_right,
     transform_float_left,
-    transform_style_left,
-    transform_style_right,
+    transform_float_right,
     transform_html_tag_em,
     transform_html_tag_strong,
+    transform_style_bold,
+    transform_style_center,
+    transform_style_italic,
+    transform_style_left,
+    transform_style_right,
+)
+from wagtail_wordpress_import.prefilters.transform_styles_filter import (
+    filter_transform_inline_styles,
+    normalize_style_attrs,
 )
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -35,19 +35,29 @@ class TestTransformStylesFilter(TestCase):
         output = filter_transform_inline_styles(input)
         soup = BeautifulSoup(output, "html.parser")
 
+        """
+        This is worthy of a note.
+        <span style="font-weight: bold;font-style:italic;">Lorem ipsum (xcounterx) dolor sit amet</span>
+        Gets transformed to
+        <b><i>Lorem ipsum (xcounterx) dolor sit amet</i></b>
+        Because the span has two specific styles.
+        """
         first_tag = soup.find("b")
         self.assertEqual(first_tag.name, "b")
-        self.assertEqual(
-            first_tag.attrs["style"], "font-style:italic;font-weight:bold;"
-        )
+
+        with self.assertRaises(KeyError):
+            self.assertTrue(first_tag.attrs["style"])
+
         first_tag_child = first_tag.find("i")
         self.assertEqual(first_tag_child.name, "i")
-        self.assertEqual(
-            first_tag_child.attrs["style"], "font-style:italic;font-weight:bold;"
-        )
+        self.assertEqual(first_tag_child.text, "Lorem ipsum (xcounterx) dolor sit amet")
+
+        with self.assertRaises(KeyError):
+            self.assertTrue(first_tag_child.attrs["style"])
 
         heading_tag = soup.find("h2")
         self.assertEqual(heading_tag.name, "h2")
+
         heading_tag_child = heading_tag.find("b")
         self.assertEqual(heading_tag_child.name, "b")
         self.assertIsNone(heading_tag_child.attrs.get("style"))
@@ -67,10 +77,8 @@ class TestTransformStylesFilter(TestCase):
         soup = normalize_style_attrs(BeautifulSoup(input, "html.parser"))
         transform_style_italic(soup, soup.find("span"))
         italic = soup.find("i")
-        span = soup.find("span")
 
         self.assertTrue(italic)
-        self.assertFalse(span)
 
     def test_transform_style_center(self):
         input = '<p style="text-align: center;">Text content</p>'
