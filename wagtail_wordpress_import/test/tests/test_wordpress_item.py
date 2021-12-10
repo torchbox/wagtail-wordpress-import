@@ -9,10 +9,10 @@ from example.models import Category
 from wagtail.core.models import Page
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
+    DEFAULT_PREFILTERS,
     WordpressImporter,
     WordpressItem,
 )
-from wagtail_wordpress_import.importers.wordpress_defaults import default_prefilters
 from wagtail_wordpress_import.logger import Logger
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
@@ -370,23 +370,22 @@ class TestWordpressItemPrefilterConfig(TestCase):
 
 class TestWordpressPrefilterDefaults(TestCase):
     def test_default_prefilters(self):
-        defaults = default_prefilters()
-        self.assertIsInstance(defaults, list)
-        self.assertTrue(len(defaults), 4)
+        self.assertIsInstance(DEFAULT_PREFILTERS, list)
+        self.assertTrue(len(DEFAULT_PREFILTERS), 4)
         self.assertEqual(
-            defaults[0]["FUNCTION"],
+            DEFAULT_PREFILTERS[0]["FUNCTION"],
             "wagtail_wordpress_import.prefilters.linebreaks_wp",
         )
         self.assertEqual(
-            defaults[1]["FUNCTION"],
+            DEFAULT_PREFILTERS[1]["FUNCTION"],
             "wagtail_wordpress_import.prefilters.transform_shortcodes",
         )
         self.assertEqual(
-            defaults[2]["FUNCTION"],
+            DEFAULT_PREFILTERS[2]["FUNCTION"],
             "wagtail_wordpress_import.prefilters.transform_inline_styles",
         )
         self.assertEqual(
-            defaults[3]["FUNCTION"],
+            DEFAULT_PREFILTERS[3]["FUNCTION"],
             "wagtail_wordpress_import.prefilters.bleach_clean",
         )
 

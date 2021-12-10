@@ -22,7 +22,6 @@ from wagtail_wordpress_import.importers.wordpress_defaults import (
     category_name_min_length,
     category_plugin_enabled,
     debug_enabled,
-    default_prefilters,
     get_category_model,
     yoast_plugin_config,
     yoast_plugin_enabled,
@@ -30,6 +29,21 @@ from wagtail_wordpress_import.importers.wordpress_defaults import (
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )
+
+DEFAULT_PREFILTERS = [
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
+    },
+]
 
 
 class WordpressImporter:
@@ -324,7 +338,7 @@ class WordpressItem:
         cached_result = content
 
         for filter in getattr(
-            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", default_prefilters()
+            settings, "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS", DEFAULT_PREFILTERS
         ):
             function = import_string(filter["FUNCTION"])
             cached_result = function(cached_result, filter.get("OPTIONS"))
