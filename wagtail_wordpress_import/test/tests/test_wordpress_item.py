@@ -395,10 +395,10 @@ def foo_filter(content, options):
     return content, options
 
 
-@override_settings(WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[])
 class TestWordpressItemPrefilterOverride(TestCase):
     """Remove all pre-filters"""
 
+    @override_settings(WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[])
     def test_prefilter_content_no_filters(self):
         # The expected output is the same as the input because there
         # are no prefilters to apply to the content
@@ -408,16 +408,16 @@ class TestWordpressItemPrefilterOverride(TestCase):
         self.assertEqual(output, "foo bar baz")
 
 
-@override_settings(
-    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
-        {
-            "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter"
-        }
-    ]
-)
 class TestWordpressItemPrefilterCustomOverride(TestCase):
     """Provide a custom pref-filter"""
 
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
+            {
+                "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter"
+            }
+        ]
+    )
     def test_custom_provided_prefilter(self):
         # The expected output is the same as the input because the applied filters
         # do nothing and return the same value.
@@ -428,17 +428,17 @@ class TestWordpressItemPrefilterCustomOverride(TestCase):
         self.assertEqual(output[1], None)
 
 
-@override_settings(
-    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
-        {
-            "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter",
-            "OPTIONS": {"foo": "bar"},
-        }
-    ]
-)
 class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
     """Provide a custom pref-filter with options"""
 
+    @override_settings(
+        WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
+            {
+                "FUNCTION": "wagtail_wordpress_import.test.tests.test_wordpress_item.foo_filter",
+                "OPTIONS": {"foo": "bar"},
+            }
+        ]
+    )
     def test_custom_provided_prefilter(self):
         # The expected output is the same as the input because the applied filters
         # do nothing and return the same value.
