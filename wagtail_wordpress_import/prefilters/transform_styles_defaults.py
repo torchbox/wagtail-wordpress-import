@@ -1,42 +1,33 @@
-import re
 from django.conf import settings
 
 
 def transform_style_bold(soup, tag):
     """
-    replace the input tag name with `b`
-    and add the existing attrs["style"] to
-    the new tag
+    Replace the input tag name with `b` and remove style attr
     """
     new_tag = soup.new_tag("b")
-    new_tag.attrs["style"] = tag.attrs["style"]
     new_tag.string = tag.text
     tag.replace_with(new_tag)
 
 
 def transform_style_italic(soup, tag):
     """
-    replace the input tag name with `b`
-    and add the existing attrs["style"] to
-    the new tag
-
-    there are instances of <i> tag inside a <b> tag
-    preseve the <b> tag and add the <i> tag as a child
-    e.g. <b><i>text</i></b>
+    Replace the input tag name with `i` and remove style attr
     """
+    new_tag = soup.new_tag("i")
+    new_tag.string = tag.text
+    tag.append(new_tag)
 
-    if not tag.name == "b":
-        new_tag = soup.new_tag("i")
-        new_tag.string = tag.text
-        new_tag.attrs["style"] = tag.attrs["style"]
-        tag.replace_with(new_tag)
 
-    elif tag.name == "b":
-        new_tag = soup.new_tag("i")
-        new_tag.string = tag.text
-        new_tag.attrs["style"] = tag.attrs["style"]
-        tag.string = ""
-        tag.append(new_tag)
+def transform_style_bold_italic(soup, tag):
+    """
+    Replace the input tag name with `b` and a child of `i` and remove style attr
+    """
+    new_b_tag = soup.new_tag("b")
+    new_i_tag = soup.new_tag("i")
+    new_i_tag.string = tag.text
+    new_b_tag.append(new_i_tag)
+    tag.replace_with(new_b_tag)
 
 
 def transform_style_center(soup, tag):
@@ -87,54 +78,6 @@ def transform_float_right(soup, tag):
         tag.attrs["class"].append("float-right")
     else:
         tag.attrs["class"] = "float-right"
-
-
-def conf_styles_mapping():
-    """
-    Its intended that a developer can override TRANSFORM_STYLES_MAPPING
-    and provide their own style rules to match for by adding WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
-    to their own settings
-
-    # example WAGTAIL_WORDPRESS_IMPORT_PREFILTERS config in your own settings is below
-
-    WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
-        {"FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp_filter",},
-        {"FUNCTION": "wagtail_wordpress_import.prefilters.transform_styles_filter",},
-        {"FUNCTION": "prefilters.bleach_clean.clean",
-            "OPTIONS": {
-                "ADDITIONAL_ALLOWED_TAGS": ["h1", "h2", ...],
-                "ADDITIONAL_ALLOWED_ATTRIBUTES": ["style", "class", "data-attr", ...],
-                "ADDITIONAL_ALLOWED_STYLES": ["font-weight: bold", "font-style: italic", ...],
-            },
-        },
-    ]
-
-    The prefilters are run in the order of the list above.
-    If you don't need a filter to run you can remove it from the list.
-    If you need another filter to run you can include it in the list and will need
-    to provide the filter module in your own wagtail site
-
-    See the documentation in this repo for further help with creating filters
-    """
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORT_PREFILTERS",
-        [
-            (re.compile(r"font-weight:bold*", re.IGNORECASE), transform_style_bold),
-            (re.compile(r"font-style:italic*", re.IGNORECASE), transform_style_italic),
-            (
-                re.compile(
-                    r"text-align:center*",
-                    re.IGNORECASE,
-                ),
-                transform_style_center,
-            ),
-            (re.compile(r"text-align:left*", re.IGNORECASE), transform_style_left),
-            (re.compile(r"text-align:right*", re.IGNORECASE), transform_style_right),
-            (re.compile(r"float:left*", re.IGNORECASE), transform_float_left),
-            (re.compile(r"float:right*", re.IGNORECASE), transform_float_right),
-        ],
-    )
 
 
 def transform_html_tag_strong(soup, tag):

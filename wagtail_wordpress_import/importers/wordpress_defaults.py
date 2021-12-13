@@ -1,23 +1,6 @@
 from django.conf import settings
 
 
-def default_prefilters():
-    return [
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-        },
-    ]
-
-
 def debug_enabled():
     return getattr(settings, "WAGTAIL_WORDPRESS_IMPORT_DEBUG_ENABLED", True)
 

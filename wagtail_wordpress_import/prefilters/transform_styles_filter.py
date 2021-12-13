@@ -1,12 +1,40 @@
+import re
+
 from bs4 import BeautifulSoup
-from django.conf import settings
 from django.utils.module_loading import import_string
 from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
-    conf_styles_mapping,
+    HTML_TAGS,
     conf_transform_html_tags_enabled,
     conf_transform_html_tags_mapping,
-    HTML_TAGS,
+    transform_float_left,
+    transform_float_right,
+    transform_style_bold,
+    transform_style_bold_italic,
+    transform_style_center,
+    transform_style_italic,
+    transform_style_left,
+    transform_style_right,
 )
+
+CONF_STYLES_MAPPING = [
+    (
+        re.compile(r"font-style:italic;font-weight:bold;", re.IGNORECASE),
+        transform_style_bold_italic,
+    ),
+    (re.compile(r"font-weight:bold;", re.IGNORECASE), transform_style_bold),
+    (re.compile(r"font-style:italic;", re.IGNORECASE), transform_style_italic),
+    (
+        re.compile(
+            r"text-align:center;",
+            re.IGNORECASE,
+        ),
+        transform_style_center,
+    ),
+    (re.compile(r"text-align:left;", re.IGNORECASE), transform_style_left),
+    (re.compile(r"text-align:right;", re.IGNORECASE), transform_style_right),
+    (re.compile(r"float:left;", re.IGNORECASE), transform_float_left),
+    (re.compile(r"float:right;", re.IGNORECASE), transform_float_right),
+]
 
 
 def normalize_style_attrs(soup):
@@ -52,29 +80,29 @@ def filter_transform_inline_styles(html, options=None):
     soup = normalize_style_attrs(BeautifulSoup(html, "html.parser"))
 
     CONF_HTML_TAGS = HTML_TAGS
-    if options and options["CONFIG"].get("HTML_TAGS"):
-        html_tags = import_string(options["CONFIG"]["HTML_TAGS"])
+    if options and options.get("HTML_TAGS"):
+        html_tags = import_string(options["HTML_TAGS"])
         if callable(html_tags):
             CONF_HTML_TAGS = html_tags()
         else:
             CONF_HTML_TAGS = html_tags
 
-    CONF_STYLES_MAPPING = conf_styles_mapping()
-    if options and options["CONFIG"].get("TRANSFORM_STYLES_MAPPING"):
-        styles_mapping = import_string(options["CONFIG"]["TRANSFORM_STYLES_MAPPING"])
-        if callable(styles_mapping):
-            CONF_STYLES_MAPPING = styles_mapping()
-        else:
-            CONF_STYLES_MAPPING = styles_mapping
+    styles_mapping = CONF_STYLES_MAPPING
 
-    for filter in CONF_STYLES_MAPPING:
-        tags = soup.findAll(style=filter[0])
-
-        for tag in tags:
-            if tag.name not in CONF_HTML_TAGS:
-                print("item.name = tag not found in HTML_TAGS")
-
-            filter[1](soup, tag)
+    if options and "TRANSFORM_STYLES_MAPPING" in options:
+        styles_mapping = options["TRANSFORM_STYLES_MAPPING"]
+        for filter in styles_mapping:
+            filter_transform_styles(
+                soup.findAll(style=filter[0]),
+                soup,
+                import_string(filter[1]),
+                CONF_HTML_TAGS,
+            )
+    else:
+        for filter in styles_mapping:
+            filter_transform_styles(
+                soup.findAll(style=filter[0]), soup, filter[1], CONF_HTML_TAGS
+            )
 
     if conf_transform_html_tags_enabled():
         for filter in conf_transform_html_tags_mapping():
@@ -84,3 +112,11 @@ def filter_transform_inline_styles(html, options=None):
                 filter[1](soup, tag)
 
     return str(soup)
+
+
+def filter_transform_styles(tags, soup, filter_method, conf_html_tags):
+    for tag in tags:
+        if tag.name not in conf_html_tags:
+            print("item.name = tag not found in HTML_TAGS")
+
+        filter_method(soup, tag)
