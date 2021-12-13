@@ -17,8 +17,8 @@ from wagtail_wordpress_import.functions import (
     node_to_dict,
     snakecase_key,
 )
-from wagtail_wordpress_import.importers.import_hooks import ItemsCache, TagsCache
-from wagtail_wordpress_import.importers.wordpress_defaults import (
+from .import_hooks import ItemsCache, TagsCache
+from .wordpress_defaults import (
     category_name_min_length,
     category_plugin_enabled,
     debug_enabled,
