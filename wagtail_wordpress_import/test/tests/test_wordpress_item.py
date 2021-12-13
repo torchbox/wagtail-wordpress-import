@@ -8,8 +8,9 @@ from unittest import mock
 from xml.dom import pulldom
 
 from django.test import TestCase, override_settings
-from example.models import Category
 from wagtail.core.models import Page
+
+from example.models import Category
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
     DEFAULT_PREFILTERS,
@@ -397,21 +398,26 @@ def foo_filter(content, options):
     return content, options
 
 
+def transform_foo(soup, tag):
+    new_tag = soup.new_tag("foo")
+    new_tag.string = tag.string
+    tag.replace_with(new_tag)
+
+
 class TestWordpressItemPrefilterOverride(TestCase):
-    """Remove all pre-filters"""
+    """Test developers' ability to edit settings.WAGTAIL_WORDPRESS_IMPORT_PREFILTERS"""
 
     @override_settings(WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[])
     def test_prefilter_content_no_filters(self):
-        # The expected output is the same as the input because there
-        # are no prefilters to apply to the content
+        """Remove all pre-filters
+
+        The expected output is the same as the input because there are no prefilters to
+        apply to the content
+        """
         node = {"content:encoded": "foo bar baz"}
         wordpress_item = WordpressItem(node, "")
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
         self.assertEqual(output, "foo bar baz")
-
-
-class TestWordpressItemPrefilterCustomOverride(TestCase):
-    """Provide a custom pref-filter"""
 
     @override_settings(
         WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
@@ -421,17 +427,16 @@ class TestWordpressItemPrefilterCustomOverride(TestCase):
         ]
     )
     def test_custom_provided_prefilter(self):
-        # The expected output is the same as the input because the applied filters
-        # do nothing and return the same value.
+        """Provide a custom pre-filter
+
+        The expected output is the same as the input because the applied filters do
+        nothing and return the same value.
+        """
         node = {"content:encoded": "foo bar baz"}
         wordpress_item = WordpressItem(node, "")
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
         self.assertEqual(output[0], "foo bar baz")
         self.assertEqual(output[1], None)
-
-
-class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
-    """Provide a custom pref-filter with options"""
 
     @override_settings(
         WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
@@ -441,9 +446,12 @@ class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
             }
         ]
     )
-    def test_custom_provided_prefilter(self):
-        # The expected output is the same as the input because the applied filters
-        # do nothing and return the same value.
+    def test_custom_provided_prefilter_with_options(self):
+        """Provide a custom pre-filter with options
+
+        The expected output is the same as the input because the applied filters do
+        nothing and return the same value.
+        """
         node = {"content:encoded": "foo bar baz"}
         wordpress_item = WordpressItem(node, "")
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
@@ -451,13 +459,6 @@ class TestWordpressItemPrefilterCustomOverrideWithOptions(TestCase):
         self.assertEqual(output[1], {"foo": "bar"})
 
 
-def transform_foo(soup, tag):
-    new_tag = soup.new_tag("foo")
-    new_tag.string = tag.string
-    tag.replace_with(new_tag)
-
-
-class TestTransformStylesFilterAddOptions(TestCase):
     @override_settings(
         WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
             {
@@ -473,11 +474,12 @@ class TestTransformStylesFilterAddOptions(TestCase):
             },
         ]
     )
-    def test_override(self):
-        """
-        There's only config for transform_inline_styles in WAGTAIL_WORDPRESS_IMPORT_PREFILTERS
-        here so that the other prefilters are not run which helps focus the test on
-        a developer been able to provide a custom transform_inline_styles and pass in OPTIONS.
+    def test_transform_styles_filter_add_options(self):
+        """Test that a developer can pass custom OPTIONS to transform_inline_styles.
+
+        Here WAGTAIL_WORDPRESS_IMPORT_PREFILTERS contains only config for
+        transform_inline_styles, so that other prefilters are not run, and it's easier
+        to test the output.
         """
         node = {"content:encoded": '<p style="font-weight: bold">foo bar baz</p>'}
         wordpress_item = WordpressItem(node, "")
