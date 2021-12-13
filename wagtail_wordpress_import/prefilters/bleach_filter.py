@@ -1,6 +1,6 @@
 from bleach.sanitizer import Cleaner
 from django.utils.module_loading import import_string
-from .handle_shortcodes import SHORTCODE_HANDLERS
+from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HANDLERS
 
 
 def filter_bleach_clean(html, options=None):

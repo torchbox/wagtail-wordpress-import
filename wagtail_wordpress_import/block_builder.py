@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 from django.conf import settings
 from django.utils.module_loading import import_string
 
-from .block_builder_defaults import (
+from wagtail_wordpress_import.block_builder_defaults import (
     conf_fallback_block,
     conf_html_tags_to_blocks,
 )
