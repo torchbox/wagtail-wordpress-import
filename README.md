@@ -34,7 +34,7 @@ The package has been developed and tested with:
 ## Initial app and package setup
 
 1. Setup a Wagtail site using your preferred method or follow the [official documentation](https://docs.wagtail.io/en/stable/getting_started/tutorial.html) to get started.
-2. Install this package with pip install -e "git+https://github.com/torchbox/wagtail-wordpress-import.git#egg=wagtail-wordpress-import"
+2. Install this package from PyPi with `pip install wagtail-wordpress-import`
  or using any method you prefer.
 3. Place your XML files somewhere on your disk. The file can have any name you choose.
 4. Create a `log` folder in the root of your site. The import script will need to write report files to this folder, you may need to set the permissions on the folder.
@@ -107,6 +107,7 @@ class PostPage(WPImportedPageMixin, Page):
         self.wp_block_json = data["wp_block_json"]
         self.wp_processed_content = data["wp_processed_content"]
         self.wp_normalized_styles = data["wp_normalized_styles"]
+        self.wp_post_meta = data["wp_post_meta"]
 
         # own model fields
         self.body = data["body"]
