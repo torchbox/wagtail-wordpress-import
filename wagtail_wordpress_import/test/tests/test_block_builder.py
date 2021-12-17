@@ -364,30 +364,92 @@ class TestBlockBuilderUtilityMethods(TestCase):
 
 
 class TestBlockBuilderFetchUrlRequests(TestCase):
+    def setUp(self):
+        self.image_url = "http://example.com/no-image.jpg"
+        self.page_url = "http://example.com/no-page.html"
+
     @responses.activate
     def test_fetch_url_success(self):
-        url_to_fetch = "https://www.example.com/images/bruno-4-runner.jpg"
         responses.add(
             responses.GET,
-            "https://www.example.com/images/bruno-4-runner.jpg",
+            self.image_url,
             body=mock_image().read(),
             status=200,
-            content_type="image/jpeg",
+            content_type="image/jpegs",
         )
-        response, status, content_type = fetch_url(url_to_fetch)
+        response, status, content_type = fetch_url(self.image_url)
         self.assertTrue(response.content.startswith(b"\xff\xd8"))
         self.assertTrue(status)
         self.assertTrue("image/jpeg" in content_type)
 
     @responses.activate
     def test_fetch_url_raises_connection_error(self):
-        # test a valid url with an domain/image that doesn't exist
-        url_to_fetch = "https://www.example.com/images/connection_error.jpg"
         responses.add(
             responses.GET,
-            "https://www.example.com/images/connection_error.jpg",
-            body=Exception("Connection error"),
+            self.page_url,
+            body=requests.ConnectionError(),
         )
-        with self.assertRaises(requests.ConnectionError) as ctx:
-            fetch_url(url_to_fetch)
-        self.assertTrue("Connection error" in str(ctx.exception))
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
+
+    @responses.activate
+    def test_fetch_url_raises_http_error(self):
+        responses.add(
+            responses.GET,
+            self.page_url,
+            body=requests.HTTPError(),
+        )
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
+
+    @responses.activate
+    def test_fetch_url_raises_request_exception(self):
+        responses.add(
+            responses.GET,
+            self.page_url,
+            body=requests.RequestException(),
+        )
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
+
+    @responses.activate
+    def test_fetch_url_raises_read_timeout(self):
+        responses.add(
+            responses.GET,
+            self.page_url,
+            body=requests.ReadTimeout(),
+        )
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
+
+    @responses.activate
+    def test_fetch_url_raises_timeout(self):
+        responses.add(
+            responses.GET,
+            self.page_url,
+            body=requests.Timeout(),
+        )
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
+
+    @responses.activate
+    def test_fetch_url_raises_connect_timeout(self):
+        responses.add(
+            responses.GET,
+            self.page_url,
+            body=requests.ConnectTimeout(),
+        )
+        self.assertTrue(
+            fetch_url(self.page_url),
+            (None, True, None),
+        )
