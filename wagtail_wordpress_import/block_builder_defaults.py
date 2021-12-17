@@ -10,7 +10,214 @@ from wagtail.images import get_image_model
 ImportedImage = get_image_model()
 ImportedDocument = get_document_model()
 
-"""StreamField blocks"""
+
+def conf_html_tags_to_blocks():
+    return getattr(
+        settings,
+        "WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS",
+        {
+            "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
+            "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
+            "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
+            "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
+            "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
+            "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
+        },
+    )
+
+
+def fetch_url(src, allow_redirects=True):
+    """general purpose url fetcher with ability to pass in own config"""
+    try:
+        response = requests.get(
+            src,
+            **getattr(
+                settings,
+                "WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS",
+                {
+                    "headers": {"User-Agent": "WagtailWordpressImporter"},
+                    "timeout": 5,
+                    "stream": True,
+                    "allow_redirects": allow_redirects,
+                },
+            ),
+        )
+        status = True if response.status_code == 200 else False
+        return response, status, response.headers.get("content-type")
+    except requests.ConnectionError:
+        print(f"ConnectionError: {src}")
+        return None, False, None
+    except requests.HTTPError:
+        print(f"HTTPError: {src}")
+        return None, False, None
+    except requests.RequestException:
+        print(f"RequestException: {src}")
+        return None, False, None
+    except requests.ReadTimeout:
+        print(f"ReadTimeout: {src}")
+        return None, False, None
+    except requests.Timeout:
+        print(f"Timeout: {src}")
+        return None, False, None
+    except requests.ConnectTimeout:
+        print(f"ConnectTimeout: {src}")
+        return None, False, None
+
+
+## FUNCTIONS FOR IMAGES
+
+
+def image_linker(html):
+    """
+    params
+    ======
+        html: html from a single rich_text block
+
+    returns
+    =======
+        string: the html with img tags modified
+
+    BS4 performs a find and replace on all img tags found in the HTML.
+    If the image can be retrieved from the remote site and saved into a Wagtail ImageModel
+    the soup is modified.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    images = soup.find_all("img")
+    for image in images:
+        if image.attrs and image.attrs.get("src"):
+            image_src = get_absolute_src(
+                image.attrs["src"],
+                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
+            )
+            saved_image = get_or_save_image(image_src)
+            if saved_image:
+                image_embed = soup.new_tag("embed")
+                image_embed.attrs["embedtype"] = "image"
+                image_embed.attrs["id"] = saved_image.id
+                image_embed.attrs["alt"] = get_image_alt(image)
+                image_embed.attrs["format"] = get_alignment_class(image)
+                image.replace_with(image_embed)
+        else:
+            print(f"IMAGE HAS NO SRC: {image}")
+
+    return str(soup)
+
+
+def get_or_save_image(src):
+    image_file_name = get_image_file_name(src)
+    existing_image = image_exists(image_file_name)
+    if not existing_image:
+        response, valid, type = fetch_url(src)
+        if valid and (
+            type
+            in getattr(
+                settings,
+                "WAGTAIL_WORDPRESS_IMPORTER_VALID_IMAGE_CONTENT_TYPES",
+                [
+                    "image/gif",
+                    "image/jpeg",
+                    "image/png",
+                    "image/webp",
+                ],
+            )
+        ):
+            temp_image = NamedTemporaryFile(delete=True)
+            temp_image.name = image_file_name
+            temp_image.write(response.content)
+            temp_image.flush()
+            retrieved_image = ImportedImage(
+                file=File(file=temp_image), title=image_file_name
+            )
+            retrieved_image.save()
+            temp_image.close()
+            return retrieved_image
+        else:
+            print(f"RECEIVED INVALID IMAGE RESPONSE: {src}")
+    return existing_image
+
+
+## FUNCTIONS FOR DOCUMENTS
+
+
+def document_linker(html):
+    """
+    params
+    ======
+        html: html from a single rich_text block
+
+    returns
+    =======
+        string: the html with anchor links modified
+
+    BS4 performs a find and replace on all img tags found in the HTML.
+    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
+    the soup is modified.
+    """
+    soup = BeautifulSoup(html, "html.parser")
+    anchors = soup.find_all("a")
+    for anchor in anchors:
+        if anchor.attrs and anchor.attrs.get("href"):
+            anchor_href = get_absolute_src(
+                anchor.attrs["href"],
+                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
+            )
+            anchor_inner_content = anchor.text
+            saved_document = get_or_save_document(anchor_href)
+            if saved_document:
+                document_embed = soup.new_tag("a")
+                document_embed.attrs["linktype"] = "document"
+                document_embed.attrs["id"] = saved_document.id
+                document_embed.string = anchor_inner_content
+                anchor.replace_with(document_embed)
+        else:
+            print(f"DOCUMENT HAS NO HREF: {anchor}")
+
+    return str(soup)
+
+
+def get_or_save_document(href):
+    file_type = href.split(".")[-1]
+    if file_type in getattr(
+        settings,
+        "",
+        [
+            "pdf",
+            "ppt",
+            "docx",
+        ],
+    ):
+        document_file_name = get_document_file_name(href)
+        existing_document = document_exists(document_file_name)
+        if not existing_document:
+            response, valid, type = fetch_url(href)
+            if valid and (
+                type
+                in getattr(
+                    settings,
+                    "",
+                    [
+                        "application/pdf",
+                        "application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                    ],
+                )
+            ):
+                temp_document = NamedTemporaryFile(delete=True)
+                temp_document.name = document_file_name
+                temp_document.write(response.content)
+                temp_document.flush()
+                retrieved_document = ImportedDocument(
+                    file=File(file=temp_document), title=document_file_name
+                )
+                retrieved_document.save()
+                temp_document.close()
+                return retrieved_document
+            else:
+                print(f"RECEIVED INVALID DOCUMENT RESPONSE: {href}")
+        return existing_document
+
+
+## STREAMFIELD BLOCKS
 
 
 def build_block_quote_block(tag):
@@ -57,27 +264,7 @@ def build_table_block(tag):
     return block_dict
 
 
-def conf_html_tags_to_blocks():
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORTER_CONVERT_HTML_TAGS_TO_BLOCKS",
-        {
-            "h1": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            # "h2": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            # "h3": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            # "h4": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            # "h5": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            # "h6": "wagtail_wordpress_import.block_builder_defaults.build_heading_block",
-            "table": "wagtail_wordpress_import.block_builder_defaults.build_table_block",
-            "iframe": "wagtail_wordpress_import.block_builder_defaults.build_iframe_block",
-            "form": "wagtail_wordpress_import.block_builder_defaults.build_form_block",
-            "img": "wagtail_wordpress_import.block_builder_defaults.build_image_block",
-            "blockquote": "wagtail_wordpress_import.block_builder_defaults.build_block_quote_block",
-        },
-    )
-
-
-"""Fall back StreamField block"""
+## FALLBACK STREAMFIELD BLOCKS
 
 
 def conf_fallback_block():
@@ -106,81 +293,7 @@ def build_richtext_block_content(html, blocks):
     return html
 
 
-"""Rich Text Functions"""
-
-
-def conf_valid_image_content_types():
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORTER_VALID_IMAGE_CONTENT_TYPES",
-        [
-            "image/gif",
-            "image/jpeg",
-            "image/png",
-            "image/webp",
-            "text/html",
-        ],
-    )
-
-
-def conf_valid_document_file_types():
-    return getattr(
-        settings,
-        "",
-        [
-            "pdf",
-            "ppt",
-            "docx",
-        ],
-    )
-
-
-def conf_valid_document_content_types():
-    return getattr(
-        settings,
-        "",
-        [
-            "application/pdf",
-            "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ],
-    )
-
-
-def image_linker(html):
-    """
-    params
-    ======
-        html: html from a single rich_text block
-
-    returns
-    =======
-        string: the html with img tags modified
-
-    BS4 performs a find and replace on all img tags found in the HTML.
-    If the image can be retrieved from the remote site and saved into a Wagtail ImageModel
-    the soup is modified.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    images = soup.find_all("img")
-    for image in images:
-        if image.attrs and image.attrs.get("src"):
-            image_src = get_absolute_src(
-                image.attrs["src"],
-                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
-            )
-            saved_image = get_or_save_image(image_src)
-            if saved_image:
-                image_embed = soup.new_tag("embed")
-                image_embed.attrs["embedtype"] = "image"
-                image_embed.attrs["id"] = saved_image.id
-                image_embed.attrs["alt"] = get_image_alt(image)
-                image_embed.attrs["format"] = get_alignment_class(image)
-                image.replace_with(image_embed)
-        else:
-            print(f"IMAGE HAS NO SRC: {image}")
-
-    return str(soup)
+## RICH TEXT FUNCTIONS
 
 
 def get_image_alt(img_tag):
@@ -209,52 +322,7 @@ def document_exists(name):
         pass
 
 
-def conf_get_requests_settings():
-    return getattr(
-        settings,
-        "WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS",
-        {
-            "headers": {"User-Agent": "WagtailWordpressImporter"},
-            "timeout": 5,
-            "stream": False,
-        },
-    )
-
-
-def get_or_save_image(src):
-    image_file_name = get_image_file_name(src)
-    existing_image = image_exists(image_file_name)
-    if not existing_image:
-        response, valid, type = fetch_url(src)
-        if valid and (type in conf_valid_image_content_types()):
-            temp_image = NamedTemporaryFile(delete=True)
-            temp_image.name = image_file_name
-            temp_image.write(response.content)
-            temp_image.flush()
-            retrieved_image = ImportedImage(
-                file=File(file=temp_image), title=image_file_name
-            )
-            retrieved_image.save()
-            temp_image.close()
-            return retrieved_image
-        else:
-            print(f"RECEIVED INVALID IMAGE RESPONSE: {src}")
-    return existing_image
-
-
-def fetch_url(src, r=None, status=False, content_type=None):
-    """general purpose url fetcher with ability to pass in own config"""
-    try:
-        response = requests.get(src, **conf_get_requests_settings())
-        status = True if response.status_code == 200 else False
-        content_type = (
-            response.headers["content-type"].lower()
-            if response.headers.get("content-type")
-            else ""
-        )
-        return response, status, content_type
-    except Exception as e:
-        raise requests.ConnectionError(e)
+## GENERAL FUNCTIONS
 
 
 def get_absolute_src(src, domain_prefix=None):
@@ -274,62 +342,3 @@ def get_alignment_class(image):
             alignment = "right"
 
     return alignment
-
-
-def document_linker(html):
-    """
-    params
-    ======
-        html: html from a single rich_text block
-
-    returns
-    =======
-        string: the html with anchor links modified
-
-    BS4 performs a find and replace on all img tags found in the HTML.
-    If the image can be retrived from the remote site and saved into a Wagtail ImageModel
-    the soup is modified.
-    """
-    soup = BeautifulSoup(html, "html.parser")
-    anchors = soup.find_all("a")
-    for anchor in anchors:
-        if anchor.attrs and anchor.attrs.get("href"):
-            anchor_href = get_absolute_src(
-                anchor.attrs["href"],
-                getattr(settings, "WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN"),
-            )
-            anchor_inner_content = anchor.text
-            saved_document = get_or_save_document(anchor_href)
-            if saved_document:
-                document_embed = soup.new_tag("a")
-                document_embed.attrs["linktype"] = "document"
-                document_embed.attrs["id"] = saved_document.id
-                document_embed.string = anchor_inner_content
-                anchor.replace_with(document_embed)
-        else:
-            print(f"DOCUMENT HAS NO HREF: {anchor}")
-
-    return str(soup)
-
-
-def get_or_save_document(href):
-    file_type = href.split(".")[-1]
-    if file_type in conf_valid_document_file_types():
-        document_file_name = get_document_file_name(href)
-        existing_document = document_exists(document_file_name)
-        if not existing_document:
-            response, valid, type = fetch_url(href)
-            if valid and (type in conf_valid_document_content_types()):
-                temp_document = NamedTemporaryFile(delete=True)
-                temp_document.name = document_file_name
-                temp_document.write(response.content)
-                temp_document.flush()
-                retrieved_document = ImportedDocument(
-                    file=File(file=temp_document), title=document_file_name
-                )
-                retrieved_document.save()
-                temp_document.close()
-                return retrieved_document
-            else:
-                print(f"RECEIVED INVALID DOCUMENT RESPONSE: {href}")
-        return existing_document
