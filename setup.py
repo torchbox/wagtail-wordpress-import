@@ -8,7 +8,7 @@ from wagtail_wordpress_import import __version__
 
 
 this_directory = path.abspath(path.dirname(__file__))
-with open(path.join(this_directory, "README.md"), encoding="utf-8") as f:
+with open(path.join(this_directory, "docs/long_description.md"), encoding="utf-8") as f:
     long_description = f.read()
 
 setup(
@@ -19,15 +19,13 @@ setup(
     long_description_content_type="text/markdown",
     author="Nick Moreton",
     author_email="nickmoreton@me.com",
-    url="",
+    url="https://github.com/torchbox/wagtail-wordpress-import",
     packages=find_packages(),
     include_package_data=True,
     license="BSD",
     classifiers=[
-        "Development Status :: 3 - Alpha",
-        "Intended Audience :: Developers",
-        "License :: OSI Approved :: BSD License",
-        "Operating System :: OS Independent",
+        "Intended Audience :: Wagtail Developers",
+        "License :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
