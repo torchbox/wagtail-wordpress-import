@@ -156,7 +156,7 @@ class TestReduceCommand(TestCase):
 
     def test_xml_reduce_generate_stats(self):
         stats_filename = generate_stats_file("/folder/test.xml", {})
-        self.assertEqual(stats_filename, "stats-test.xml")
+        self.assertEqual(stats_filename, "stats-test.xml.json")
 
         stats_filename = generate_stats_file("test.xml", {})
-        self.assertEqual(stats_filename, "stats-test.xml")
+        self.assertEqual(stats_filename, "stats-test.xml.json")
