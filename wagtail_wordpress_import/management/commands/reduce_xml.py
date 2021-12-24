@@ -106,11 +106,12 @@ class Command(BaseCommand):
         self.stdout.write(f"\n[{status_list}]")
 
         # stats to file
-        f = open(f"stats-{file_path}.json", "w")
+        stats_filename = f"stats-{file_path.split('/')[-1]}.json"
+        f = open(stats_filename, "w")
         f.write(json.dumps(type_stats, indent=2))
 
         self.stdout.write(
-            self.style.SUCCESS(f"\nStats file is here: stats-{file_path}.json")
+            self.style.SUCCESS(f"\nStats file is here: {stats_filename}")
         )
 
         self.stdout.write(
