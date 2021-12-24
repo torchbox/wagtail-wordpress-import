@@ -11,6 +11,11 @@ def register_all_namespaces(filename):
     for ns in namespaces:
         ET.register_namespace(ns, namespaces[ns])
 
+def generate_stats_file(file_path, type_stats):
+    stats_filename = f"stats-{file_path.split('/')[-1]}.json"
+    f = open(stats_filename, "w")
+    f.write(json.dumps(type_stats, indent=2))
+    return stats_filename
 
 class Command(BaseCommand):
 
@@ -106,10 +111,7 @@ class Command(BaseCommand):
         self.stdout.write(f"\n[{status_list}]")
 
         # stats to file
-        stats_filename = f"stats-{file_path.split('/')[-1]}.json"
-        f = open(stats_filename, "w")
-        f.write(json.dumps(type_stats, indent=2))
-
+        stats_filename = generate_stats_file(file_path, type_stats)
         self.stdout.write(
             self.style.SUCCESS(f"\nStats file is here: {stats_filename}")
         )
