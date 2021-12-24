@@ -66,6 +66,8 @@ You will need to run `python manage.py makemigrations` and `python manage.py mig
 The import default is to import the `post` and `page` content types to an app called `pages` and a model called `PostPage`. Keep that mind when you create your own page model.
 
 ```python
+# mysite/pages/model.py
+
 from wagtail.admin.edit_handlers import (
     FieldPanel,
     ObjectList,
