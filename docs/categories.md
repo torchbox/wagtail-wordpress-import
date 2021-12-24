@@ -65,3 +65,5 @@ class MyPage(Page):
 ```
 
 *The above example uses the `CheckboxSelectMultiple` forms widget which simplifies selecting multiple categories.*
+
+You will need to run `python manage.py makemigrations` && `python manage.py migrate` to updated the database.
