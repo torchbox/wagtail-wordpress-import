@@ -84,7 +84,7 @@ The package doesn't include any import hooks by default.
 
 You can add your own import hooks by modifying:
 
-- `settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE` for tags within the `<wp:post_meta>` tag, or
+- `settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE` for tags within the `<wp:postmeta>` tag, or
 - `settings.WORDPRESS_IMPORT_HOOKS_TAGS_TO_CACHE` for tags which are directly attributes of the imported post or page
 
 ## Example: Import Hook For A Header Image (Items Cache)
