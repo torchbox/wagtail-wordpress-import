@@ -12,7 +12,7 @@ but what happens afterwards is complicated, and highly configurable:
 
 ## `import_xml` Command
 
-We assume here that you have a full XML export of a WordPress site. You should at least have considered using  [analyse](docs/tooling.md#analyze-xml-commands) and [reduce](docs/tooling.md#reduce-xml-command), before you run the import.
+We assume here that you have a full XML export of a WordPress site. You should at least have considered using  [analyse](tooling.md#analyze-xml-commands) and [reduce](tooling.md#reduce-xml-command), before you run the import.
 
 Then, when you run the `import_xml` command it creates an `importers.wordpress.WordpressImporter` instance, which handles the rest of the import.
 
@@ -30,7 +30,7 @@ All other nodes are ignored.
 
 The item is checked to see whether it represents an existing Wagtail `Page` instance, and a page is either created or updated accordingly.
 
-The item is processed for any categories, if that feature is enabled. See [Categories import](docs/categories_import.md).
+The item is processed for any categories, if that feature is enabled. See [Categories import](categories_import.md).
 
 The item is cleaned. This:
 
@@ -38,9 +38,9 @@ The item is cleaned. This:
     - trimming whitespace from text fields
     - validating dates
     - formatting slugs
-    - SEO-related fields (see also [Yoast Plugin documentation](docs/yoast.md))
-- Pre-filters the body field, to clean up WordPress quirks of the HTML. Pre-filters are a series of cumulative functions. These are configurable. See [Pre-filters](docs/prefilters.md).
-- Converts the body to a series of StreamField blocks. The mapping of HTML to StreamField blocks is configurable. See [Block Builder](docs/blockbuilder.md).
+    - SEO-related fields (see also [Yoast Plugin documentation](yoast.md))
+- Pre-filters the body field, to clean up WordPress quirks of the HTML. Pre-filters are a series of cumulative functions. These are configurable. See [Pre-filters](prefilters.md).
+- Converts the body to a series of StreamField blocks. The mapping of HTML to StreamField blocks is configurable. See [Block Builder](blockbuilder.md).
     - This stage also includes importing images from the source site, and modifying HTML `img` tags to link to the imported Image instance instead.
 - Converts any `wp:post_meta` tag nodes to a dict, which we can query later using Django's JSONField.
 
@@ -52,7 +52,7 @@ The page is saved, and published according to the WordPress live/draft status. T
 
 ### Cache tags and items for later
 
-[Import Hooks Documentation](docs/import_hooks.md)
+[Import Hooks Documentation](import_hooks.md)
 
 If the XML node is configured in settings for cacheing until later, it will be stored in `WordpressImporter.tags_cache` (for top-level tags such as authors), or `.items_cache`. Nodes that are suitable for this are those such as references to objects elsewhere in the XML, for example a header image, or an author link. We can't create the relationship until both objects have been imported.
 
@@ -78,4 +78,4 @@ For the author example previously, this function might handle getting the `Autho
 
 As the `wp:post_meta` tag of pages was cleaned and stored in a JSON field, it is possible to query all pages which refer to this author in their WordPress metadata, and update them with actual database links.
 
-See [Import Hooks](docs/import_hooks.md).
+See [Import Hooks](import_hooks.md).
