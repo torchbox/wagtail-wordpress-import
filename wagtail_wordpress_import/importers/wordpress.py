@@ -365,7 +365,11 @@ class WordpressItem:
         return cached_result
 
     def cleaned_title(self):
-        return self.node["title"].strip()
+        title = self.node.get("title", None)
+        if title:
+            return title.strip()
+        else:
+            return "no-title-available-{}".format(self.node.get("wp:post_id"))
 
     def cleaned_slug(self):
         """
