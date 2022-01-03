@@ -3,7 +3,7 @@ import os
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
 from wagtail.core.models import Page
-from wagtail_wordpress_import.management.commands.reduce_xml import Command as ReduceCmd
+from wagtail_wordpress_import.management.commands.reduce_xml import Command as ReduceCmd, generate_stats_file
 from wagtail_wordpress_import.xml_boilerplate import (
     build_xml_stream,
     generate_temporary_file,
@@ -153,3 +153,10 @@ class TestReduceCommand(TestCase):
             build_xml_stream(xml_tags_fragment="").read()
         )
         self.assertEqual(built_file, cmd.get_xml_file(built_file))
+
+    def test_xml_reduce_generate_stats(self):
+        stats_filename = generate_stats_file("/folder/test.xml", {})
+        self.assertEqual(stats_filename, "stats-test.xml.json")
+
+        stats_filename = generate_stats_file("test.xml", {})
+        self.assertEqual(stats_filename, "stats-test.xml.json")
