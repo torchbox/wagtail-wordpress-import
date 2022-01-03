@@ -10,6 +10,7 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
   - [Initial app and package setup](#initial-app-and-package-setup)
     - [Site URL for importing images and documents](#site-url-for-importing-images-and-documents)
     - [First steps to configure your Wagtail app](#first-steps-to-configure-your-wagtail-app)
+      - [A full example of the suggested page model class](#a-full-example-of-the-suggested-page-model-class)
   - [Running the import command](#running-the-import-command)
     - [Optional command arguments](#optional-command-arguments)
   - [Import process flow](#import-process-flow)
@@ -60,9 +61,13 @@ You will need to run `python manage.py makemigrations` and `python manage.py mig
 
 *It's intended that these fields are temporary for while importing, and can be removed once the content has been imported. [view source](wagtail_wordpress_import/models.py)*
 
-A full example of the suggested page model class
+#### A full example of the suggested page model class
+
+The import default is to import the `post` and `page` content types to an app called `pages` and a model called `PostPage`. Keep that mind when you create your own page model.
 
 ```python
+# mysite/pages/model.py
+
 from wagtail.admin.edit_handlers import (
     FieldPanel,
     ObjectList,
@@ -124,6 +129,8 @@ python manage.py import_xml path/to/xml/file.xml parent_page_id
 `parent_page_id` is the ID of the page in your Wagtail site where WordPress pages will be imported as children. You can find this in the Wagtail admin URL when editing the page e.g. for `http://www.domain.com/admin/pages/3/edit/` the ID is 3.
 
 Running this command will import all WordPress 'post' and 'page' types to the 'PostPage' model in an app called 'pages'
+
+You can run the import as many times as you need. To avoid content duplication, subsequent imports after the first import will update the existing pages. This behavior also applies to any images or documents that have been imported.
 
 ### Optional command arguments
 
