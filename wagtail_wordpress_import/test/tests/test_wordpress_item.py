@@ -55,6 +55,15 @@ class WordpressItemTests(TestCase):
             "wp:post_type": "post",
             "link": "",
         }
+        self.no_title = {
+            "wp:post_name": "no-title",
+            "wp:post_date_gmt": "2017-03-12 17:53:57",
+            "wp:post_modified_gmt": "2018-12-04 11:49:24",
+            "content:encoded": body_html,
+            "wp:post_id": "1000",
+            "wp:post_type": "post",
+            "link": "http://www.example.com",
+        }
 
     def test_all_fields_with_good_data(self):
         wordpress_item = WordpressItem(self.good_node, self.logger)
@@ -105,6 +114,12 @@ class WordpressItemTests(TestCase):
         self.assertIsInstance(last_published_at, datetime)
         self.assertIsInstance(latest_revision_created_at, datetime)
         self.assertEqual(wp_link, "")
+
+    def test_no_title_faked(self):
+        wordpress_item = WordpressItem(self.no_title, self.logger)
+        title = wordpress_item.cleaned_data["title"]
+
+        self.assertTrue(title.startswith("no-title-available"))
 
 
 @override_settings(
@@ -457,7 +472,6 @@ class TestWordpressItemPrefilterOverride(TestCase):
         output = wordpress_item.prefilter_content(wordpress_item.raw_body)
         self.assertEqual(output[0], "foo bar baz")
         self.assertEqual(output[1], {"foo": "bar"})
-
 
     @override_settings(
         WAGTAIL_WORDPRESS_IMPORT_PREFILTERS=[
