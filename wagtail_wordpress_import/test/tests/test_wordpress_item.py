@@ -119,7 +119,10 @@ class WordpressItemTests(TestCase):
         wordpress_item = WordpressItem(self.no_title, self.logger)
         title = wordpress_item.cleaned_data["title"]
 
-        self.assertTrue(title.startswith("no-title-available"))
+        self.assertEqual(
+            self.no_title["wp:post_id"], "1000"
+        )  # just a fixture regression test
+        self.assertEqual(title, f"no-title-available-1000")
 
 
 @override_settings(
