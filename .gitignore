@@ -13,3 +13,4 @@
 /test-static
 /test-media
 .DS_Store
+/stats-*.json
