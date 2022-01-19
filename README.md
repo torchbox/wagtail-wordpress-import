@@ -45,6 +45,21 @@ The package has been developed and tested with:
 
 Add a setting of `WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN` in your sites settings and set it to the the URL of the website that the images and documents will be imported from.
 
+The importer uses the [requests](https://docs.python-requests.org/en/latest/) library to download images and documents during the import process using the configuration in  `WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS`. 
+
+If the default settings are not suitable for your import, you can add the settings below to your own site settings and override the values.
+
+```python
+# package default settings
+
+WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS = {
+    "headers": { "User-Agent": "WagtailWordpressImporter" },
+    "timeout": 5,
+    "stream": True,
+    "allow_redirects": allow_redirects,
+}
+```
+
 ### First steps to configure your Wagtail app
 
 The import can be run on an existing or new site but you will need to perform some setup on your page models.
