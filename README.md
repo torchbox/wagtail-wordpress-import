@@ -179,3 +179,13 @@ We have included some developer commands to help you with importing large datase
 ## Further Usage Examples
 
 - [Handling Specific HTML content structures](docs/examples.md)
+
+## Contributing
+
+If you're a Python or Django developer, fork the repo and get stuck in!
+
+You might like to start by reviewing the [contributing guidelines](https://github.com/torchbox/wagtail-wordpress-import/wiki/Contributing-to-the-package) in the wiki and checking [current issues](https://github.com/torchbox/wagtail-wordpress-import/issues).
+
+## Releases
+
+[Realease process](https://github.com/torchbox/wagtail-wordpress-import/wiki/Create-a-new-release)
