@@ -329,12 +329,17 @@ def document_exists(name):
 def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
     url = urlparse(src)
+    known_file_extensions = ["jpg", "jpeg", "gif", "png", "webp"]
 
-    if not url.netloc and domain_prefix:
-        domain_prefix_scheme = urlparse(domain_prefix).scheme
-        return "{}://{}".format(domain_prefix_scheme, url.path)
-    elif not url.scheme and domain_prefix:
-        return domain_prefix + "/" + src
+    if not url.scheme and domain_prefix:
+        first_url_part = url.path.split("/")[0]
+        if (
+            "." in first_url_part
+            and first_url_part.split(".")[1].lower() not in known_file_extensions
+        ):
+            return "{}://{}".format(urlparse(domain_prefix).scheme, url.path)
+        return "{}/{}".format(domain_prefix, src)
+
     return src
 
 
