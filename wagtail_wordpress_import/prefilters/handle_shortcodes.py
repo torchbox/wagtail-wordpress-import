@@ -164,10 +164,14 @@ class CaptionHandler(BlockShortcodeHandler):
         else:
             link = ""
 
+        try:
+            image_id = image_file.id
+        except AttributeError:
+            image_id = None
         return {
             "type": "image",
             "value": {
-                "image": image_file.id,
+                "image": image_id,
                 "caption": caption,
                 "alignment": alignment,
                 "link": link,
