@@ -1,4 +1,5 @@
 import requests
+from urllib.parse import urlparse
 from bs4 import BeautifulSoup
 from django.conf import settings
 from django.core.files import File
@@ -327,7 +328,10 @@ def document_exists(name):
 
 def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
-    if not src.startswith("http") and domain_prefix:
+
+    if "." in urlparse(src).netloc:
+        return "https:{}".format(src)
+    elif not urlparse(src).scheme and domain_prefix:
         return domain_prefix + "/" + src
     return src
 
