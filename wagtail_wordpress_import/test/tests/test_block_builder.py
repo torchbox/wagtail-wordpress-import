@@ -338,7 +338,7 @@ class TestBlockBuilderUtilityMethods(TestCase):
     def test_get_abolute_src_slashes_at_start(self):
         self.assertEqual(
             get_absolute_src("//folder/fakeimage.jpg", "http://www.example.com"),
-            "http://www.example.com/folder/fakeimage.jpg",
+            "http://example.com/folder/fakeimage.jpg",
         )
 
     def test_get_abolute_src_slashes_at_start_external_domain(self):
