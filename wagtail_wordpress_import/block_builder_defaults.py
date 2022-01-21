@@ -330,8 +330,9 @@ def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
     url = urlparse(src)
 
-    if not url.scheme and "." in url.netloc:
-        return "https:{}".format(src)
+    if not url.netloc and domain_prefix:
+        domain_prefix_scheme = urlparse(domain_prefix).scheme
+        return "{}://{}".format(domain_prefix_scheme, url.path)
     elif not url.scheme and domain_prefix:
         return domain_prefix + "/" + src
     return src
