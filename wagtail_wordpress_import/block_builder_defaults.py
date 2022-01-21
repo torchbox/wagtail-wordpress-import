@@ -328,10 +328,11 @@ def document_exists(name):
 
 def get_absolute_src(src, domain_prefix=None):
     src = src.lstrip("/")
+    url = urlparse(src)
 
-    if "." in urlparse(src).netloc:
+    if not url.scheme and "." in url.netloc:
         return "https:{}".format(src)
-    elif not urlparse(src).scheme and domain_prefix:
+    elif not url.scheme and domain_prefix:
         return domain_prefix + "/" + src
     return src
 
