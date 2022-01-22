@@ -19,6 +19,7 @@ from wagtail_wordpress_import.block_builder_defaults import (
     get_alignment_class,
     get_image_alt,
     get_image_file_name,
+    get_or_save_image,
     image_linker,
 )
 from wagtail_wordpress_import.test.tests.utility_functions import (
@@ -361,6 +362,20 @@ class TestBlockBuilderUtilityMethods(TestCase):
             "html.parser",
         ).find("img")
         self.assertEqual(get_alignment_class(soup), "fullwidth")
+
+    @responses.activate
+    def test_get_or_save_image_corrupted_file(self):
+        image_url = "http://example.com/no-image.jpg"
+        responses.add(
+            responses.GET,
+            image_url,
+            body=mock_image().read(),
+            status=200,
+            content_type="image/jpegs",
+        )
+
+        retrieved_image = get_or_save_image(image_url)
+        self.assertTrue(isinstance(retrieved_image, get_image_model()))
 
 
 class TestBlockBuilderFetchUrlRequests(TestCase):
