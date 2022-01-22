@@ -4,6 +4,7 @@ from django.conf import settings
 from django.core.files import File
 from django.core.files.temp import NamedTemporaryFile
 from django.utils.module_loading import import_string
+from django.db.utils import IntegrityError
 from wagtail.documents import get_document_model
 from wagtail.images import get_image_model
 
@@ -128,7 +129,10 @@ def get_or_save_image(src):
             retrieved_image = ImportedImage(
                 file=File(file=temp_image), title=image_file_name
             )
-            retrieved_image.save()
+            try:
+                retrieved_image.save()
+            except IntegrityError:
+                retrieved_image = None
             temp_image.close()
             return retrieved_image
         else:
