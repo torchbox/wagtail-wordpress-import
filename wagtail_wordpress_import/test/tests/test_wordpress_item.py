@@ -155,14 +155,15 @@ class WordpressItemImportTests(TestCase):
 
     def test_category_snippets_are_saved(self):
         snippets = Category.objects.all()
-        self.assertEqual(len(snippets), 4)
+        self.assertEqual(len(snippets), 5)
 
     def test_page_one_has_categories(self):
         page_one = self.imported_pages.get(title="Item one title")
         categories = page_one.specific.categories.all()
-        self.assertEqual(2, categories.count())
+        self.assertEqual(3, categories.count())
         self.assertEqual(categories[0].name, "Blogging")
         self.assertEqual(categories[1].name, "Life")
+        self.assertEqual(categories[2].name, "2016")
 
     def test_page_two_has_categories(self):
         page_two = self.imported_pages.get(title="Item two title")
