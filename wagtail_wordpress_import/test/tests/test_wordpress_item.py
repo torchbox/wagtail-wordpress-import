@@ -163,6 +163,7 @@ class WordpressItemImportTests(TestCase):
         self.assertEqual(3, categories.count())
         self.assertEqual(categories[0].name, "Blogging")
         self.assertEqual(categories[1].name, "Life")
+        self.assertEqual(categories[2].name, "2016")
 
     def test_page_two_has_categories(self):
         page_two = self.imported_pages.get(title="Item two title")
