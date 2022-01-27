@@ -24,8 +24,8 @@ setup(
     include_package_data=True,
     license="BSD",
     classifiers=[
-        "Intended Audience :: Wagtail Developers",
-        "License :: MIT License",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.8",
