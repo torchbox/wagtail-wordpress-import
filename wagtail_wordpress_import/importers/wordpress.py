@@ -304,7 +304,7 @@ class WordpressImporter:
     def connect_page_categories(self, page, category_model, item):
         if "category" in item.keys():
             categories = [
-                category
+                str(category)
                 for category in item["category"]
                 if category and len(str(category)) > category_name_min_length()
             ]
