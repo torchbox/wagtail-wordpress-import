@@ -52,9 +52,8 @@ jobs:
         wagtail: ['2.14', '2.15', '2.16']
         postgres: ['10.8']
         exclude: 
-          - wagtail: ['2.15', '2.16']
+          - wagtail: '2.16'
             django: '3.1'
-            python: '3.8'
 
     services:
       postgres:
