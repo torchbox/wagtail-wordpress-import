@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+## 0.1.5 [2022-02-14](https://github.com/torchbox/wagtail-wordpress-import/tree/v0.1.5)
+
+### Bugfixes
+
+- Category names that could be numbers [#151](https://github.com/torchbox/wagtail-wordpress-import/pull/151)
+
+### Features
+
+- Support wagtail 2.16 [#152](https://github.com/torchbox/wagtail-wordpress-import/pull/152)
+
+### Documentation
+
 ---
 
 ## 0.1.4 [2022-01-27](https://github.com/torchbox/wagtail-wordpress-import/releases/tag/v0.1.4)
