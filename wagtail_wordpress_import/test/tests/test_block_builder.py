@@ -341,6 +341,16 @@ class TestBlockBuilderUtilityMethods(TestCase):
             "http://www.example.com/folder/fakeimage.jpg",
         )
 
+    def test_get_abolute_src_slashes_at_start_external_domain(self):
+        self.assertEqual(
+            get_absolute_src("//example.com/fakeimage.jpg", "https://www.example.com"),
+            "https://example.com/fakeimage.jpg",
+        )
+        self.assertEqual(
+            get_absolute_src("//example.com/fakeimage.jpg", "http://www.example.com"),
+            "http://example.com/fakeimage.jpg",
+        )
+
     def test_get_alignment_class_align_left(self):
         soup = get_soup(
             '<img src="fakeimage.jpg" alt="image alt" class="align-left" />',
