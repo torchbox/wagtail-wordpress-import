@@ -1,9 +1,16 @@
 from django import forms
 from django.db import models
 from modelcluster.fields import ParentalManyToManyField
-from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
-from wagtail.core.fields import StreamField
-from wagtail.core.models import Page
+try:
+    # Wagtail 3
+    from wagtail.admin.panels import FieldPanel, StreamFieldPanel
+    from wagtail.fields import StreamField
+    from wagtail.models import Page
+except ImportError:
+    # Wagtail 2
+    from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+    from wagtail.core.fields import StreamField
+    from wagtail.core.models import Page
 from wagtail.snippets.models import register_snippet
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin

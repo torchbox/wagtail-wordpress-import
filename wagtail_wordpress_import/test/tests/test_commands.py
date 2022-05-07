@@ -2,7 +2,12 @@ import os
 
 from django.core.management import CommandError, call_command
 from django.test import TestCase, override_settings
-from wagtail.core.models import Page
+try:
+    # Wagtail 3
+    from wagtail.models import Page
+except ImportError:
+    # Wagtail 2
+    from wagtail.core.models import Page
 from wagtail_wordpress_import.management.commands.reduce_xml import Command as ReduceCmd, generate_stats_file
 from wagtail_wordpress_import.xml_boilerplate import (
     build_xml_stream,

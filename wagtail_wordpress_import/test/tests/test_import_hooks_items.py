@@ -5,7 +5,12 @@ from xml.dom import pulldom
 
 from django.conf import settings
 from django.test import TestCase, override_settings
-from wagtail.core.models import Page
+try:
+    # Wagtail 3
+    from wagtail.models import Page
+except ImportError:
+    # Wagtail 2
+    from wagtail.core.models import Page
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger

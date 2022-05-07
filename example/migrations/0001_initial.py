@@ -3,8 +3,14 @@
 from django.db import migrations, models
 import django.db.models.deletion
 import wagtail.core.blocks
-import wagtail.core.fields
-import wagtail.images.blocks
+try:
+    # Wagtail 3
+    import wagtail.blocks
+    import wagtail.fields
+except ImportError:
+    # Wagtail 2
+    import wagtail.core.blocks
+    import wagtail.core.fields
 
 
 class Migration(migrations.Migration):

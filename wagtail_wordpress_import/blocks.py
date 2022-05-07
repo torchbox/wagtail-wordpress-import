@@ -1,5 +1,10 @@
-from wagtail.core import blocks
 from wagtail.images.blocks import ImageChooserBlock
+try:
+    # Wagtail 3
+    from wagtail import blocks
+except ImportError:
+    # Wagtail 2
+    from wagtail.core import blocks
 
 
 class HeadingBlock(blocks.StructBlock):
