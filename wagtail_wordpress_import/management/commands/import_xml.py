@@ -2,6 +2,7 @@ import os
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
+
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 

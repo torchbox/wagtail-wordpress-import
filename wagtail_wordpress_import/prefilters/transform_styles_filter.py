@@ -2,6 +2,7 @@ import re
 
 from bs4 import BeautifulSoup
 from django.utils.module_loading import import_string
+
 from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
     HTML_TAGS,
     conf_transform_html_tags_enabled,

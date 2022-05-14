@@ -1,10 +1,8 @@
 import json
 import os
 import re
-import unittest
 from collections import Counter
 from datetime import datetime
-from unittest import mock
 from xml.dom import pulldom
 
 from django.test import TestCase, override_settings
@@ -126,7 +124,7 @@ class WordpressItemTests(TestCase):
         self.assertEqual(
             self.no_title["wp:post_id"], "1000"
         )  # just a fixture regression test
-        self.assertEqual(title, f"no-title-available-1000")
+        self.assertEqual(title, "no-title-available-1000")
 
 
 @override_settings(

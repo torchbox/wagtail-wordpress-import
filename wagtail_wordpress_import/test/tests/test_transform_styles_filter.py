@@ -2,6 +2,7 @@ import os
 
 from bs4 import BeautifulSoup
 from django.test import TestCase, override_settings
+
 from wagtail_wordpress_import.prefilters.transform_styles_defaults import (
     transform_float_left,
     transform_float_right,
@@ -201,7 +202,7 @@ class TestTransformStylesFilterHtmlTagsDeveloperOverrides(TestCase):
             ("blockquote", testing_transform_html_tag_blockquote),
         ],
     )
-    def test_filter_transform_html_tag_em(self):
+    def test_filter_transform_html_tag_bold(self):
         input = "<em>Text content</em><strong>Text content</strong><blockquote>Text content</blockquote>"
         output = filter_transform_inline_styles(input)
         soup = BeautifulSoup(output, "html.parser")

@@ -2,6 +2,7 @@ import os
 
 from bs4 import BeautifulSoup
 from django.test import TestCase
+
 from wagtail_wordpress_import.prefilters.linebreaks_wp_filter import (
     filter_linebreaks_wp,
 )

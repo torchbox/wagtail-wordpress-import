@@ -1,5 +1,5 @@
 from bleach.sanitizer import Cleaner
-from django.utils.module_loading import import_string
+
 from wagtail_wordpress_import.prefilters.handle_shortcodes import SHORTCODE_HANDLERS
 
 

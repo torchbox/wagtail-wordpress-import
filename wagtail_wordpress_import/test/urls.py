@@ -7,7 +7,7 @@ try:
     from wagtail import urls as wagtail_urls
 except ImportError:
     from wagtail.core import urls as wagtail_urls
-    
+
 from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [
