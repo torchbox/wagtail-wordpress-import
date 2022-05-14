@@ -1,7 +1,12 @@
 import copy
 import json
 from datetime import datetime
-from functools import cached_property
+
+try:
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+    
 from xml.dom import pulldom
 
 from bs4 import BeautifulSoup

@@ -43,6 +43,7 @@ setup(
         "bleach>=4.1,<4.2",
         "prettytable>=2.2,<2.3",
         "shortcodes>=5.1,<6.0",
+        "cached-property>=1.5,<2.0",
     ],
     extras_require={
         "testing": [

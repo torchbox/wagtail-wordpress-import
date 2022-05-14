@@ -15,12 +15,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.8', '3.9']
+        python: ['3.7', '3.8', '3.9', '3.10']
         django: ['3.1', '3.2']
-        wagtail: ['2.14', '2.15', '2.16']
-        exclude: 
-          - wagtail: '2.16'
-            django: '3.1'
+        wagtail: ['2.15']
+        include: 
+          - python: '3.9'
+            django: '3.2'
+            wagtail: '2.16'
+          - python: '3.10'
+            django: '4.0'
+            wagtail: '3.0'
 
     steps:
       - uses: actions/checkout@v2
@@ -46,13 +50,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python: ['3.8', '3.9']
+        python: ['3.7', '3.8', '3.9', '3.10']
         django: ['3.1', '3.2']
-        wagtail: ['2.14', '2.15', '2.16']
-        postgres: ['10.8']
-        exclude: 
-          - wagtail: '2.16'
-            django: '3.1'
+        wagtail: ['2.15']
+        include: 
+          - python: '3.9'
+            django: '3.2'
+            wagtail: '2.16'
+          - python: '3.10'
+            django: '4.0'
+            wagtail: '3.0'
 
     services:
       postgres:
