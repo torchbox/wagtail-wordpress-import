@@ -1,7 +1,12 @@
 import os
 
 from django.test import TestCase, override_settings
-from wagtail.core.models import Page
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
+
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 

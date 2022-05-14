@@ -2,7 +2,12 @@ from django.conf.urls import include
 from django.contrib import admin
 from django.urls import re_path
 from wagtail.admin import urls as wagtailadmin_urls
-from wagtail.core import urls as wagtail_urls
+
+try:
+    from wagtail import urls as wagtail_urls
+except ImportError:
+    from wagtail.core import urls as wagtail_urls
+    
 from wagtail.documents import urls as wagtaildocs_urls
 
 urlpatterns = [

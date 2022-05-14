@@ -1,6 +1,10 @@
 from django.apps import apps
 from django.core.management.base import BaseCommand
-from wagtail.core.models import Page
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
 
 
 class Command(BaseCommand):

@@ -1,4 +1,8 @@
-from wagtail.core import blocks
+try:
+    from wagtail import blocks
+except ImportError:
+    from wagtail.core import blocks
+    
 from wagtail.images.blocks import ImageChooserBlock
 
 
