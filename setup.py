@@ -6,7 +6,6 @@ from setuptools import find_packages, setup
 
 from wagtail_wordpress_import import __version__
 
-
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "docs/long_description.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -54,6 +53,9 @@ setup(
             "dj-database-url==0.5.0",
             "freezegun==0.3.15",
             "responses>=0.16.0,<0.17.0",
+            "flake8==4.0.1",
+            "isort==5.10.1",
+            "black==22.3.0",
         ],
     },
     zip_safe=False,
