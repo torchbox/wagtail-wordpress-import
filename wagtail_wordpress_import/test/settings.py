@@ -160,7 +160,7 @@ STATIC_URL = "/static/"
 
 MEDIA_ROOT = os.path.join(BASE_DIR, "test-media")
 
-
+DEFAULT_AUTO_FIELD = 'django.db.models.AutoField'
 # Wagtail settings
 
 WAGTAIL_SITE_NAME = "Wagtail xmlimport test site"
