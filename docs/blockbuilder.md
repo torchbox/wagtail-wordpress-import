@@ -17,6 +17,8 @@
       - [Custom blockquote](#custom-blockquote)
   - [Extending the package WPImportStreamBlocks](#extending-the-package-wpimportstreamblocks)
 
+`All code examples are for a site using Wagtail v3.0+` See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
+
 ## What is a Block Builder?
 
 The Block Builder transforms the body HTML content which could contain a lot of HTML tags and content into a sequence of Wagtail StreamField blocks.
@@ -368,7 +370,7 @@ class MyPage(Page):
     ...
 
     content_panels = Page.content_panels + [
-        StreamFieldPanel("body")
+        FieldPanel("body")
     ]
     ...
 

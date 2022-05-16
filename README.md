@@ -28,9 +28,11 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 
 The package has been developed and tested with:
 
-- Wagtail: from 2.14 to 2.16
-- Django: 3.1 and 3.2
+- Wagtail: ^2.15
+- Django: ^3.1
 - Postgres and SQLite Databases
+
+`All code examples are for a site using Wagtail v3.0+` See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
 
 ## Initial app and package setup
 
@@ -83,14 +85,13 @@ The import default is to import the `post` and `page` content types to an app ca
 ```python
 # mysite/pages/model.py
 
-from wagtail.admin.edit_handlers import (
+from wagtail.admin.panels import (
     FieldPanel,
     ObjectList,
-    StreamFieldPanel,
     TabbedInterface,
 )
-from wagtail.core.fields import StreamField
-from wagtail.core.models import Page
+from wagtail.fields import StreamField
+from wagtail.models import Page
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin
 
@@ -98,7 +99,7 @@ from wagtail_wordpress_import.models import WPImportedPageMixin
 class PostPage(WPImportedPageMixin, Page):
     body = StreamField(WPImportStreamBlocks)
     content_panels = Page.content_panels + [
-        StreamFieldPanel("body"),
+        FieldPanel("body"),
     ]
 
     edit_handler = TabbedInterface(
