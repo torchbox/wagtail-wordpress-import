@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 import os
 
 import dj_database_url
+from wagtail import VERSION as WAGTAIL_VERSION
 
 # Build paths inside the project like this: os.path.join(PROJECT_DIR, ...)
 PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,8 +30,9 @@ DEBUG = True
 
 ALLOWED_HOSTS = ["localhost", "testserver"]
 
-
 # Application definition
+
+WAGTAIL_CORE = "wagtail" if WAGTAIL_VERSION >= (3, 0) else "wagtail.core"
 
 INSTALLED_APPS = [
     "wagtail_wordpress_import",
@@ -51,7 +53,7 @@ INSTALLED_APPS = [
     "wagtail.contrib.routable_page",
     "wagtail.contrib.styleguide",
     "wagtail.sites",
-    "wagtail.core",
+    WAGTAIL_CORE,
     "taggit",
     "rest_framework",
     "django.contrib.admin",
