@@ -52,7 +52,7 @@ The importer uses the [requests](https://docs.python-requests.org/en/latest/) li
 If the default settings are not suitable for your import, you can add the settings below to your own site settings and override the values.
 
 ```python
-# package default settings
+# import package default settings
 
 WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS = {
     "headers": { "User-Agent": "WagtailWordpressImporter" },
@@ -70,6 +70,7 @@ We recommend your page model inherits from the provided WPImportedPageMixin
 
 ```python
 from wagtail_wordpress_import.models import WPImportedPageMixin
+
 class PostPage(WPImportedPageMixin, Page):
     ...
 ```
@@ -83,15 +84,25 @@ You will need to run `python manage.py makemigrations` and `python manage.py mig
 The import default is to import the `post` and `page` content types to an app called `pages` and a model called `PostPage`. Keep that mind when you create your own page model.
 
 ```python
-# mysite/pages/model.py
+# mysite/app/models.py
+# The imports below assume you are using Wagtail v3.0+
 
+# Wagtail < 3.0
+# from wagtail.admin.edit_handlers (...)
 from wagtail.admin.panels import (
     FieldPanel,
     ObjectList,
     TabbedInterface,
 )
+
+# Wagtail < 3.0
+# from wagtail.core.fields import StreamField
 from wagtail.fields import StreamField
+
+# Wagtail < 3.0
+# from wagtail.core.models import Page
 from wagtail.models import Page
+
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin
 
@@ -99,6 +110,8 @@ from wagtail_wordpress_import.models import WPImportedPageMixin
 class PostPage(WPImportedPageMixin, Page):
     body = StreamField(WPImportStreamBlocks)
     content_panels = Page.content_panels + [
+        # Wagtail < 3.0
+        # StreamFieldPanel("body")
         FieldPanel("body"),
     ]
 
