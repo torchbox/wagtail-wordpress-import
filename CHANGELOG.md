@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+### Features
+- Update for Wagtail 3.0 [#157](https://github.com/torchbox/wagtail-wordpress-import/pull/157)
+
+---
+
 ## 0.1.5 [2022-02-14](https://github.com/torchbox/wagtail-wordpress-import/tree/v0.1.5)
 
 ### Bugfixes
