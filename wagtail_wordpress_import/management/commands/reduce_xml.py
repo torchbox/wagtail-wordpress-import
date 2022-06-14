@@ -11,11 +11,13 @@ def register_all_namespaces(filename):
     for ns in namespaces:
         ET.register_namespace(ns, namespaces[ns])
 
+
 def generate_stats_file(file_path, type_stats):
     stats_filename = f"stats-{file_path.split('/')[-1]}.json"
     f = open(stats_filename, "w")
     f.write(json.dumps(type_stats, indent=2))
     return stats_filename
+
 
 class Command(BaseCommand):
 
@@ -102,19 +104,17 @@ class Command(BaseCommand):
 
         self.stdout.write(f"Saved  #lines {num_lines_diff_formatted}")
 
-        self.stdout.write(self.style.WARNING(f"\nItem types of interest -------------"))
+        self.stdout.write(self.style.WARNING("\nItem types of interest -------------"))
         type_list = ", ".join(item_types)
         self.stdout.write(f"\n[{type_list}]")
 
-        self.stdout.write(self.style.WARNING(f"\nItem statuses -------------"))
+        self.stdout.write(self.style.WARNING("\nItem statuses -------------"))
         status_list = ", ".join(item_statuses)
         self.stdout.write(f"\n[{status_list}]")
 
         # stats to file
         stats_filename = generate_stats_file(file_path, type_stats)
-        self.stdout.write(
-            self.style.SUCCESS(f"\nStats file is here: {stats_filename}")
-        )
+        self.stdout.write(self.style.SUCCESS(f"\nStats file is here: {stats_filename}"))
 
         self.stdout.write(
             self.style.SUCCESS(f"\nFinished Your file is here: {output_file_name}")

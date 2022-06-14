@@ -64,7 +64,7 @@ def fetch_url(src, allow_redirects=True):
         return None, False, None
 
 
-## FUNCTIONS FOR IMAGES
+# FUNCTIONS FOR IMAGES
 
 
 def image_linker(html):
@@ -136,7 +136,7 @@ def get_or_save_image(src):
     return existing_image
 
 
-## FUNCTIONS FOR DOCUMENTS
+# FUNCTIONS FOR DOCUMENTS
 
 
 def document_linker(html):
@@ -217,7 +217,7 @@ def get_or_save_document(href):
         return existing_document
 
 
-## STREAMFIELD BLOCKS
+# STREAMFIELD BLOCKS
 
 
 def build_block_quote_block(tag):
@@ -264,7 +264,7 @@ def build_table_block(tag):
     return block_dict
 
 
-## FALLBACK STREAMFIELD BLOCKS
+# FALLBACK STREAMFIELD BLOCKS
 
 
 def conf_fallback_block():
@@ -293,7 +293,7 @@ def build_richtext_block_content(html, blocks):
     return html
 
 
-## RICH TEXT FUNCTIONS
+# RICH TEXT FUNCTIONS
 
 
 def get_image_alt(img_tag):
@@ -322,7 +322,7 @@ def document_exists(name):
         pass
 
 
-## GENERAL FUNCTIONS
+# GENERAL FUNCTIONS
 
 
 def get_absolute_src(src, domain_prefix=None):

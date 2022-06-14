@@ -35,7 +35,7 @@ class InlineShortcodeHandler:
         capture group "attrs" will match " bar=1", and capture group "shortcodename" will
         match "foo".
         \[(\S+)(?:\s)(\w\S.+)\]
-        """
+        """  # noqa: W605
 
         return re.compile(
             r"\["  # matches the opening [

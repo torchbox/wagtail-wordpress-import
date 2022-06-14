@@ -2,6 +2,7 @@ import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase
 from wagtail.images import get_image_model
+
 from wagtail_wordpress_import.prefilters.handle_shortcodes import (
     SHORTCODE_HANDLERS,
     BlockShortcodeHandler,
@@ -83,7 +84,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             pass
 
         with self.assertRaises(NotImplementedError) as ctx:
-            handler = FooHandler()
+            handler = FooHandler()  # noqa
         self.assertEqual(
             "Create a subclass of BlockShortcodeHandler with a shortcode_name attribute",
             str(ctx.exception),
@@ -94,7 +95,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = " foo"
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()
+            handler = FooHandler()  # noqa
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),
@@ -105,7 +106,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = "foo "
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()
+            handler = FooHandler()  # noqa
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),
@@ -116,7 +117,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = "fo o"
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()
+            handler = FooHandler()  # noqa
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),
@@ -342,7 +343,7 @@ class TestCaptionHandler(TestCase):
         wagtail_custom_html = """
         <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
             <a href="http://www.example.com/">
-                
+
             </a>This is a caption about the image
         </wagtail_block_caption>"""
 
@@ -369,10 +370,10 @@ class TestCaptionHandler(TestCase):
         <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
             <a href="http://www.example.com/">
                 <img
-                    class="wp-image-46162 size-full" 
-                    src="https://www.example.com/images/foo.jpg" 
-                    alt="This describes the image" 
-                    width="600" 
+                    class="wp-image-46162 size-full"
+                    src="https://www.example.com/images/foo.jpg"
+                    alt="This describes the image"
+                    width="600"
                     height="338" />
             </a>This is a caption about the image
         </wagtail_block_caption>"""
@@ -439,10 +440,10 @@ class TestCaptionHandler(TestCase):
         wagtail_custom_html = """
         <wagtail_block_caption id="attachment_46162" align="aligncenter" width="600">
                 <img
-                    class="wp-image-46162 size-full" 
-                    src="https://www.example.com/images/foo.jpg" 
-                    alt="This describes the image" 
-                    width="600" 
+                    class="wp-image-46162 size-full"
+                    src="https://www.example.com/images/foo.jpg"
+                    alt="This describes the image"
+                    width="600"
                     height="338" />
             This is a caption about the image
         </wagtail_block_caption>"""

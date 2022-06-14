@@ -1,6 +1,14 @@
 from django.db import models
-from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
-from wagtail.core.models import Page
+
+try:
+    from wagtail.admin.panels import FieldPanel, FieldRowPanel
+except ImportError:
+    from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
 
 
 class WPImportedPageMixin(Page):

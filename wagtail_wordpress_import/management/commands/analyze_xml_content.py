@@ -1,11 +1,8 @@
-import json
-import os
-
-from django.core.management.base import BaseCommand
 import collections
-import sys
+import json
 import re
 
+from django.core.management.base import BaseCommand
 from lxml import etree
 
 

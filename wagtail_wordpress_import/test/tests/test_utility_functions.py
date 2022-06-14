@@ -1,8 +1,9 @@
 from django.test import TestCase
+
 from wagtail_wordpress_import.test.tests.utility_functions import (
+    get_soup,
     mock_image,
     mock_pdf,
-    get_soup,
 )
 
 

@@ -1,7 +1,12 @@
 import os
 
 from django.test import TestCase, override_settings
-from wagtail.core.models import Page
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
+
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
 
@@ -81,13 +86,13 @@ class WordpressImporterTests(TestCase):
             "https://www.example.com/item-one-title/",
         )
 
-        ## these fields are only checked for having some content.
+        # these fields are only checked for having some content.
         self.assertTrue(self.published_pages.first().specific.body)
         self.assertTrue(self.published_pages.first().specific.wp_raw_content)
         self.assertTrue(self.published_pages.first().specific.wp_block_json)
         self.assertTrue(self.published_pages.first().specific.wp_processed_content)
-        ## this field is not used now but is tested as it should be blank
-        ## we can remove this field later if we end up not needing it
+        # this field is not used now but is tested as it should be blank
+        # we can remove this field later if we end up not needing it
         self.assertFalse(self.published_pages.first().specific.wp_normalized_styles)
 
     def test_logger_totals(self):

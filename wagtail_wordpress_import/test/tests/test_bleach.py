@@ -1,6 +1,7 @@
 import os
 
 from django.test import TestCase
+
 from wagtail_wordpress_import.prefilters.bleach_filter import filter_bleach_clean
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))

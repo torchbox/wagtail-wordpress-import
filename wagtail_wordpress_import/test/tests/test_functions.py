@@ -1,4 +1,5 @@
 from django.test import TestCase
+
 from wagtail_wordpress_import.functions import get_attr_as_list, snakecase_key
 
 

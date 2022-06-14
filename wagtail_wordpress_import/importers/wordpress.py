@@ -1,7 +1,12 @@
 import copy
 import json
 from datetime import datetime
-from functools import cached_property
+
+try:
+    from functools import cached_property
+except ImportError:
+    from cached_property import cached_property
+
 from xml.dom import pulldom
 
 from bs4 import BeautifulSoup
@@ -10,7 +15,12 @@ from django.conf import settings
 from django.utils.module_loading import import_string
 from django.utils.text import slugify
 from django.utils.timezone import make_aware
-from wagtail.core.models import Page
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
+
 from wagtail_wordpress_import.block_builder import BlockBuilder
 from wagtail_wordpress_import.functions import (
     get_attr_as_list,

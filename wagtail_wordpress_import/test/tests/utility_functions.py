@@ -1,7 +1,8 @@
 import io
 import tempfile
-from PIL import Image
+
 from bs4 import BeautifulSoup
+from PIL import Image
 
 
 def get_soup(html, parser):
