@@ -81,7 +81,7 @@ You will need to run `python manage.py makemigrations` and `python manage.py mig
 
 #### A full example of the suggested page model class
 
-The import default is to import the `post` and `page` content types to an app called `pages` and a model called `PostPage`. Keep that mind when you create your own page model.
+The import default is to import the `post` and `page` content types to an app called `app` and a model called `PostPage`. Keep that mind when you create your own page model.
 
 ```python
 # mysite/app/models.py
