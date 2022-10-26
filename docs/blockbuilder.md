@@ -17,7 +17,7 @@
       - [Custom blockquote](#custom-blockquote)
   - [Extending the package WPImportStreamBlocks](#extending-the-package-wpimportstreamblocks)
 
-`All code examples are for a site using Wagtail v3.0+` See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
+All code examples are for a site using Wagtail v3.0+ See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
 
 ## What is a Block Builder?
 
