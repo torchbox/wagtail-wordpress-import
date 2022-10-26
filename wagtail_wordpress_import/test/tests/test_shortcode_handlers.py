@@ -84,7 +84,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             pass
 
         with self.assertRaises(NotImplementedError) as ctx:
-            handler = FooHandler()  # noqa
+            FooHandler()
         self.assertEqual(
             "Create a subclass of BlockShortcodeHandler with a shortcode_name attribute",
             str(ctx.exception),
@@ -95,7 +95,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = " foo"
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()  # noqa
+            FooHandler()
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),
@@ -106,7 +106,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = "foo "
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()  # noqa
+            FooHandler()
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),
@@ -117,7 +117,7 @@ class TestShortcodeAttrubuteValidation(TestCase):
             shortcode_name = "fo o"
 
         with self.assertRaises(ValueError) as ctx:
-            handler = FooHandler()  # noqa
+            FooHandler()
         self.assertEqual(
             "The shortcode_name attribute must use upper or lower case letters or digits and cannot contain spaces",
             str(ctx.exception),

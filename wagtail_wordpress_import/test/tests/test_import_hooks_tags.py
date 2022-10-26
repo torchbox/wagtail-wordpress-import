@@ -123,7 +123,7 @@ class TestImportHooksXmlTagsPersisted(TestCase):
 
         # the second item in the fixture <wp:bar> should not be cached
         with self.assertRaises(IndexError) as raises:
-            error = bar[1]  # noqa
+            bar[1]
         self.assertEqual(str(raises.exception), "list index out of range")
 
 
