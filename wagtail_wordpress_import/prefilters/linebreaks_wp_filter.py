@@ -81,7 +81,7 @@ def filter_linebreaks_wp(pee, options=None):
         pee,
     )
     pee = re.sub(
-        r"(</?" + allblocks + "[^>]*>)\s*</p>",  # noqa
+        r"(</?" + allblocks + r"[^>]*>)\s*</p>",
         lambda m: m.group(1) if m.group(1) else "",
         pee,
     )
@@ -99,7 +99,7 @@ def filter_linebreaks_wp(pee, options=None):
     pee = pee.replace("<WPPreserveNewline />", "\n")
 
     pee = re.sub(
-        r"(</?" + allblocks + "[^>]*>)\s*<br />",  # noqa
+        r"(</?" + allblocks + r"[^>]*>)\s*<br />",
         lambda m: m.group(1) if m.group(1) else "",
         pee,
     )
