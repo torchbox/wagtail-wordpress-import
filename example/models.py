@@ -1,20 +1,14 @@
-from django import forms
 from django.db import models
 from modelcluster.fields import ParentalManyToManyField
 from wagtail import VERSION as WAGTAIL_VERSION
-try:
+
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail.admin.panels import FieldPanel
-except ImportError:
-    from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
-
-try:
     from wagtail.fields import StreamField
-except ImportError:
-    from wagtail.core.fields import StreamField
-
-try:
     from wagtail.models import Page
-except ImportError:
+else:
+    from wagtail.admin.edit_handlers import FieldPanel, StreamFieldPanel
+    from wagtail.core.fields import StreamField
     from wagtail.core.models import Page
 
 from wagtail.snippets.models import register_snippet
@@ -23,17 +17,14 @@ from wagtail_wordpress_import.models import WPImportedPageMixin
 
 
 class TestPage(WPImportedPageMixin, Page):
-    
+
     streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
     body = StreamField(WPImportStreamBlocks, **streamfield_kwargs)
-    
+
     categories = ParentalManyToManyField("example.Category", blank=True)
 
-    try: StreamFieldPanel
-    except NameError: StreamFieldPanel = FieldPanel
-
     content_panels = Page.content_panels + [
-        StreamFieldPanel("body"),
+        FieldPanel("body") if WAGTAIL_VERSION >= (3, 0) else StreamFieldPanel("body"),
     ]
 
     def import_wordpress_data(self, data):
