@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Remove unused files and folders
+
 ## 0.2.0 [2022-10-27](https://github.com/torchbox/wagtail-wordpress-import/tree/v0.2.0)
 
 ### Features
