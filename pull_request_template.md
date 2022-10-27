@@ -1,12 +1,8 @@
 # (Description)
 
-<!-- Describe your pull request, and instructions for the reviewer. -->
+Removing files and folders that are not used in the package. 
 
-Ticket URL:
-
----
-
-<!-- Please tick or remove these as relevant. Provide further details if valuable. Be pragmatic. -->
+They were part of the template used to create the package early on and are currently not implemented.
 
 Testing
 
