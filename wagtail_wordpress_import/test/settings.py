@@ -36,8 +36,6 @@ WAGTAIL_CORE = "wagtail" if WAGTAIL_VERSION >= (3, 0) else "wagtail.core"
 
 INSTALLED_APPS = [
     "wagtail_wordpress_import",
-    "wagtail_wordpress_import.test",
-    "example",
     "wagtail.contrib.search_promotions",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",

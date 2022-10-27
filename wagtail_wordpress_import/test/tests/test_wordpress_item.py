@@ -12,7 +12,8 @@ try:
 except ImportError:
     from wagtail.core.models import Page
 
-from example.models import Category
+from test.models import Category
+
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
     DEFAULT_PREFILTERS,
@@ -134,7 +135,7 @@ class WordpressItemTests(TestCase):
 )  # testing requires a live domain for requests to use, this is something I need to change before package release
 # mocking of somesort, using localhost:8000 for now
 class WordpressItemImportTests(TestCase):
-    from example.models import Category
+    from test.models import Category
 
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",
@@ -195,7 +196,7 @@ class WordpressItemImportTests(TestCase):
 )  # testing requires a live domain for requests to use, this is something I need to change before package release
 # mocking of somesort, using localhost:8000 for now
 class WordpressItemImportTestsNoCategories(TestCase):
-    from example.models import Category
+    from test.models import Category
 
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",

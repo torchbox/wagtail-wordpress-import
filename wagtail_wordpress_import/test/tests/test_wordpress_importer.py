@@ -14,7 +14,7 @@ BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 LOG_DIR = "fakedir"
 IMPORTER_RUN_PARAMS_TEST = {
-    "app_for_pages": "example",
+    "app_for_pages": "test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["post", "page"],
