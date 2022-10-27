@@ -12,6 +12,7 @@ else:
     from wagtail.core.models import Page
 
 from wagtail.snippets.models import register_snippet
+
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin
 
@@ -21,7 +22,7 @@ class TestPage(WPImportedPageMixin, Page):
     streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
     body = StreamField(WPImportStreamBlocks, **streamfield_kwargs)
 
-    categories = ParentalManyToManyField("example.Category", blank=True)
+    categories = ParentalManyToManyField("test.Category", blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("body") if WAGTAIL_VERSION >= (3, 0) else StreamFieldPanel("body"),
