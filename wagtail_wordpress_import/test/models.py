@@ -22,7 +22,7 @@ class TestPage(WPImportedPageMixin, Page):
     streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
     body = StreamField(WPImportStreamBlocks, **streamfield_kwargs)
 
-    categories = ParentalManyToManyField("example.Category", blank=True)
+    categories = ParentalManyToManyField("test.Category", blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("body") if WAGTAIL_VERSION >= (3, 0) else StreamFieldPanel("body"),

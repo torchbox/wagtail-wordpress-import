@@ -155,7 +155,7 @@ class Migration(migrations.Migration):
                 (
                     "categories",
                     modelcluster.fields.ParentalManyToManyField(
-                        blank=True, to="example.Category"
+                        blank=True, to="test.Category"
                     ),
                 ),
             ],
