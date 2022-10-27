@@ -6,7 +6,6 @@ from setuptools import find_packages, setup
 
 from wagtail_wordpress_import import __version__
 
-
 this_directory = path.abspath(path.dirname(__file__))
 with open(path.join(this_directory, "docs/long_description.md"), encoding="utf-8") as f:
     long_description = f.read()
@@ -28,27 +27,35 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
         "Framework :: Django",
         "Framework :: Django :: 3.1",
         "Framework :: Django :: 3.2",
+        "Framework :: Django :: 4.0",
         "Framework :: Wagtail",
         "Framework :: Wagtail :: 2",
+        "Framework :: Wagtail :: 3",
     ],
     install_requires=[
-        "Django>=3.1,<3.3",
-        "Wagtail>=2.14,<2.17",
+        "Django>=3.1,<4.1",
+        "Wagtail>=2.14,<4.0",
         "lxml>=4.7,<4.8",
         "bleach>=4.1,<4.2",
         "prettytable>=2.2,<2.3",
         "shortcodes>=5.1,<6.0",
+        "cached-property>=1.5.1,<2.0",
     ],
     extras_require={
         "testing": [
             "dj-database-url==0.5.0",
             "freezegun==0.3.15",
             "responses>=0.16.0,<0.17.0",
+            "flake8==4.0.1",
+            "isort==5.10.1",
+            "black==22.3.0",
         ],
     },
     zip_safe=False,

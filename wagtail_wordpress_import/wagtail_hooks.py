@@ -1,6 +1,10 @@
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
-from wagtail.core import hooks
+
+try:
+    from wagtail import hooks
+except ImportError:
+    from wagtail.core import hooks
 
 
 @hooks.register("register_admin_urls")

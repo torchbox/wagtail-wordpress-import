@@ -17,6 +17,8 @@
       - [Custom blockquote](#custom-blockquote)
   - [Extending the package WPImportStreamBlocks](#extending-the-package-wpimportstreamblocks)
 
+All code examples are for a site using Wagtail v3.0+ See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
+
 ## What is a Block Builder?
 
 The Block Builder transforms the body HTML content which could contain a lot of HTML tags and content into a sequence of Wagtail StreamField blocks.
@@ -77,6 +79,12 @@ def build_heading_block(tag):
 Wagtail Block:
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core import blocks
+from wagtail import blocks
+
 class HeadingBlock(blocks.StructBlock):
     text = blocks.CharBlock(classname="title")
     importance = blocks.ChoiceBlock(
@@ -167,6 +175,14 @@ def build_image_block(tag):
 Wagtail Block
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core import blocks
+from wagtail import blocks
+
+from wagtail.images.blocks import ImageChooserBlock
+
 class ImageBlock(blocks.StructBlock):
     image = ImageChooserBlock()
     caption = blocks.CharBlock(required=False)
@@ -192,6 +208,12 @@ def build_block_quote_block(tag):
 Wagtail Block:
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core import blocks
+from wagtail import blocks
+
 class QuoteBlock(blocks.StructBlock):
     quote = blocks.CharBlock(form_classname="title")
     attribution = blocks.CharBlock(required=False)
@@ -348,6 +370,12 @@ In your own site you could have a block class like the example below
 Wagtail Block:
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core import blocks
+from wagtail import blocks
+
 class MyQuoteBlock(blocks.StructBlock):
     quote = blocks.CharBlock()
     attribution = blocks.CharBlock(required=False)
@@ -363,16 +391,33 @@ In your own sites StreamField block the block type will need to be available wit
 
 ```python
 # your Wagtail page model
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core.fields import StreamField
+from wagtail.fields import StreamField
+
+# Wagtail < 3.0
+# from wagtail.admin.edit_handlers import StreamFieldPanel
+from wagtail.admin.panels import FieldPanel
+
 class MyPage(Page):
     body = StreamField(MyStreamBlocks(), required=False)
     ...
 
     content_panels = Page.content_panels + [
-        StreamFieldPanel("body")
+        # Wagtail < 3.0
+        # StreamFieldPanel("body")
+        FieldPanel("body")
     ]
     ...
 
 # your Wagtail stream block class
+
+# Wagtail < 3.0
+# from wagtail.core import blocks 
+from wagtail import blocks
+
 class MyStreamBlocks(blocks.StreamBlock):
     block_quote_block = MyQuoteBlock()
     ...

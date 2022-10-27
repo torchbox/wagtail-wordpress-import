@@ -4,23 +4,45 @@ on:
   push:
     branches:
       - main
-      - master
-      - dev
-      - 'stable/**'
 
   pull_request:
+    branches:
+      - main
 
 jobs:
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Set up Python 3.9
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install Dependencies
+        run: pip install -e ".[testing]" -U pip setuptools wheel
+      - name: Flake8
+        run: flake8 wagtail_wordpress_import
+      - name: Isort
+        run: isort wagtail_wordpress_import --check
+      - name: Black
+        run: black wagtail_wordpress_import --check
   test-sqlite:
     runs-on: ubuntu-latest
+    needs: linting
     strategy:
       matrix:
-        python: ['3.8', '3.9']
+        python: ['3.7', '3.8', '3.9', '3.10']
         django: ['3.1', '3.2']
-        wagtail: ['2.14', '2.15', '2.16']
-        exclude: 
-          - wagtail: '2.16'
-            django: '3.1'
+        wagtail: ['2.15']
+        include: 
+          - python: '3.9'
+            django: '3.2'
+            wagtail: '2.16'
+          - python: '3.10'
+            django: '4.0'
+            wagtail: '3.0'
 
     steps:
       - uses: actions/checkout@v2
@@ -44,19 +66,25 @@ jobs:
 
   test-postgres:
     runs-on: ubuntu-latest
+    needs: linting
     strategy:
       matrix:
-        python: ['3.8', '3.9']
+        python: ['3.7', '3.8', '3.9', '3.10']
         django: ['3.1', '3.2']
-        wagtail: ['2.14', '2.15', '2.16']
-        postgres: ['10.8']
-        exclude: 
-          - wagtail: '2.16'
-            django: '3.1'
+        wagtail: ['2.15']
+        include: 
+          - python: '3.9'
+            django: '3.2'
+            wagtail: '2.16'
+          - python: '3.10'
+            django: '4.0'
+            wagtail: '3.0'
 
     services:
       postgres:
-        image: postgres:${{ matrix.postgres }}
+        image: postgres:12.7
+        env:
+          POSTGRES_PASSWORD: postgres
         ports:
           - 5432:5432
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5

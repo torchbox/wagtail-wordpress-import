@@ -4,7 +4,12 @@ from xml.dom import pulldom
 
 from django.conf import settings
 from django.test import TestCase, override_settings
-from wagtail.core.models import Page
+
+try:
+    from wagtail.models import Page
+except ImportError:
+    from wagtail.core.models import Page
+
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import WordpressImporter
 from wagtail_wordpress_import.logger import Logger
@@ -118,7 +123,7 @@ class TestImportHooksXmlTagsPersisted(TestCase):
 
         # the second item in the fixture <wp:bar> should not be cached
         with self.assertRaises(IndexError) as raises:
-            error = bar[1]
+            bar[1]
         self.assertEqual(str(raises.exception), "list index out of range")
 
 

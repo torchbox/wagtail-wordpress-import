@@ -1,5 +1,5 @@
-from io import StringIO
 import tempfile
+from io import StringIO
 
 xml_stream_header = StringIO(
     """

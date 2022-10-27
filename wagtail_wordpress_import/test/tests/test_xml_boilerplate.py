@@ -1,9 +1,11 @@
 from io import StringIO
+
 from django.test import TestCase
+
 from wagtail_wordpress_import.test.tests.xml_boilerplate import (
+    build_xml_stream,
     xml_stream_footer,
     xml_stream_header,
-    build_xml_stream,
 )
 
 

@@ -34,6 +34,14 @@ The example here uses a Category model inside the pages app but you can use any 
 ## Example Category model
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+from wagtail.snippets import register_snippet
+
+# Wagtail < 3.0
+# from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.admin.panels import FieldPanel
+
 @register_snippet
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -55,6 +63,14 @@ class Category(models.Model):
 To link the categories to your Page model you need to use the `ParentalManyToManyField` in your Page model. The [wagtail docs](https://docs.wagtail.io/en/stable/getting_started/tutorial.html#categories) has a good example of it implementation.
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+from modelcluster.fields import ParentalManyToManyField
+
+# Wagtail < 3.0
+# from wagtail.admin.edit_handlers import FieldPanel
+from wagtail.admin.panels import FieldPanel
+
 class MyPage(Page):
     categories = ParentalManyToManyField(Category, blank=True)
     ... your own extra fields can also be included.

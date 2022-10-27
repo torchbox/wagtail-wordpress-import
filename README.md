@@ -28,9 +28,11 @@ A package for Wagtail CMS to import WordPress blog content from an XML file into
 
 The package has been developed and tested with:
 
-- Wagtail: from 2.14 to 2.16
-- Django: 3.1 and 3.2
+- Wagtail: ^2.15
+- Django: ^3.1
 - Postgres and SQLite Databases
+
+`All code examples are for a site using Wagtail v3.0+` See [Wagtail release notes](https://docs.wagtail.org/en/stable/releases/3.0.html) for compatibility for Wagtail versions <3.0
 
 ## Initial app and package setup
 
@@ -50,7 +52,7 @@ The importer uses the [requests](https://docs.python-requests.org/en/latest/) li
 If the default settings are not suitable for your import, you can add the settings below to your own site settings and override the values.
 
 ```python
-# package default settings
+# import package default settings
 
 WAGTAIL_WORDPRESS_IMPORTER_REQUESTS_SETTINGS = {
     "headers": { "User-Agent": "WagtailWordpressImporter" },
@@ -68,6 +70,7 @@ We recommend your page model inherits from the provided WPImportedPageMixin
 
 ```python
 from wagtail_wordpress_import.models import WPImportedPageMixin
+
 class PostPage(WPImportedPageMixin, Page):
     ...
 ```
@@ -78,19 +81,28 @@ You will need to run `python manage.py makemigrations` and `python manage.py mig
 
 #### A full example of the suggested page model class
 
-The import default is to import the `post` and `page` content types to an app called `pages` and a model called `PostPage`. Keep that mind when you create your own page model.
+The import default is to import the `post` and `page` content types to an app called `app` and a model called `PostPage`. Keep that mind when you create your own page model.
 
 ```python
-# mysite/pages/model.py
+# mysite/app/models.py
+# The imports below assume you are using Wagtail v3.0+
 
-from wagtail.admin.edit_handlers import (
+# Wagtail < 3.0
+# from wagtail.admin.edit_handlers (...)
+from wagtail.admin.panels import (
     FieldPanel,
     ObjectList,
-    StreamFieldPanel,
     TabbedInterface,
 )
-from wagtail.core.fields import StreamField
-from wagtail.core.models import Page
+
+# Wagtail < 3.0
+# from wagtail.core.fields import StreamField
+from wagtail.fields import StreamField
+
+# Wagtail < 3.0
+# from wagtail.core.models import Page
+from wagtail.models import Page
+
 from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin
 
@@ -98,7 +110,9 @@ from wagtail_wordpress_import.models import WPImportedPageMixin
 class PostPage(WPImportedPageMixin, Page):
     body = StreamField(WPImportStreamBlocks)
     content_panels = Page.content_panels + [
-        StreamFieldPanel("body"),
+        # Wagtail < 3.0
+        # StreamFieldPanel("body")
+        FieldPanel("body"),
     ]
 
     edit_handler = TabbedInterface(

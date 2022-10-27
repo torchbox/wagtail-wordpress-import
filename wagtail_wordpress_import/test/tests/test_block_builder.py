@@ -1,11 +1,12 @@
 import os
 
 import bs4
-import responses
 import requests
+import responses
 from bs4 import BeautifulSoup
 from django.test import TestCase, override_settings
 from wagtail.images import get_image_model
+
 from wagtail_wordpress_import.block_builder import BlockBuilder, conf_promote_child_tags
 from wagtail_wordpress_import.block_builder_defaults import (
     build_block_quote_block,

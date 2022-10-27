@@ -148,6 +148,14 @@ def construct_block(self, soup):
 For this example:
 
 ```python
+# The imports below assume you are using Wagtail v3.0+
+
+# Wagtail < 3.0
+# from wagtail.core import blocks
+from wagtail import blocks
+
+from wagtail.images.blocks import ImageChooserBlock
+
 class CardBlock(blocks.StructBlock):
   """The Wagtail block required for the card shortcode handler"""
 
