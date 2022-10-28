@@ -1,6 +1,6 @@
 repos:
   - repo: https://github.com/python/black
-    rev: 22.3.0
+    rev: 22.10.0
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/isort
@@ -8,6 +8,19 @@ repos:
     hooks:
       - id: isort
   - repo: https://gitlab.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 5.0.4
     hooks:
       - id: flake8
+  - repo: https://github.com/jackdewinter/pymarkdown
+    rev: main
+    hooks:
+        - id: pymarkdown
+          args:
+              - --disable-rules
+              - line-length
+              - scan
+  - repo: https://github.com/asottile/blacken-docs
+    rev: v1.12.1
+    hooks:
+      - id: blacken-docs
+        additional_dependencies: [black==22.10.0]

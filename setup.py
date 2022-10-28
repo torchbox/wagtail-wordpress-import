@@ -54,9 +54,9 @@ setup(
         "testing": [
             "freezegun==0.3.15",
             "responses>=0.16.0,<0.17.0",
-            "flake8==4.0.1",
+            "flake8==5.0.4",
             "isort==5.10.1",
-            "black==22.3.0",
+            "black==22.10.0",
         ],
     },
     zip_safe=False,
