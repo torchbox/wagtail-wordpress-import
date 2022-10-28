@@ -1,4 +1,4 @@
-name: xmlimport CI
+name: testing
 
 on:
   push:
@@ -16,25 +16,6 @@ permissions:
   contents: read # to fetch code (actions/checkout)
 
 jobs:
-
-  # linting:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #       with:
-  #         fetch-depth: 0
-  #     - name: Set up Python 3.9
-  #       uses: actions/setup-python@v2
-  #       with:
-  #         python-version: '3.9'
-  #     - name: Install Dependencies
-  #       run: pip install -e ".[testing]" -U pip setuptools wheel
-  #     - name: Flake8
-  #       run: flake8 wagtail_wordpress_import
-  #     - name: Isort
-  #       run: isort wagtail_wordpress_import --check
-  #     - name: Black
-  #       run: black wagtail_wordpress_import --check
 
   test-python:
     runs-on: ubuntu-latest
