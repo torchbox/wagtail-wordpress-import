@@ -17,12 +17,26 @@ from wagtail_wordpress_import.blocks import WPImportStreamBlocks
 from wagtail_wordpress_import.models import WPImportedPageMixin
 
 
+@register_snippet
+class Category(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+
+    panels = [FieldPanel("name")]
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = "category"
+        verbose_name_plural = "categories"
+
+
 class TestPage(WPImportedPageMixin, Page):
 
     streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
     body = StreamField(WPImportStreamBlocks, **streamfield_kwargs)
 
-    categories = ParentalManyToManyField("test.Category", blank=True)
+    categories = ParentalManyToManyField(Category, blank=True)
 
     content_panels = Page.content_panels + [
         FieldPanel("body") if WAGTAIL_VERSION >= (3, 0) else StreamFieldPanel("body"),
@@ -48,17 +62,3 @@ class TestPage(WPImportedPageMixin, Page):
 
         # own model fields
         self.body = data["body"]
-
-
-@register_snippet
-class Category(models.Model):
-    name = models.CharField(max_length=255, unique=True)
-
-    panels = [FieldPanel("name")]
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        verbose_name = "category"
-        verbose_name_plural = "categories"
