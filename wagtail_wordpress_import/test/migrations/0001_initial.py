@@ -19,6 +19,8 @@ streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else 
 
 class Migration(migrations.Migration):
 
+    streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
+
     initial = True
 
     dependencies = [
@@ -72,22 +74,22 @@ class Migration(migrations.Migration):
                 ("wp_post_meta", models.JSONField(blank=True, null=True)),
                 (
                     "body",
-                    wagtail.fields.StreamField(
+                    wagtail_fields.StreamField(
                         [
-                            ("rich_text", wagtail.blocks.RichTextBlock()),
+                            ("rich_text", wagtail_blocks.RichTextBlock()),
                             (
                                 "heading",
-                                wagtail.blocks.StructBlock(
+                                wagtail_blocks.StructBlock(
                                     [
                                         (
                                             "text",
-                                            wagtail.blocks.CharBlock(
+                                            wagtail_blocks.CharBlock(
                                                 form_classname="title"
                                             ),
                                         ),
                                         (
                                             "importance",
-                                            wagtail.blocks.ChoiceBlock(
+                                            wagtail_blocks.ChoiceBlock(
                                                 choices=[
                                                     ("h1", "H1"),
                                                     ("h2", "H2"),
@@ -103,7 +105,7 @@ class Migration(migrations.Migration):
                             ),
                             (
                                 "image",
-                                wagtail.blocks.StructBlock(
+                                wagtail_blocks.StructBlock(
                                     [
                                         (
                                             "image",
@@ -111,15 +113,15 @@ class Migration(migrations.Migration):
                                         ),
                                         (
                                             "caption",
-                                            wagtail.blocks.CharBlock(required=False),
+                                            wagtail_blocks.CharBlock(required=False),
                                         ),
                                         (
                                             "link",
-                                            wagtail.blocks.URLBlock(required=False),
+                                            wagtail_blocks.URLBlock(required=False),
                                         ),
                                         (
                                             "alignment",
-                                            wagtail.blocks.ChoiceBlock(
+                                            wagtail_blocks.ChoiceBlock(
                                                 choices=[
                                                     ("left", "Left"),
                                                     ("right", "Right"),
@@ -132,24 +134,24 @@ class Migration(migrations.Migration):
                             ),
                             (
                                 "block_quote",
-                                wagtail.blocks.StructBlock(
+                                wagtail_blocks.StructBlock(
                                     [
                                         (
                                             "quote",
-                                            wagtail.blocks.CharBlock(
+                                            wagtail_blocks.CharBlock(
                                                 form_classname="title"
                                             ),
                                         ),
                                         (
                                             "attribution",
-                                            wagtail.blocks.CharBlock(required=False),
+                                            wagtail_blocks.CharBlock(required=False),
                                         ),
                                     ]
                                 ),
                             ),
-                            ("raw_html", wagtail.blocks.RawHTMLBlock()),
+                            ("raw_html", wagtail_blocks.RawHTMLBlock()),
                         ],
-                        use_json_field=True,
+                        **streamfield_kwargs,
                     ),
                 ),
                 (
