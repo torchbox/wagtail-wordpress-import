@@ -15,7 +15,7 @@ BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 LOG_DIR = "fakedir"
 IMPORTER_RUN_PARAMS_TEST = {
-    "app_for_pages": "test",
+    "app_for_pages": "wagtail_wordpress_import_test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["post", "page"],
@@ -161,7 +161,7 @@ class WordpressImporterTests(TestCase):
 
 
 IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
-    "app_for_pages": "example",
+    "app_for_pages": "wagtail_wordpress_import_test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["post"],
@@ -213,7 +213,7 @@ class WordpressImporterTestsYoastEnabled(TestCase):
 
 
 IMPORTER_RUN_PARAMS_TEST_OVERRIDE_2 = {
-    "app_for_pages": "example",
+    "app_for_pages": "wagtail_wordpress_import_test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["testpostmeta"],
@@ -260,7 +260,7 @@ class WordpressImporterTestsYoastEnabledMissingTag(TestCase):
 
 
 IMPORTER_RUN_PARAMS_TEST_OVERRIDE_3 = {
-    "app_for_pages": "example",
+    "app_for_pages": "wagtail_wordpress_import_test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["postmetachanged"],

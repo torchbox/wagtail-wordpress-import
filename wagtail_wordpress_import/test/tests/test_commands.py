@@ -59,7 +59,13 @@ class TestImportXmlCommandWithConfig(TestCase):
             # In testing there is no log folder
             # the command should raise this as an error
             call_command(
-                "import_xml", built_file, "2", "-a", "example", "-m", "TestPage"
+                "import_xml",
+                built_file,
+                "2",
+                "-a",
+                "wagtail_wordpress_import_test",
+                "-m",
+                "TestPage",
             )
 
 
@@ -119,7 +125,7 @@ class TestImportXmlCommandCompletes(TestCase):
                 built_file,
                 "2",
                 "-a",
-                "example",
+                "wagtail_wordpress_import_test",
                 "-m",
                 "TestPage",
                 "-t",

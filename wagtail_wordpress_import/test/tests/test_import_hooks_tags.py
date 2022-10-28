@@ -142,7 +142,7 @@ class WordpressImporterTestsCheckXmlTagsNotCached(TestCase):
         self.logger = Logger(LOG_DIR)
         self.importer.run(
             logger=self.logger,
-            app_for_pages="example",
+            app_for_pages="wagtail_wordpress_import_test",
             model_for_pages="TestPage",
             parent_id=2,
             page_types=["post"],
