@@ -52,7 +52,6 @@ setup(
     ],
     extras_require={
         "testing": [
-            "dj-database-url==0.5.0",
             "freezegun==0.3.15",
             "responses>=0.16.0,<0.17.0",
             "flake8==4.0.1",
