@@ -3,27 +3,16 @@
 import django.db.models.deletion
 import modelcluster.fields
 from django.db import migrations, models
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     import wagtail.blocks as wagtail_blocks
-except ImportError:
-    import wagtail.core.blocks as wagtail_blocks
-try:
     import wagtail.fields as wagtail_fields
-except ImportError:
+else:
+    import wagtail.core.blocks as wagtail_blocks
     import wagtail.core.fields as wagtail_fields
 
 import wagtail.images.blocks
-from wagtail import VERSION as WAGTAIL_VERSION
-
-if WAGTAIL_VERSION > (2, 14):
-    dependencies = [
-        ("wagtailcore", "0066_collection_management_permissions"),
-    ]
-elif WAGTAIL_VERSION > (2, 16):
-    dependencies = [
-        ("wagtailcore", "0069_log_entry_jsonfield"),
-    ]
 
 streamfield_kwargs = {"use_json_field": True} if WAGTAIL_VERSION >= (3, 0) else {}
 
@@ -32,7 +21,9 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = dependencies
+    dependencies = [
+        ("wagtailcore", "0066_collection_management_permissions"),
+    ]
 
     operations = [
         migrations.CreateModel(

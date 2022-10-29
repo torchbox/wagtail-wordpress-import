@@ -1,13 +1,11 @@
 from django.db import models
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail.admin.panels import FieldPanel, FieldRowPanel
-except ImportError:
-    from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
-
-try:
     from wagtail.models import Page
-except ImportError:
+else:
+    from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
     from wagtail.core.models import Page
 
 
