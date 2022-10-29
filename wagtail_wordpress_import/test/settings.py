@@ -37,7 +37,6 @@ WAGTAIL_CORE = "wagtail" if WAGTAIL_VERSION >= (3, 0) else "wagtail.core"
 INSTALLED_APPS = [
     "wagtail_wordpress_import",
     "wagtail_wordpress_import.test",
-    "example",
     "wagtail.contrib.search_promotions",
     "wagtail.contrib.forms",
     "wagtail.contrib.redirects",
@@ -166,3 +165,8 @@ DEFAULT_AUTO_FIELD = "django.db.models.AutoField"
 # Wagtail settings
 
 WAGTAIL_SITE_NAME = "Wagtail xmlimport test site"
+
+if WAGTAIL_VERSION >= (3, 0):
+    WAGTAILADMIN_BASE_URL = "http://localhost:8000"
+
+WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN = "http://example.com"
