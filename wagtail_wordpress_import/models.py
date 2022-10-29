@@ -27,18 +27,35 @@ class WPImportedPageMixin(Page):
             "import_wordpress_data() method not implemented in your page model"
         )
 
-    wordpress_panels = [
-        FieldRowPanel(
-            [
-                FieldPanel("wp_post_id"),
-                FieldPanel("wp_post_type"),
-            ],
-            heading="wp data",
-        ),
-        FieldPanel("wp_link", classname="full title"),
-        FieldPanel("wp_block_json", classname="full"),
-        FieldPanel("wp_processed_content", classname="full"),
-        FieldPanel("wp_normalized_styles", classname="full"),
-        FieldPanel("wp_raw_content", classname="full"),
-        FieldPanel("wp_post_meta", classname="full"),
-    ]
+    if WAGTAIL_VERSION >= (3, 0):
+        wordpress_panels = [
+            FieldRowPanel(
+                [
+                    FieldPanel("wp_post_id"),
+                    FieldPanel("wp_post_type"),
+                ],
+                heading="wp data",
+            ),
+            FieldPanel("wp_link", classname="title"),
+            FieldPanel("wp_block_json"),
+            FieldPanel("wp_processed_content"),
+            FieldPanel("wp_normalized_styles"),
+            FieldPanel("wp_raw_content"),
+            FieldPanel("wp_post_meta"),
+        ]
+    else:
+        wordpress_panels = [
+            FieldRowPanel(
+                [
+                    FieldPanel("wp_post_id"),
+                    FieldPanel("wp_post_type"),
+                ],
+                heading="wp data",
+            ),
+            FieldPanel("wp_link", classname="full title"),
+            FieldPanel("wp_block_json", classname="full"),
+            FieldPanel("wp_processed_content", classname="full"),
+            FieldPanel("wp_normalized_styles", classname="full"),
+            FieldPanel("wp_raw_content", classname="full"),
+            FieldPanel("wp_post_meta", classname="full"),
+        ]
