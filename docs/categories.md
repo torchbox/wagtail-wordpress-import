@@ -42,6 +42,7 @@ from wagtail.snippets import register_snippet
 # from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.admin.panels import FieldPanel
 
+
 @register_snippet
 class Category(models.Model):
     name = models.CharField(max_length=255)
@@ -71,9 +72,10 @@ from modelcluster.fields import ParentalManyToManyField
 # from wagtail.admin.edit_handlers import FieldPanel
 from wagtail.admin.panels import FieldPanel
 
+
 class MyPage(Page):
     categories = ParentalManyToManyField(Category, blank=True)
-    ... your own extra fields can also be included.
+    # ... your own extra fields can also be included.
 
     content_panels = Page.content_panels + [
         FieldPanel("categories", widget=forms.CheckboxSelectMultiple),

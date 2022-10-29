@@ -48,7 +48,6 @@ from wagtail_wordpress_import.prefilters.handle_shortcodes import (
 class AnchorImageHandler(BlockShortcodeHandler):
     # shortcode name is required and is used to create a unique HTML tag.
     shortcode_name = "anchor_image"
-    
 
     def pre_filter(self, string):
         # This method is required and will be called to transform a specific

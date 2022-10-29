@@ -1,13 +1,11 @@
 from django.db import models
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail.admin.panels import FieldPanel, FieldRowPanel
-except ImportError:
-    from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
-
-try:
     from wagtail.models import Page
-except ImportError:
+else:
+    from wagtail.admin.edit_handlers import FieldPanel, FieldRowPanel
     from wagtail.core.models import Page
 
 
@@ -29,18 +27,35 @@ class WPImportedPageMixin(Page):
             "import_wordpress_data() method not implemented in your page model"
         )
 
-    wordpress_panels = [
-        FieldRowPanel(
-            [
-                FieldPanel("wp_post_id"),
-                FieldPanel("wp_post_type"),
-            ],
-            heading="wp data",
-        ),
-        FieldPanel("wp_link", classname="full title"),
-        FieldPanel("wp_block_json", classname="full"),
-        FieldPanel("wp_processed_content", classname="full"),
-        FieldPanel("wp_normalized_styles", classname="full"),
-        FieldPanel("wp_raw_content", classname="full"),
-        FieldPanel("wp_post_meta", classname="full"),
-    ]
+    if WAGTAIL_VERSION >= (3, 0):
+        wordpress_panels = [
+            FieldRowPanel(
+                [
+                    FieldPanel("wp_post_id"),
+                    FieldPanel("wp_post_type"),
+                ],
+                heading="wp data",
+            ),
+            FieldPanel("wp_link", classname="title"),
+            FieldPanel("wp_block_json"),
+            FieldPanel("wp_processed_content"),
+            FieldPanel("wp_normalized_styles"),
+            FieldPanel("wp_raw_content"),
+            FieldPanel("wp_post_meta"),
+        ]
+    else:
+        wordpress_panels = [
+            FieldRowPanel(
+                [
+                    FieldPanel("wp_post_id"),
+                    FieldPanel("wp_post_type"),
+                ],
+                heading="wp data",
+            ),
+            FieldPanel("wp_link", classname="full title"),
+            FieldPanel("wp_block_json", classname="full"),
+            FieldPanel("wp_processed_content", classname="full"),
+            FieldPanel("wp_normalized_styles", classname="full"),
+            FieldPanel("wp_raw_content", classname="full"),
+            FieldPanel("wp_post_meta", classname="full"),
+        ]

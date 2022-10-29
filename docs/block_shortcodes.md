@@ -73,7 +73,7 @@ Create you shortcode handler class.
 
 ```python
 class CardShortcodeHandler(BlockShortcodeHandler):
-  shortcode_name = "card"
+    shortcode_name = "card"
 ```
 
 The card custom HTML tag:
@@ -99,7 +99,7 @@ Decorate your class:
 ```python
 @register()
 class CardShortcodeHandler(BlockShortcodeHandler):
-  shortcode_name = "card"
+    shortcode_name = "card"
 ```
 
 In this card example your class will then transform the Wordpress shortcode to a custom HTML tag with the name `wagtail_block_card` during the import process.
@@ -112,35 +112,32 @@ A basic example:
 
 ```python
 def construct_block(self, soup):
-  """Assuming the card has a `title` and `image` for its HTML content
-  As the `soup` parameter is a BeautifulSoup tag object you can use its methods to extract the data you need.
-  """
+    """Assuming the card has a `title` and `image` for its HTML content
+    As the `soup` parameter is a BeautifulSoup tag object you can use its methods to extract the data you need.
+    """
 
-  # parse the title
-  try:
-      title = soup.text.replace("\n", "").strip()
-  except (KeyError, AttributeError, TypeError):
-      title = ""
+    # parse the title
+    try:
+        title = soup.text.replace("\n", "").strip()
+    except (KeyError, AttributeError, TypeError):
+        title = ""
 
-  # parse the image
-  try:
-      # get_or_save_image() is not included in the shortcode handler
-      # it is included in the package and can be used if required
-      # [source](wagtail_wordpress_import/block_builder_defaults.py#L222)
-      image = soup.find("img")
-      image_file = get_or_save_image(image.attrs["src"])
-      image_id = image_file.id
-  except (KeyError, AttributeError, TypeError):
-      image_id = None
+    # parse the image
+    try:
+        # get_or_save_image() is not included in the shortcode handler
+        # it is included in the package and can be used if required
+        # [source](wagtail_wordpress_import/block_builder_defaults.py#L222)
+        image = soup.find("img")
+        image_file = get_or_save_image(image.attrs["src"])
+        image_id = image_file.id
+    except (KeyError, AttributeError, TypeError):
+        image_id = None
 
-  # You can only return a single block type here but your block could contain child blocks.
-  return {
-      "type": "card_block",
-      "value": {
-        "title": title,
-        "image": image_id 
-      },
-  }
+    # You can only return a single block type here but your block could contain child blocks.
+    return {
+        "type": "card_block",
+        "value": {"title": title, "image": image_id},
+    }
 ```
 
 **Part 3** The `type` of block in the dict you return will need a block and block template defined in your app and be available on the page model you are importing to.
@@ -156,15 +153,16 @@ from wagtail import blocks
 
 from wagtail.images.blocks import ImageChooserBlock
 
+
 class CardBlock(blocks.StructBlock):
-  """The Wagtail block required for the card shortcode handler"""
+    """The Wagtail block required for the card shortcode handler"""
 
-  title = blocks.CharBlock(required=False)
-  image_file = ImageChooserBlock()
+    title = blocks.CharBlock(required=False)
+    image_file = ImageChooserBlock()
 
-  class Meta:
-    # in this example the card block will need a template
-    template = "path/to/block/templates/card_block.html"
+    class Meta:
+        # in this example the card block will need a template
+        template = "path/to/block/templates/card_block.html"
 ```
 
 The template could be:

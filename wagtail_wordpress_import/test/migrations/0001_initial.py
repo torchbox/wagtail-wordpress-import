@@ -2,17 +2,17 @@
 
 import django.db.models.deletion
 import modelcluster.fields
+from django.db import migrations, models
 from wagtail import VERSION as WAGTAIL_VERSION
 
 if WAGTAIL_VERSION >= (3, 0):
-    from wagtail import blocks as wagtail_blocks
-    from wagtail import fields as wagtail_fields
+    import wagtail.blocks as wagtail_blocks
+    import wagtail.fields as wagtail_fields
 else:
-    from wagtail.core import blocks as wagtail_blocks
-    from wagtail.core import fields as wagtail_fields
+    import wagtail.core.blocks as wagtail_blocks
+    import wagtail.core.fields as wagtail_fields
 
 import wagtail.images.blocks
-from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

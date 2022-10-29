@@ -5,10 +5,11 @@ from xml.dom import pulldom
 
 from django.conf import settings
 from django.test import TestCase, override_settings
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail.models import Page
-except ImportError:
+else:
     from wagtail.core.models import Page
 
 from wagtail_wordpress_import.functions import node_to_dict

@@ -1,111 +1,37 @@
-name: xmlimport CI
+name: testing
 
 on:
   push:
     branches:
       - main
+      - 'stable/**'
 
   pull_request:
-    branches:
-      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read # to fetch code (actions/checkout)
 
 jobs:
-  linting:
+
+  test-python:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-      - name: Set up Python 3.9
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.9'
-      - name: Install Dependencies
-        run: pip install -e ".[testing]" -U pip setuptools wheel
-      - name: Flake8
-        run: flake8 wagtail_wordpress_import
-      - name: Isort
-        run: isort wagtail_wordpress_import --check
-      - name: Black
-        run: black wagtail_wordpress_import --check
-  test-sqlite:
-    runs-on: ubuntu-latest
-    needs: linting
     strategy:
       matrix:
-        python: ['3.7', '3.8', '3.9', '3.10']
-        django: ['3.1', '3.2']
-        wagtail: ['2.15']
-        include: 
-          - python: '3.9'
-            django: '3.2'
-            wagtail: '2.16'
-          - python: '3.10'
-            django: '4.0'
-            wagtail: '3.0'
+        python: ["3.7", "3.8", "3.9", "3.10"]
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
-      - name: Install Tox
+      - name: Install dependencies
         run: |
-          python -m pip install tox
-      - name: Test
-        run: |
-          tox
-        env:
-          TOXENV: python${{ matrix.python }}-django${{ matrix.django }}-wagtail${{ matrix.wagtail }}-sqlite
-      - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-
-  test-postgres:
-    runs-on: ubuntu-latest
-    needs: linting
-    strategy:
-      matrix:
-        python: ['3.7', '3.8', '3.9', '3.10']
-        django: ['3.1', '3.2']
-        wagtail: ['2.15']
-        include: 
-          - python: '3.9'
-            django: '3.2'
-            wagtail: '2.16'
-          - python: '3.10'
-            django: '4.0'
-            wagtail: '3.0'
-
-    services:
-      postgres:
-        image: postgres:12.7
-        env:
-          POSTGRES_PASSWORD: postgres
-        ports:
-          - 5432:5432
-        options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v2
-      - name: Set up Python ${{ matrix.python }}
-        uses: actions/setup-python@v2
-        with:
-          python-version: ${{ matrix.python }}
-      - name: Install Tox
-        run: |
-          python -m pip install tox
-      - name: Test
-        run: |
-          tox
-        env:
-          DATABASE_URL: postgres://postgres:postgres@localhost:5432/wagtail_wordpress_import
-          TOXENV: python${{ matrix.python }}-django${{ matrix.django }}-wagtail${{ matrix.wagtail }}-postgres
-      - name: "Upload coverage to Codecov"
-        uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
+          python -m pip install --upgrade pip
+          python -m pip install tox tox-gh-actions
+      - name: Test with tox
+        run: tox

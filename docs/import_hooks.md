@@ -107,9 +107,9 @@ Add the following configuration to your site settings file
 
 ```python
 WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE = {
-    "attachment": { 
-        "DATA_TAG": "thumbnail_id", 
-        "FUNCTION": "pages.import_hooks.header_image_processor", 
+    "attachment": {
+        "DATA_TAG": "thumbnail_id",
+        "FUNCTION": "pages.import_hooks.header_image_processor",
     }
 }
 ```
@@ -135,7 +135,7 @@ from wagtail_wordpress_import.block_builder_defaults import get_or_save_image
 
 def header_image_processor(imported_pages, data_tag, items_cache):
     """
-    imported_pages: 
+    imported_pages:
         Is a specific() page model queryset of all imported pages.
     data_tag:
         Is the value of the `DATA_TAG` key from the configuration above.
@@ -150,21 +150,21 @@ def header_image_processor(imported_pages, data_tag, items_cache):
         # The id of the cached item used in the filter
         thumbnail_id = attachment.get("wp:post_id")
 
-        # Filter the imported_pages for only pages that include the 
+        # Filter the imported_pages for only pages that include the
         # matching thumbnail_id in the wp_post_meta field
         pages = imported_pages.filter(**{lookup: thumbnail_id})
 
         if pages.exists():
 
-            # guid is the url of the image to fetch, the get_or_save_image() 
+            # guid is the url of the image to fetch, the get_or_save_image()
             # function will fetch the image if it doesn't exist
             image = get_or_save_image(attachment.get("guid"))
 
-            # update header_image field in all of the pages in 
+            # update header_image field in all of the pages in
             # the queryset with the image object
             pages.update(header_image=image)
 
-            # the print statement below is optional 
+            # the print statement below is optional
             # and will show the progress in the console
             print("Attaching header images to pages:", pages)
 ```
@@ -174,21 +174,22 @@ def header_image_processor(imported_pages, data_tag, items_cache):
 ```python
 """A sample page model thats has a header image field"""
 
+
 class PostPage(WPImportedPageMixin, Page):
-    # WPImportedPageMixin is optional, but recommended 
+    # WPImportedPageMixin is optional, but recommended
     # when running the import process
-    ...
+    # ...
     header_image = models.ForeignKey(
         "wagtailimages.Image",
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
     )
-    ...
+    # ...
     content_panels = Page.content_panels + [
-        ...
+        # ...
         ImageChooserPanel("header_image"),
-        ...
+        # ...
     ]
 ```
 
@@ -280,7 +281,7 @@ from pages.models import Author  # a snippet model for authors
 
 def author_processor(imported_pages, data_tag, tags_cache):
     """
-    imported_pages: 
+    imported_pages:
         Is a specific() page model queryset of all imported pages.
     data_tag:
         Is the value of the `DATA_TAG` key from the configuration above.
@@ -295,7 +296,7 @@ def author_processor(imported_pages, data_tag, tags_cache):
         # the reference tag to use to for the data value
         author_login = author.get("wp:author_login")
 
-        # Filter the imported_pages for only pages that include the 
+        # Filter the imported_pages for only pages that include the
         # matching dc_creator in the wp_post_meta field
         pages = imported_pages.filter(**{lookup: author_login})
 
@@ -314,7 +315,7 @@ def author_processor(imported_pages, data_tag, tags_cache):
             )
             email_address = author.get("wp:author_email")
 
-            # author is snippet model but you can use any 
+            # author is snippet model but you can use any
             # model type that you have created in your own Wagtail site
             author, created = Author.objects.get_or_create(
                 first_name=first_name,
@@ -323,11 +324,11 @@ def author_processor(imported_pages, data_tag, tags_cache):
             )
 
             if pages.exists():
-                # update author field in all of the pages in 
+                # update author field in all of the pages in
                 # the queryset with the author object
                 pages.update(author=author)
 
-                # the print statement below is optional 
+                # the print statement below is optional
                 # and will show the progress in the console
                 print("Attaching authors to pages:", pages)
 ```
@@ -335,7 +336,8 @@ def author_processor(imported_pages, data_tag, tags_cache):
 ### Sample page model with author field
 
 ```python
-"""A sample page model thats has a header image field"""
+# A sample page model thats has a header image field
+
 # The imports below assume you are using Wagtail v3.0+
 
 # Wagtail < 3.0
@@ -346,22 +348,23 @@ from wagtail.models import Page
 # from wagtail.admin.edit
 from wagtail.admin.panels import FieldPanel
 
+
 class PostPage(WPImportedPageMixin, Page):
-    # WPImportedPageMixin is optional, but recommended 
+    # WPImportedPageMixin is optional, but recommended
     # when running the import process
-    ...
+    # ...
     author = models.ForeignKey(
         "pages.Author",
         blank=True,
         null=True,
         on_delete=models.SET_NULL,
     )
-    ...
+    # ...
     content_panels = Page.content_panels + [
-        ...
+        # ...
         # Wagtail < 3.0
         # SnippetChooserPanel("author"),
-        FieldPanel("author"s)
-        ...
+        FieldPanel("author")
+        # ...
     ]
 ```

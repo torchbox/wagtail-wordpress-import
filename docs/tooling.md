@@ -103,7 +103,7 @@ When running an import you may encounter errors in the console.
 
 If the import starts and stops with the error `'NoneType' object has no attribute '_inc_path'` then you should try running the following command.
 
-```python
+```bash
 python manage.py fixtree
 ```
 
