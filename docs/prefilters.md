@@ -81,7 +81,7 @@ This filter will parse the body content for Wordpress shortcodes and convert the
 
 This is the last pre-filter to be run on the content. It removes HTML tags and attributes that aren't included in a range of `ALLOWED_TAGS`, `ALLOWED_ATTRIBUTES` and `ALLOWED_STYLES` configuration settings.
 
-It's possible to add new Tags and Attributes to the configuration to suit your own use case. For the use of bleach's configuration options, see https://bleach.readthedocs.io/en/latest/.
+It's possible to add new Tags and Attributes to the configuration to suit your own use case. For the use of bleach's configuration options, see <https://bleach.readthedocs.io/en/latest/>
 
 ---
 
@@ -93,19 +93,19 @@ Default pre-filter configuration:
 
 ```python
 WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
-        },
-        {
-            "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-        },
-    ]
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.linebreaks_wp",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_shortcodes",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.transform_inline_styles",
+    },
+    {
+        "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
+    },
+]
 ```
 
 The order the pre-filters are run will have an impact on the final HTML output. *If you change the order or exclude filters you may see unexpected results with the block building process.*
@@ -149,10 +149,7 @@ WAGTAIL_WORDPRESS_IMPORT_PREFILTERS = [
     },
     {
         "FUNCTION": "wagtail_wordpress_import.prefilters.bleach_clean",
-        "OPTIONS": {
-            "ADDITIONAL_ALLOWED_TAGS": ["my-custom-tag"]
-        }
-        
+        "OPTIONS": {"ADDITIONAL_ALLOWED_TAGS": ["my-custom-tag"]},
     },
 ]
 ```

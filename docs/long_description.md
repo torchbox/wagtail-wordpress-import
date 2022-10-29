@@ -26,4 +26,3 @@ The package has been developed and tested with:
 - [WordPress Block Shortcodes](https://github.com/torchbox/wagtail-wordpress-import/blob/main/docs/block_shortcodes.md)
 - [WordPress Inline Shortcodes](https://github.com/torchbox/wagtail-wordpress-import/blob/main/docs/inline_shortcodes.md)
 - [Yoast Import](https://github.com/torchbox/wagtail-wordpress-import/blob/main/docs/yoast.md)
-
