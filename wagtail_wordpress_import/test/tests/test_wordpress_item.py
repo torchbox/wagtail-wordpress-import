@@ -12,7 +12,6 @@ try:
 except ImportError:
     from wagtail.core.models import Page
 
-from example.models import Category
 from wagtail_wordpress_import.functions import node_to_dict
 from wagtail_wordpress_import.importers.wordpress import (
     DEFAULT_PREFILTERS,
@@ -20,12 +19,13 @@ from wagtail_wordpress_import.importers.wordpress import (
     WordpressItem,
 )
 from wagtail_wordpress_import.logger import Logger
+from wagtail_wordpress_import.test.models import Category
 
 BASE_PATH = os.path.dirname(os.path.dirname(__file__))
 FIXTURES_PATH = BASE_PATH + "/fixtures"
 LOG_DIR = "fakedir"
 IMPORTER_RUN_PARAMS_TEST = {
-    "app_for_pages": "example",
+    "app_for_pages": "wagtail_wordpress_import_test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["post", "page"],
@@ -130,11 +130,11 @@ class WordpressItemTests(TestCase):
 @override_settings(
     WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://localhost:8000",
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
-    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="wagtail_wordpress_import.test.models.Category",
 )  # testing requires a live domain for requests to use, this is something I need to change before package release
 # mocking of somesort, using localhost:8000 for now
 class WordpressItemImportTests(TestCase):
-    from example.models import Category
+    # from wagtail_wordpress_import.test.models import Category
 
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",
@@ -191,11 +191,11 @@ class WordpressItemImportTests(TestCase):
 @override_settings(
     WAGTAIL_WORDPRESS_IMPORTER_SOURCE_DOMAIN="http://localhost:8000",
     WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_ENABLED=True,
-    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="example.models.Category",
+    WAGTAIL_WORDPRESS_IMPORT_CATEGORY_PLUGIN_MODEL="wagtail_wordpress_import.test.models.Category",
 )  # testing requires a live domain for requests to use, this is something I need to change before package release
 # mocking of somesort, using localhost:8000 for now
 class WordpressItemImportTestsNoCategories(TestCase):
-    from example.models import Category
+    # from wagtail_wordpress_import.test.models import Category
 
     fixtures = [
         f"{FIXTURES_PATH}/dump.json",
@@ -227,7 +227,7 @@ class WordpressItemImportTestsNoCategories(TestCase):
 
 
 IMPORTER_RUN_PARAMS_TEST_OVERRIDE_1 = {
-    "app_for_pages": "example",
+    "app_for_pages": "wagtail_wordpress_import.test",
     "model_for_pages": "TestPage",
     "parent_id": "2",
     "page_types": ["post"],
