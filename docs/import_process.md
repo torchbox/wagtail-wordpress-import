@@ -8,7 +8,9 @@ python manage.py import_xml path/to/xml/file.xml parent_page_id
 
 but what happens afterwards is complicated, and highly configurable:
 
+```html
 <img src="import-flow-diagram.png">
+```
 
 ## `import_xml` Command
 
@@ -35,13 +37,13 @@ The item is processed for any categories, if that feature is enabled. See [Categ
 The item is cleaned. This:
 
 - Cleans various fields, including:
-    - trimming whitespace from text fields
-    - validating dates
-    - formatting slugs
-    - SEO-related fields (see also [Yoast Plugin documentation](yoast.md))
+- - trimming whitespace from text fields
+- - validating dates
+- - formatting slugs
+- - SEO-related fields (see also [Yoast Plugin documentation](yoast.md))
 - Pre-filters the body field, to clean up WordPress quirks of the HTML. Pre-filters are a series of cumulative functions. These are configurable. See [Pre-filters](prefilters.md).
 - Converts the body to a series of StreamField blocks. The mapping of HTML to StreamField blocks is configurable. See [Block Builder](blockbuilder.md).
-    - This stage also includes importing images from the source site, and modifying HTML `img` tags to link to the imported Image instance instead.
+- - This stage also includes importing images from the source site, and modifying HTML `img` tags to link to the imported Image instance instead.
 - Converts any `wp:post_meta` tag nodes to a dict, which we can query later using Django's JSONField.
 
 ### Update and save the page

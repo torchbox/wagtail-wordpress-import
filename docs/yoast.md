@@ -1,9 +1,11 @@
+# Contents
+
 - [Yoast plugin compatibility](#yoast-plugin-compatibility)
   - [Search description default behaviour](#search-description-default-behaviour)
   - [Enable the yoast plugin](#enable-the-yoast-plugin)
   - [Change the imported fields](#change-the-imported-fields)
 
-# Yoast plugin compatibility
+## Yoast plugin compatibility
 
 The package has built in configuration to include Wordpress yoast search descriptions during the import.
 
@@ -22,6 +24,7 @@ The yoast plugin feature can be enabled by adding the following configuration to
 ```python
 WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_ENABLED = True
 ```
+
 ## Change the imported fields
 
 The package has a default mapping for Wordpress search descriptions. There is no need to add this configuration to your settings.
@@ -31,10 +34,12 @@ If you do need to change the field names because your Wordpress site is setup di
 The configuration below is the default included in the package.
 
 ```python
-WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING = {
-    "xml_item_key": "wp:postmeta",
-    "description_key": "wp:meta_key",
-    "description_value": "wp:meta_value",
-    "description_key_value": "_yoast_wpseo_metadesc",
-},
+WAGTAIL_WORDPRESS_IMPORT_YOAST_PLUGIN_MAPPING = (
+    {
+        "xml_item_key": "wp:postmeta",
+        "description_key": "wp:meta_key",
+        "description_value": "wp:meta_value",
+        "description_key_value": "_yoast_wpseo_metadesc",
+    },
+)
 ```

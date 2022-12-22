@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
-import dj_database_url
 from wagtail import VERSION as WAGTAIL_VERSION
 
 # Build paths inside the project like this: os.path.join(PROJECT_DIR, ...)
@@ -114,9 +113,10 @@ PASSWORD_HASHERS = ("django.contrib.auth.hashers.MD5PasswordHasher",)
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
 
 DATABASES = {
-    "default": dj_database_url.config(
-        default="sqlite:///test_wagtail_wordpress_import.db"
-    ),
+    "default": {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.path.join(BASE_DIR, "test_wagtail_wordpress_import.db"),
+    }
 }
 
 

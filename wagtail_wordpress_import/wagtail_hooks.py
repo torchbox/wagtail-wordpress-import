@@ -1,9 +1,10 @@
 from django.urls import include, path
 from django.views.i18n import JavaScriptCatalog
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail import hooks
-except ImportError:
+else:
     from wagtail.core import hooks
 
 

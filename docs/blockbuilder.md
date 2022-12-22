@@ -85,6 +85,7 @@ Wagtail Block:
 # from wagtail.core import blocks
 from wagtail import blocks
 
+
 class HeadingBlock(blocks.StructBlock):
     text = blocks.CharBlock(classname="title")
     importance = blocks.ChoiceBlock(
@@ -183,6 +184,7 @@ from wagtail import blocks
 
 from wagtail.images.blocks import ImageChooserBlock
 
+
 class ImageBlock(blocks.StructBlock):
     image = ImageChooserBlock()
     caption = blocks.CharBlock(required=False)
@@ -213,6 +215,7 @@ Wagtail Block:
 # Wagtail < 3.0
 # from wagtail.core import blocks
 from wagtail import blocks
+
 
 class QuoteBlock(blocks.StructBlock):
     quote = blocks.CharBlock(form_classname="title")
@@ -353,15 +356,15 @@ and create a filter function in your own Wagtail site which will receive a singl
 ```python
 def my_block_quote(tag):
     """Return a Python dict with the block type and value.
-    
+
     The value could contain child blocks, depending on your implementation.
     """
     return {
         "type": "block_quote_block",  # the StreamField block type name
         "value": {
-            "quote": tag.text.strip(), 
+            "quote": tag.text.strip(),
             "attribution": tag.cite,
-        }
+        },
     }
 ```
 
@@ -376,13 +379,14 @@ Wagtail Block:
 # from wagtail.core import blocks
 from wagtail import blocks
 
+
 class MyQuoteBlock(blocks.StructBlock):
     quote = blocks.CharBlock()
     attribution = blocks.CharBlock(required=False)
 
     class Meta:
         # choose the icon thats most appropriate here
-        icon = "openquote" 
+        icon = "openquote"
         # and also define a template for the block
         template = "templates/blocks/my_quote_block.html"
 ```
@@ -401,6 +405,7 @@ from wagtail.fields import StreamField
 # from wagtail.admin.edit_handlers import StreamFieldPanel
 from wagtail.admin.panels import FieldPanel
 
+
 class MyPage(Page):
     body = StreamField(MyStreamBlocks(), required=False)
     ...
@@ -412,11 +417,13 @@ class MyPage(Page):
     ]
     ...
 
+
 # your Wagtail stream block class
 
 # Wagtail < 3.0
-# from wagtail.core import blocks 
+# from wagtail.core import blocks
 from wagtail import blocks
+
 
 class MyStreamBlocks(blocks.StreamBlock):
     block_quote_block = MyQuoteBlock()

@@ -1,9 +1,10 @@
 from django.apps import apps
 from django.core.management.base import BaseCommand
+from wagtail import VERSION as WAGTAIL_VERSION
 
-try:
+if WAGTAIL_VERSION >= (3, 0):
     from wagtail.models import Page
-except ImportError:
+else:
     from wagtail.core.models import Page
 
 

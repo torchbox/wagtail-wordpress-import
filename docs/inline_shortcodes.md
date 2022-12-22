@@ -42,7 +42,7 @@ All shortcodes of the type `[stock symbol="any-valid-symbol"]` will be transform
 
 # import the base handler class
 from wagtail_wordpress_import.handle_inline_shortcodes import (
-    InlineShortcodeHandler, 
+    InlineShortcodeHandler,
 )
 
 
@@ -50,7 +50,7 @@ from wagtail_wordpress_import.handle_inline_shortcodes import (
 # a construct_html_tag method for converting the shortcode to a HTML tag.
 class StockHandler(InlineShortcodeHandler):
     """
-    The Wordpress shortcode is replaced by a custom HTML tag. 
+    The Wordpress shortcode is replaced by a custom HTML tag.
     The shortcode attributes are preserved and can be included in the custom HTML tag.
 
     Sample wordpress stock shortcode:
@@ -61,24 +61,25 @@ class StockHandler(InlineShortcodeHandler):
     <span data-stock="TSLA">$TSLA</span>
     """
 
-    # The shortcode name that is after the first "[" and the 
+    # The shortcode name that is after the first "[" and the
     # matching for the shortcode name will end at the first space
     shortcode_name = "stock"
 
     """You must implement this method in your own class"""
+
     def construct_html_tag(self, html):
         # It will receive the `html` string content of the RichText block
 
-        """ This is fully functioning code for the stock example. You may need 
+        """This is fully functioning code for the stock example. You may need
         to use your own logic here depending on your requirements.
-        
-        The output needs be the `html` string received with the  modifications 
+
+        The output needs be the `html` string received with the  modifications
         your code makes.
         """
 
-        matches = self._pattern.finditer(html) # find all matches of the shortcode
+        matches = self._pattern.finditer(html)  # find all matches of the shortcode
 
-        for match in matches: # Loop through the matches
+        for match in matches:  # Loop through the matches
 
             # Get the shortcode attributes using the parent class method
             # or you can implement your own method for this.
@@ -90,9 +91,10 @@ class StockHandler(InlineShortcodeHandler):
                 f'<{self.element_name} data-{self.shortcode_name}="{attrs["symbol"]}">${attrs["symbol"]}</{self.element_name}>',
             )
 
-        return html # always return the modified `html` as a string
+        return html  # always return the modified `html` as a string
 
-# Provide a reference to the class thats equal to the last part of your 
+
+# Provide a reference to the class thats equal to the last part of your
 # configuration dotted path. See configuration example below.
 stock_handler = StockHandler()
 ```
