@@ -2,7 +2,9 @@
 
 ## Unreleased
 
+- Wagtail 4.0 upgrade (includes v4.1)
 - Remove unused files and folders
+- Move example app to testapp
 
 ## 0.2.0 [2022-10-27](https://github.com/torchbox/wagtail-wordpress-import/tree/v0.2.0)
 
