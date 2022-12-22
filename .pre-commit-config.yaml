@@ -7,18 +7,18 @@ repos:
     rev: 5.10.1
     hooks:
       - id: isort
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 5.0.4
     hooks:
       - id: flake8
   - repo: https://github.com/jackdewinter/pymarkdown
     rev: main
     hooks:
-        - id: pymarkdown
-          args:
-              - --disable-rules
-              - line-length
-              - scan
+      - id: pymarkdown
+        args:
+          - --disable-rules
+          - line-length
+          - scan
   - repo: https://github.com/asottile/blacken-docs
     rev: v1.12.1
     hooks:
