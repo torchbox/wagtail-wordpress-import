@@ -121,7 +121,7 @@ def get_or_save_image(src):
                 ],
             )
         ):
-            temp_image = NamedTemporaryFile(delete=True)
+            temp_image = NamedTemporaryFile()
             temp_image.name = image_file_name
             temp_image.write(response.content)
             temp_image.flush()
@@ -202,7 +202,7 @@ def get_or_save_document(href):
                     ],
                 )
             ):
-                temp_document = NamedTemporaryFile(delete=True)
+                temp_document = NamedTemporaryFile()
                 temp_document.name = document_file_name
                 temp_document.write(response.content)
                 temp_document.flush()
