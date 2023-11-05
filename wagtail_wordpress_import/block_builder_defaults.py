@@ -44,14 +44,11 @@ def fetch_url(src, allow_redirects=True):
         )
         status = True if response.status_code == 200 else False
         return response, status, response.headers.get("content-type")
+    except requests.ConnectTimeout:
+        print(f"ConnectTimeout: {src}")
+        return None, False, None
     except requests.ConnectionError:
         print(f"ConnectionError: {src}")
-        return None, False, None
-    except requests.HTTPError:
-        print(f"HTTPError: {src}")
-        return None, False, None
-    except requests.RequestException:
-        print(f"RequestException: {src}")
         return None, False, None
     except requests.ReadTimeout:
         print(f"ReadTimeout: {src}")
@@ -59,8 +56,11 @@ def fetch_url(src, allow_redirects=True):
     except requests.Timeout:
         print(f"Timeout: {src}")
         return None, False, None
-    except requests.ConnectTimeout:
-        print(f"ConnectTimeout: {src}")
+    except requests.HTTPError:
+        print(f"HTTPError: {src}")
+        return None, False, None
+    except requests.RequestException:
+        print(f"RequestException: {src}")
         return None, False, None
 
 
