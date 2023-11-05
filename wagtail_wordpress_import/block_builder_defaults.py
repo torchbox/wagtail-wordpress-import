@@ -50,9 +50,6 @@ def fetch_url(src, allow_redirects=True):
     except requests.HTTPError:
         print(f"HTTPError: {src}")
         return None, False, None
-    except requests.RequestException:
-        print(f"RequestException: {src}")
-        return None, False, None
     except requests.ReadTimeout:
         print(f"ReadTimeout: {src}")
         return None, False, None
@@ -61,6 +58,9 @@ def fetch_url(src, allow_redirects=True):
         return None, False, None
     except requests.ConnectTimeout:
         print(f"ConnectTimeout: {src}")
+        return None, False, None
+    except requests.RequestException:
+        print(f"RequestException: {src}")
         return None, False, None
 
 
