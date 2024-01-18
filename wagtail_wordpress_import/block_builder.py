@@ -51,7 +51,45 @@ class BlockBuilder:
             promotees = self.soup.findAll(promotee)
             for promotee in promotees:
                 if promotee.parent.name in removee_tags:
-                    promotee.parent.replace_with(promotee)
+                    # Extract the promotee tag from a removee tag
+                    #
+                    # <div>
+                    #   <blockquote></blockquote>
+                    #   <tag></tag>
+                    #   <blockquote></blockquote>
+                    # </div>
+                    #
+                    # Needs to become
+                    # <blockquote></blockquote>
+                    # <div>
+                    #   <tag></tag>
+                    # </div>
+                    # <blockquote></blockquote>
+                    #
+                    # Before this change it became
+                    # <blockquote></blockquote>
+
+                    # This is the only item to replace the parent
+                    next_siblings_count = len(list(promotee.next_siblings))
+                    previous_siblings_count = len(list(promotee.previous_siblings))
+                    if next_siblings_count == 0 and previous_siblings_count == 0:
+                        promotee.parent.replace_with(promotee)
+                    # There are no more after this item move after the parent
+                    elif next_siblings_count == 0:
+                        promotee.parent.insert_after(promotee.extract())
+                    # There are no more before this item move after the parent
+                    elif previous_siblings_count == 0:
+                        promotee.parent.insert_before(promotee.extract())
+                    # This item is in the middle of a block so create a new block
+                    else:
+                        new_tag = self.soup.new_tag(promotee.parent.name, **promotee.parent.attrs)
+                        while promotee.next_sibling is not None:
+                            new_tag.append(promotee.next_sibling.extract())
+
+                        promotee.parent.insert_after(new_tag)
+                        # We want promotee to be before new_tag so insert second
+                        promotee.parent.insert_after(promotee.extract())
+
 
     def get_builder_function(self, element):
         """
