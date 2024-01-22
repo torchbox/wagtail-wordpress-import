@@ -1,5 +1,16 @@
 from django.conf import settings
 
+def __append_or_set(tag, key, value):
+    if tag.attrs.get(key):
+        # The key class can be a string or list
+        # so copy the mode that is being used currently
+        # https://beautiful-soup-4.readthedocs.io/en/latest/index.html?highlight=find_all#multi-valued-attributes
+        if type(tag.attrs[key]) is str:
+            tag.attrs[key] += " " + value
+        else:
+            tag.attrs[key].append(value)
+    else:
+        tag.attrs[key] = value
 
 def transform_style_bold(soup, tag):
     """
@@ -34,50 +45,35 @@ def transform_style_center(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    if tag.attrs.get("class"):
-        tag.attrs["class"].append("align-center")
-    else:
-        tag.attrs["class"] = "align-center"
+    __append_or_set(tag, "class", "align-center")
 
 
 def transform_style_left(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    if tag.attrs.get("class"):
-        tag.attrs["class"].append("align-left")
-    else:
-        tag.attrs["class"] = "align-left"
+    __append_or_set(tag, "class", "align-left")
 
 
 def transform_style_right(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    if tag.attrs.get("class"):
-        tag.attrs["class"].append("align-right")
-    else:
-        tag.attrs["class"] = "align-right"
+    __append_or_set(tag, "class", "align-right")
 
 
 def transform_float_left(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    if tag.attrs.get("class"):
-        tag.attrs["class"].append("float-left")
-    else:
-        tag.attrs["class"] = "float-left"
+    __append_or_set(tag, "class", "float-left")
 
 
 def transform_float_right(soup, tag):
     """
     apply a new css class to any existing classes
     """
-    if tag.attrs.get("class"):
-        tag.attrs["class"].append("float-right")
-    else:
-        tag.attrs["class"] = "float-right"
+    __append_or_set(tag, "class", "float-right")
 
 
 def transform_html_tag_strong(soup, tag):
