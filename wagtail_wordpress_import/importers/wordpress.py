@@ -125,6 +125,27 @@ class WordpressImporter:
                             wp_post_id=wordpress_item.cleaned_data.get("wp_post_id")
                         )
                     except self.page_model_class.DoesNotExist:
+                        try:
+                            # We are creating a new page as the wp_post_id doesn't exist
+                            # however we may have a collision of slugs between page and post types
+                            # https://core.trac.wordpress.org/ticket/13459
+                            slug_post = self.page_model_class.objects.get(
+                                slug=wordpress_item.cleaned_data.get("slug")
+                            )
+
+                            # If the existing type is a post and the new type is a page
+                            # then override by deleting the existing post
+                            # https://core.trac.wordpress.org/ticket/13459
+                            if slug_post.wp_post_type == "post" and wordpress_item.cleaned_data.get("wp_post_type") == "page":
+                                slug_post.delete()
+                            # If the existing type is a page and the new type is a post
+                            # then ignore as page is stronger than post
+                            elif slug_post.wp_post_type == "page" and wordpress_item.cleaned_data.get("wp_post_type") == "post":
+                                self.logger.skipped += 1
+                                continue
+                        except self.page_model_class.DoesNotExist:
+                            pass
+
                         page = self.page_model_class()
 
                     # add categories for this page if categories plugin is enabled
