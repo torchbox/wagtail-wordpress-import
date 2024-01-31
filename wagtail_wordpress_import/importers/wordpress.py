@@ -1,5 +1,6 @@
 import copy
 import json
+import uuid
 from datetime import datetime
 
 from wagtail import VERSION as WAGTAIL_VERSION
@@ -141,6 +142,17 @@ class WordpressImporter:
                         page, body
                     )  # if the body streamfield is invalid, exit with a ValueError
 
+                    # If the page has a parent then we might need to reparent it later
+                    if cleaned_data["wp_post_meta"]["wp_post_parent"] != 0:
+                        # If the page has not been created yet or the parent is still the root
+                        # then store the current slug for later and create a uuid for now.
+                        #
+                        # Note we need to use a uuid as there might be duplicate slugs
+                        # between the pages as they are not supposed to siblings right now
+                        if not page.id or page.get_parent() == self.parent_page_obj:
+                            cleaned_data["wp_post_meta"]["original_slug"] = cleaned_data["slug"]
+                            cleaned_data["slug"] = str(uuid.uuid4())
+
                     page.import_wordpress_data(cleaned_data)
 
                     if item.get("wp:status") == "draft":
@@ -212,6 +224,8 @@ class WordpressImporter:
         ).specific()
 
         self.connect_richtext_page_links(self.imported_pages)
+
+        self.reparent_pages(self.imported_pages)
 
         """Run all hooks in settings.WORDPRESS_IMPORT_HOOKS_ITEMS_TO_CACHE"""
         for hook, actions in getattr(
@@ -328,6 +342,26 @@ class WordpressImporter:
                 page_categories.append(category)
 
             page.categories = page_categories
+
+    def reparent_pages(self, imported_pages):
+        """
+        Reparent any pages that have a wp_post_parent and update their slug
+        """
+        for page in imported_pages:
+            wp_post_parent_id = page.wp_post_meta.get("wp_post_parent", 0)
+            original_slug = page.wp_post_meta.get("original_slug", None)
+
+            # If this page has a parent and still has an original slug then reparent it
+            if wp_post_parent_id != 0 and original_slug is not None:
+                wp_post_parent_page = page.__class__.objects.get(wp_post_id = wp_post_parent_id)
+                # Check that the parent isn't the same already
+                if page.get_parent() != wp_post_parent_page:
+                    page.move(wp_post_parent_page, pos="last-child")
+                    page = page.specific_class.objects.get(pk=page.pk)
+                    # Restore the correct slug
+                    page.slug = original_slug
+                    del page.wp_post_meta["original_slug"]
+                    page.save()
 
 
 def default_prefilters():
