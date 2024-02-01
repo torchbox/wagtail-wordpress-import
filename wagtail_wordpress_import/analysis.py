@@ -20,6 +20,7 @@ class HTMLAnalyzer:
         self.styles_unique_pages = Counter()
         self.classes_unique_pages = Counter()
         self.shortcodes_unique_pages = Counter()
+        self.shortcodes_page_url = {}
 
     @classmethod
     def find_all_tags(cls, dom):
@@ -91,7 +92,7 @@ class HTMLAnalyzer:
 
         return shortcodes
 
-    def analyze(self, html):
+    def analyze(self, html, page_url):
         self.total += 1
 
         try:
@@ -117,3 +118,6 @@ class HTMLAnalyzer:
         self.styles_unique_pages.update(styles.keys())
         self.classes_unique_pages.update(classes.keys())
         self.shortcodes_unique_pages.update(shortcodes.keys())
+
+        for shortcode in shortcodes.keys():
+            self.shortcodes_page_url[shortcode] = page_url

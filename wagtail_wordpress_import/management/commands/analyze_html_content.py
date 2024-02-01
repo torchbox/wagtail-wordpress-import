@@ -112,10 +112,11 @@ class Command(BaseCommand):
             "Shortcode",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for shortcode, total_pages in analyzer.shortcodes_unique_pages.most_common():
             shortcodes_table.add_row(
-                [shortcode, total_pages, analyzer.shortcodes_total[shortcode]]
+                [shortcode, total_pages, analyzer.shortcodes_total[shortcode], analyzer.shortcodes_page_url[shortcode]]
             )
 
         self.stdout.write("Most commonly used shortcodes")

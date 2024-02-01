@@ -265,7 +265,8 @@ class WordpressImporter:
                 ):
 
                     html_analyzer.analyze(
-                        filter_linebreaks_wp(item.get("content:encoded"))
+                        filter_linebreaks_wp(item.get("content:encoded")),
+                        item.get("link"),
                     )
 
     def connect_richtext_page_links(self, imported_pages):
