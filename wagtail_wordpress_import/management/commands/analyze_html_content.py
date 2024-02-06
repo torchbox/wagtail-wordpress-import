@@ -58,9 +58,9 @@ class Command(BaseCommand):
 
         # Tags
         tags_table = PrettyTable()
-        tags_table.field_names = ["Tag", "Pages used on", "Total occurrences"]
+        tags_table.field_names = ["Tag", "Pages used on", "Total occurrences", "Last URL"]
         for tag, total_pages in analyzer.tags_unique_pages.most_common():
-            tags_table.add_row([tag, total_pages, analyzer.tags_total[tag]])
+            tags_table.add_row([tag, total_pages, analyzer.tags_total[tag], analyzer.tags_page_url[tag]])
 
         self.stdout.write("Most commonly used HTML tags")
         self.stdout.write(str(tags_table))

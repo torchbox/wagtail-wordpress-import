@@ -20,6 +20,8 @@ class HTMLAnalyzer:
         self.styles_unique_pages = Counter()
         self.classes_unique_pages = Counter()
         self.shortcodes_unique_pages = Counter()
+
+        self.tags_page_url = {}
         self.shortcodes_page_url = {}
 
     @classmethod
@@ -118,6 +120,9 @@ class HTMLAnalyzer:
         self.styles_unique_pages.update(styles.keys())
         self.classes_unique_pages.update(classes.keys())
         self.shortcodes_unique_pages.update(shortcodes.keys())
+
+        for tag in tags.keys():
+            self.tags_page_url[tag] = page_url
 
         for shortcode in shortcodes.keys():
             self.shortcodes_page_url[shortcode] = page_url
