@@ -72,6 +72,7 @@ class Command(BaseCommand):
             "Attribute",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for (
             tag,
@@ -83,6 +84,7 @@ class Command(BaseCommand):
                     attribute,
                     total_pages,
                     analyzer.attributes_total[(tag, attribute)],
+                    analyzer.attributes_page_url[(tag, attribute)],
                 ]
             )
 
@@ -97,10 +99,11 @@ class Command(BaseCommand):
             "Style",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for (tag, style), total_pages in analyzer.styles_unique_pages.most_common():
             styles_table.add_row(
-                [tag, style, total_pages, analyzer.styles_total[(tag, style)]]
+                [tag, style, total_pages, analyzer.styles_total[(tag, style)], analyzer.styles_page_url[(tag, style)]]
             )
 
         self.stdout.write("")
