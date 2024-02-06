@@ -58,9 +58,9 @@ class Command(BaseCommand):
 
         # Tags
         tags_table = PrettyTable()
-        tags_table.field_names = ["Tag", "Pages used on", "Total occurrences"]
+        tags_table.field_names = ["Tag", "Pages used on", "Total occurrences", "Last URL"]
         for tag, total_pages in analyzer.tags_unique_pages.most_common():
-            tags_table.add_row([tag, total_pages, analyzer.tags_total[tag]])
+            tags_table.add_row([tag, total_pages, analyzer.tags_total[tag], analyzer.tags_page_url[tag]])
 
         self.stdout.write("Most commonly used HTML tags")
         self.stdout.write(str(tags_table))
@@ -72,6 +72,7 @@ class Command(BaseCommand):
             "Attribute",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for (
             tag,
@@ -83,6 +84,7 @@ class Command(BaseCommand):
                     attribute,
                     total_pages,
                     analyzer.attributes_total[(tag, attribute)],
+                    analyzer.attributes_page_url[(tag, attribute)],
                 ]
             )
 
@@ -97,10 +99,11 @@ class Command(BaseCommand):
             "Style",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for (tag, style), total_pages in analyzer.styles_unique_pages.most_common():
             styles_table.add_row(
-                [tag, style, total_pages, analyzer.styles_total[(tag, style)]]
+                [tag, style, total_pages, analyzer.styles_total[(tag, style)], analyzer.styles_page_url[(tag, style)]]
             )
 
         self.stdout.write("")
@@ -112,10 +115,11 @@ class Command(BaseCommand):
             "Shortcode",
             "Pages used on",
             "Total occurrences",
+            "Last URL",
         ]
         for shortcode, total_pages in analyzer.shortcodes_unique_pages.most_common():
             shortcodes_table.add_row(
-                [shortcode, total_pages, analyzer.shortcodes_total[shortcode]]
+                [shortcode, total_pages, analyzer.shortcodes_total[shortcode], analyzer.shortcodes_page_url[shortcode]]
             )
 
         self.stdout.write("Most commonly used shortcodes")
