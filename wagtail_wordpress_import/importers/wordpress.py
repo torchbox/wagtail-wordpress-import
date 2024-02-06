@@ -116,6 +116,7 @@ class WordpressImporter:
                 if (
                     item.get("wp:post_type") in kwargs["page_types"]
                     and item.get("wp:status") in kwargs["page_statuses"]
+                    and not getattr(settings, "WORDPRESS_IMPORT_HOOK_SKIP_PAGE", lambda _: False)(item)
                 ):
 
                     wordpress_item = WordpressItem(item, self.logger)
