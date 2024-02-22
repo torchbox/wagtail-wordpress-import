@@ -143,11 +143,6 @@ class WordpressImporter:
 
                     page.import_wordpress_data(cleaned_data)
 
-                    if item.get("wp:status") == "draft":
-                        setattr(page, "live", False)
-                    else:
-                        setattr(page, "live", True)
-
                     if page.id:
                         page.save()
                         self.logger.imported += 1
@@ -177,6 +172,19 @@ class WordpressImporter:
                                 "slugcheck": wordpress_item.slug_changed,
                             }
                         )
+
+                        # Create a revision
+                        revision = page.save_revision()
+
+                        # Publish it if we are not draft
+                        if item.get("wp:status") != "draft":
+                            revision.publish()
+
+                    # Set the live state after publishing
+                    if item.get("wp:status") == "draft":
+                        setattr(page, "live", False)
+                    else:
+                        setattr(page, "live", True)
 
                     self.imported_page_ids.append(page.id)
 
