@@ -62,7 +62,7 @@ class BlockShortcodeHandler:
             + r"\b"  # matches a word boundary
             + r"(?P<attrs>[^\]]*)"  # capture 'attrs', matching anything but ]
             + r"\]"  # matches the closing ] of the opening tag
-            + r"(?P<content>.*?)"  # non-greedily captures 'content' between the tags
+            + r"(?P<content>(.|\n)*?)"  # non-greedily captures 'content' between the tags
             + r"\[\/"  # matches the  [/ of the closing tag
             + self.shortcode_name
             + r"\]"  # matches the closing ]
