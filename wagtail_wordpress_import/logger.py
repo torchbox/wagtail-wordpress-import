@@ -18,7 +18,7 @@ class Logger:
         item = self.items[-1]
         if not item["id"] == 0:
             sys.stdout.write(
-                f"Wagtail ID: {item['id']}, {item['title']}, {item['result']}\n"
+                f"Wagtail ID: {item['id']}, {item['title']}, {item['result']}, {item['id']}, {item['wp_guid']}\n"
             )
 
     def get_items_report_data(self):
