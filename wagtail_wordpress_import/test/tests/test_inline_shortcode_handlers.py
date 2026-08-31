@@ -160,9 +160,7 @@ class TestGetAttrs(TestCase):
         handler = FooHandler()
         attrs = " foo=1  bar=2 "
 
-        with self.subTest(
-            """The provided method cannot handle multiple spaces around
-            the attrs or multiple space between the attrs"""
-        ):
+        with self.subTest("""The provided method cannot handle multiple spaces around
+            the attrs or multiple space between the attrs"""):
             with self.assertRaises(IndexError):
                 attrs = handler.get_shortcode_attrs(attrs)

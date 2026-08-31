@@ -24,14 +24,10 @@ class TestXmlStream(TestCase):
         built = build_xml_stream(
             xml_tags_fragment=fragment_tags, xml_items_fragment=fragment_items
         ).read()
-        expected = StringIO(
-            xml_stream_header
-            + """
+        expected = StringIO(xml_stream_header + """
                 <wp:foo>
                     <wp:foo_first_name>J.</wp:foo_first_name>
                     <wp:foo_last_name>Money</wp:foo_last_name>
-                </wp:foo>"""
-            + xml_stream_footer
-        ).read()
+                </wp:foo>""" + xml_stream_footer).read()
         self.maxDiff = None
         self.assertEqual(built, expected)
