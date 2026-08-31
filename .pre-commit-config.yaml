@@ -1,18 +1,18 @@
 repos:
-  - repo: https://github.com/python/black
-    rev: 22.10.0
+  - repo: https://github.com/psf/black-pre-commit-mirror
+    rev: 26.5.1
     hooks:
       - id: black
   - repo: https://github.com/PyCQA/isort
-    rev: 5.10.1
+    rev: 9.0.1
     hooks:
       - id: isort
   - repo: https://github.com/pycqa/flake8
-    rev: 5.0.4
+    rev: 7.3.0
     hooks:
       - id: flake8
   - repo: https://github.com/jackdewinter/pymarkdown
-    rev: main
+    rev: v0.9.39
     hooks:
       - id: pymarkdown
         args:
@@ -20,7 +20,7 @@ repos:
           - line-length
           - scan
   - repo: https://github.com/asottile/blacken-docs
-    rev: v1.12.1
+    rev: 1.20.0
     hooks:
       - id: blacken-docs
         additional_dependencies: [black==22.10.0]
